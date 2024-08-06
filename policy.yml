@@ -1,4 +1,4 @@
-task_name: hammer_beat
+task_name: pick_bottles
 # model_path: nothing
 render_freq: 10       # render frequence (0: render off)
 use_seed: False          # use seed ,if value is True, the seed file has existed in ./seeds/{task_name}.txt  
@@ -9,7 +9,7 @@ camera_w: 336       #
 camera_h: 224       # camera args
 pcd_crop: True      #...  
 pcd_down_sample_num: 1024    # pcd down sample num 
-checkpoint_num: 3000
+checkpoint_num: 30001
 episode_num: 1    # episode num
 data_type:          # the data types should be saved
   rgb: True

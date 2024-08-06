@@ -72,7 +72,7 @@ class pick_bottles(Base_task):
         
         self.together_move_to_pose_with_screw(left_pose0,right_pose0,save_freq=15)
 
-        self.together_move_to_pose_with_screw(left_pose1,right_pose1,save_freq=20)
+        self.together_move_to_pose_with_screw(left_pose1,right_pose1,save_freq=15)
         for i in range(2):
             self._take_picture()
         self.together_close_gripper(save_freq=15)
@@ -81,7 +81,7 @@ class pick_bottles(Base_task):
             self._take_picture()
         left_pose1[2]+=0.08
         right_pose1[2]+=0.08
-        self.together_move_to_pose_with_screw(left_pose1,right_pose1,save_freq=20)
+        self.together_move_to_pose_with_screw(left_pose1,right_pose1,save_freq=15)
         for i in range(2):
             self._take_picture()
         self.together_move_to_pose_with_screw(left_target_pose,right_target_pose,save_freq=15)
@@ -112,14 +112,14 @@ class pick_bottles(Base_task):
             # point_cloud.points = o3d.utility.Vector3dVector(obs['point_cloud'])
             # o3d.io.write_point_cloud('result.pcd', point_cloud)
 
-            if False:
+            if True:
                 import zarr
-                zarr_path = './pick_bottles_bac.zarr'
+                zarr_path = './pick_bottles_10.zarr'
                 # 打开.zarr文件
                 zarr_array = zarr.open(zarr_path, mode='r')
 
                 # 读取数据
-                actions = zarr_array['data']['action'][cnt+5:cnt+20]
+                actions = zarr_array['data']['action'][cnt:cnt+5]
                 left_arm_actions,left_gripper = actions[:, :6],actions[:, 6]
 
                 right_arm_actions,right_gripper = actions[:, 7:13],actions[:, 13]
@@ -135,9 +135,9 @@ class pick_bottles(Base_task):
             # print('obs left gripper: ', obs['agent_pos'][6])
             # print('obs right gripper: ', obs['agent_pos'][13])
 
-            actions = model.get_action(obs)
-            left_arm_actions,left_gripper = actions[:, :6],actions[:, 6]
-            right_arm_actions,right_gripper = actions[:, 7:13],actions[:, 13]
+            # actions = model.get_action(obs)
+            # left_arm_actions,left_gripper = actions[:, :6],actions[:, 6]
+            # right_arm_actions,right_gripper = actions[:, 7:13],actions[:, 13]
 
             left_current_qpos, right_current_qpos = obs['agent_pos'][:6], obs['agent_pos'][7:13]
             

@@ -2,6 +2,7 @@ import sapien.core as sapien
 import numpy as np
 import transforms3d as t3d
 import sapien.physx as sapienp
+import json
 
 # create box
 def create_box(
@@ -49,6 +50,7 @@ def create_obj(
     scale = (1,1,1),
     convex = False,
     is_static = False,
+    model_data = False
 ) -> sapien.Entity:
     modeldir = "./models/"+modelname+"/"
     builder = scene.create_actor_builder()
@@ -72,6 +74,13 @@ def create_obj(
         scale= scale)
     mesh = builder.build(name=modelname)
     mesh.set_pose(pose)
+    if model_data == True:
+        json_file_path = modeldir + 'model_data.json'  # 替换为你的JSON文件路径
+
+        # 读取并解析JSON文件
+        with open(json_file_path, 'r') as file:
+            data = json.load(file)
+    
     return mesh
 
 def create_urdf_obj(
@@ -84,6 +93,7 @@ def create_urdf_obj(
     loader: sapien.URDFLoader = scene.create_urdf_loader()
     loader.scale = scale
     loader.fix_root_link = fix_root_link
+    loader.load_multiple_collisions_from_file = True
     modeldir = "./models/"+modelname+"/"
     object: sapien.Articulation = loader.load(modeldir+"mobility.urdf")
     
@@ -131,3 +141,46 @@ def create_table(
     table.set_pose(pose)
     return table
 
+
+
+def create_glb(
+    scene: sapien.Scene,
+    pose: sapien.Pose,
+    modelname: str,
+    scale = (1,1,1),
+    convex = False,
+    is_static = False,
+    model_data = False
+) -> sapien.Entity:
+    modeldir = "./models/"+modelname+"/"
+    builder = scene.create_actor_builder()
+    if is_static:
+        builder.set_physx_body_type("static")
+
+    # 创建凸包或非凸包碰撞对象
+    if convex==True:
+        builder.add_convex_collision_from_file(
+            filename = modeldir+"base.glb",
+            scale= scale
+        )
+    else:
+        builder.add_nonconvex_collision_from_file(
+            filename = modeldir+"base.glb",
+            scale = scale
+        )
+    
+    builder.add_visual_from_file(
+        filename=modeldir + "base.glb",
+        scale= scale)
+    mesh = builder.build(name=modelname)
+    mesh.set_pose(pose)
+    data = None
+    
+    if model_data == True:
+        json_file_path = modeldir + 'model_data.json'  # 替换为你的JSON文件路径
+
+        # 读取并解析JSON文件
+        with open(json_file_path, 'r') as file:
+            data = json.load(file)
+    
+    return mesh

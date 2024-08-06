@@ -137,8 +137,8 @@ def test_policy(Demo_class, args, dp3):
     test_num = 20
     succ_seed = 0
     suc_test_seed_list = []
-    test_seed_list = [100, 101, 102, 103, 104, 105, 107, 108, 109, 110, 111, 113, 114, 115, 116, 118, 119, 120, 121, 122]       # hammer_beat
-    # test_seed_list = [0, 1, 2, 3, 104, 105, 107, 108, 109, 110, 111, 113, 114, 115, 116, 118, 119, 120, 121, 122]
+    # test_seed_list = [100, 101, 102, 103, 104, 105, 107, 108, 109, 110, 111, 113, 114, 115, 116, 118, 119, 120, 121, 122]       # hammer_beat
+    test_seed_list = [0, 1, 2, 3, 104, 105, 107, 108, 109, 110, 111, 113, 114, 115, 116, 118, 119, 120, 121, 122]
     # args['is_save'] = True
     for i in range(20):
     # for now_seed in test_seed_list:

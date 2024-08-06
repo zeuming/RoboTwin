@@ -51,6 +51,7 @@ def rand_create_obj(
     scale = (1,1,1),
     convex = False,
     is_static = False,
+    model_data = False,
 ) -> sapien.Entity:
     
     obj_pose = rand_pose(
@@ -67,7 +68,8 @@ def rand_create_obj(
         modelname=modelname,
         scale=scale,
         convex=convex,
-        is_static=is_static
+        is_static=is_static,
+        model_data = model_data
     )
 
     return mesh
@@ -103,3 +105,39 @@ def rand_create_urdf_obj(
     )
 
     return object
+
+
+def rand_create_glb(
+    scene: sapien.Scene,
+    modelname: str,
+    xlim: np.ndarray,
+    ylim: np.ndarray,
+    zlim: np.ndarray,
+    rotate_rand = False,
+    rotate_lim = [0,0,0],
+    qpos = [1,0,0,0],
+    scale = (1,1,1),
+    convex = False,
+    is_static = False,
+    model_data=False
+) -> sapien.Entity:
+    
+    obj_pose = rand_pose(
+        xlim=xlim,
+        ylim=ylim,
+        zlim=zlim,
+        rotate_rand=rotate_rand,
+        rotate_lim=rotate_lim,
+        qpos=qpos
+    )
+    mesh = create_glb(
+        scene=scene,
+        pose=obj_pose,
+        modelname=modelname,
+        scale=scale,
+        convex=convex,
+        is_static=is_static,
+        model_data =model_data
+    )
+
+    return mesh
