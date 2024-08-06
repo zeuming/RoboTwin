@@ -1,0 +1,1 @@
+bash eval_dp3.sh robot_dp3 hammer_beat_10 test 0 0

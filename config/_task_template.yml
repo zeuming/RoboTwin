@@ -1,0 +1,23 @@
+task_name: template
+render_freq: 10       # render frequence (0: render off)
+use_seed: False          # use seed ,if value is True, the seed file has existed in ./seeds/{task_name}.txt  
+collect_data: False  # collect data
+save_path: './benchmark_data/'
+st_episode: 0    # begin_episode 
+camera_w: 640       #
+camera_h: 480       # camera args
+pcd_crop: True      #...  
+pcd_down_sample_num: 1024    # pcd down sample num 
+episode_num: 100    # episode num
+bbox: [[-0.6, -0.35, 0.7401],[0.6, 0.35, 2]]
+save_type:
+  raw_data: True
+  pkl: True
+data_type:          # the data types should be saved
+  rgb: True
+  depth: True
+  pointcloud: True
+  endpose: True
+  qpos: True
+  mesh_segmentation: True
+  actor_segmentation: True

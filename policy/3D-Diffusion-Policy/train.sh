@@ -1,0 +1,1 @@
+bash scripts/train_policy.sh robot_dp3 hammer_beat_10 test 0 0
