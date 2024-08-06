@@ -805,24 +805,24 @@ class Base_task(gym.Env):
         jointState_list = []
         for id in self.left_arm_joint_id:
             jointState_list.append(self.active_joints[id].get_drive_target()[0].astype(float))
-        jointState_list.append(self.active_joints[34].get_drive_target()[0].astype(float))
+        jointState_list.append(self.left_gripper_val)
         return jointState_list
 
     def get_right_arm_jointState(self) -> list:
         jointState_list = []
         for id in self.right_arm_joint_id:
             jointState_list.append(self.active_joints[id].get_drive_target()[0].astype(float))
-        jointState_list.append(self.active_joints[36].get_drive_target()[0].astype(float))
+        jointState_list.append(self.right_gripper_val)
         return jointState_list
     
-    def endpose_transform(self, joint):
+    def endpose_transform(self, joint, gripper_val):
         # 矩阵变换
         rpy = joint.global_pose.get_rpy()
         roll, pitch, yaw = rpy
         x,y,z = joint.global_pose.p
         # 保存
         endpose = {
-            "gripper": float(self.left_gripper_val),
+            "gripper": float(gripper_val),
             "pitch" : float(pitch),
             "roll" : float(roll),
             "x": float(x),
@@ -971,8 +971,8 @@ class Base_task(gym.Env):
         # # endpose JSON
         # # ---------------------------------------------------------------------------- #
         if self.data_type.get('endpose', False):
-            left_endpose = self.endpose_transform(self.all_joints[42])
-            right_endpose = self.endpose_transform(self.all_joints[43])
+            left_endpose = self.endpose_transform(self.all_joints[42], self.left_gripper_val)
+            right_endpose = self.endpose_transform(self.all_joints[43], self.right_gripper_val)
 
             if self.save_type.get('raw_data', True):
                 save_json(self.file_path["ml_ep"]+f"{self.PCD_INDEX}.json", left_endpose)

@@ -126,6 +126,10 @@ class hammer_beat(Base_task):
 
             left_current_qpos, right_current_qpos = obs['agent_pos'][:6], obs['agent_pos'][7:13]
             
+            print(obs['agent_pos'][6], obs['agent_pos'][13])
+            print(left_gripper)
+            print(right_gripper,'\n')
+            
             left_path = np.vstack((left_current_qpos, left_arm_actions))
             right_path = np.vstack((right_current_qpos, right_arm_actions))
 
@@ -187,6 +191,7 @@ class hammer_beat(Base_task):
                         # joint.set_drive_target(left_result["position"][i][6])
                         joint.set_drive_target(left_gripper[now_left_id])
                         joint.set_drive_velocity_target(0.05)
+                        self.left_gripper_val = left_gripper[now_left_id]
 
                     now_left_id +=1
                     
@@ -200,6 +205,7 @@ class hammer_beat(Base_task):
                         # joint.set_drive_target(right_result["position"][i][6])
                         joint.set_drive_target(right_gripper[now_right_id])
                         joint.set_drive_velocity_target(0.05)
+                        self.right_gripper_val = right_gripper[now_right_id]
 
                     now_right_id +=1
                 
