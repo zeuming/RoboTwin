@@ -4,3 +4,5 @@ models/
 hammer_beat_pkl/
 data/
 __pycache__/
+tmp_/
+policy/3D-Diffusion-Policy/3D-Diffusion-Policy/data/

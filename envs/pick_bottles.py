@@ -29,8 +29,8 @@ class pick_bottles(Base_task):
         # super().setup_scene()
         self.red_bottle = rand_create_obj(
             self.scene,
-            xlim=[-0.3,-0.05],
-            ylim=[0.,0.3],
+            xlim=[-0.25,-0.05],
+            ylim=[0.,0.25],
             zlim=[0.865],
             modelname="089_red_bottle_3",
             rotate_rand=False,
@@ -41,8 +41,8 @@ class pick_bottles(Base_task):
 
         self.green_bottle=rand_create_obj(
             self.scene,
-            xlim=[0.05,0.3],
-            ylim=[0.,0.3],
+            xlim=[0.05,0.25],
+            ylim=[0.,0.25],
             zlim=[0.865],
             modelname="090_green_bottle_2",
             rotate_rand=False,
@@ -98,7 +98,7 @@ class pick_bottles(Base_task):
             self.viewer.render()
         
         self.actor_pose = True
-        while cnt < 500 : # num < 382
+        while cnt < 300 :
             observation = self.get_obs()  
             obs = dict()
             obs['point_cloud'] = observation['pcd']
@@ -106,38 +106,9 @@ class pick_bottles(Base_task):
             obs['real_joint_action'] = np.concatenate((observation['left_real_joint_action'], observation['left_real_joint_action']))
             assert obs['agent_pos'].shape[0] == 14, 'agent_pose shape, error'
 
-            self._take_picture()
-            # import open3d as o3d
-            # point_cloud = o3d.geometry.PointCloud()
-            # point_cloud.points = o3d.utility.Vector3dVector(obs['point_cloud'])
-            # o3d.io.write_point_cloud('result.pcd', point_cloud)
-
-            if True:
-                import zarr
-                zarr_path = './pick_bottles_10.zarr'
-                # 打开.zarr文件
-                zarr_array = zarr.open(zarr_path, mode='r')
-
-                # 读取数据
-                actions = zarr_array['data']['action'][cnt:cnt+5]
-                left_arm_actions,left_gripper = actions[:, :6],actions[:, 6]
-
-                right_arm_actions,right_gripper = actions[:, 7:13],actions[:, 13]
-
-                qpos = self.robot.get_qpos()
-                arr = []
-                for x in self.right_arm_joint_id:
-                    arr.append(qpos[x])
-                print(arr)
-                # 打印特定数组的数据
-                print(actions.shape[0])
-                
-            # print('obs left gripper: ', obs['agent_pos'][6])
-            # print('obs right gripper: ', obs['agent_pos'][13])
-
-            # actions = model.get_action(obs)
-            # left_arm_actions,left_gripper = actions[:, :6],actions[:, 6]
-            # right_arm_actions,right_gripper = actions[:, 7:13],actions[:, 13]
+            actions = model.get_action(obs)
+            left_arm_actions,left_gripper = actions[:, :6],actions[:, 6]
+            right_arm_actions,right_gripper = actions[:, 7:13],actions[:, 13]
 
             left_current_qpos, right_current_qpos = obs['agent_pos'][:6], obs['agent_pos'][7:13]
             
@@ -165,18 +136,11 @@ class pick_bottles(Base_task):
             except:
                 topp_right_flag = False
                 right_n_step = 1
-            
-            # pdb.set_trace()
-            
-            cnt += actions.shape[0]
 
-            # if not (topp_left_flag or topp_right_flag):
-            #     continue
-            # print('now cnt: ',cnt)
+            cnt += actions.shape[0]
             
             n_step = max(left_n_step, right_n_step)
 
-            # n_step = right_pos.shape[0]
             obs_update_freq = n_step // actions.shape[0]
 
             now_left_id = 0 if topp_left_flag else 1e9
@@ -188,9 +152,6 @@ class pick_bottles(Base_task):
                     gravity=True, coriolis_and_centrifugal=True
                 )
                 self.robot.set_qf(qf)
-                # set the joint positions and velocities for move group joints only.
-                # The others are not the responsibility of the planner
-                # 同时规划双臂轨迹，同时开始同时结束
                 if topp_left_flag and now_left_id < left_n_step and now_left_id / left_n_step <= now_right_id / right_n_step:
                     for j in range(len(self.left_arm_joint_id)):
                         left_j = self.left_arm_joint_id[j]
@@ -198,9 +159,9 @@ class pick_bottles(Base_task):
                         self.active_joints[left_j].set_drive_velocity_target(left_result["velocity"][now_left_id][j])
 
                     for joint in self.active_joints[34:36]:
-                        # joint.set_drive_target(left_result["position"][i][6])
                         joint.set_drive_target(left_gripper[now_left_id])
                         joint.set_drive_velocity_target(0.05)
+                        self.left_gripper_val = left_gripper[now_left_id]
 
                     now_left_id +=1
                     
@@ -214,6 +175,7 @@ class pick_bottles(Base_task):
                         # joint.set_drive_target(right_result["position"][i][6])
                         joint.set_drive_target(right_gripper[now_right_id])
                         joint.set_drive_velocity_target(0.05)
+                        self.right_gripper_val = right_gripper[now_right_id]
 
                     now_right_id +=1
                 
@@ -231,8 +193,6 @@ class pick_bottles(Base_task):
                     self._update_render()
                     if self.render_freq and i % self.render_freq == 0:
                         self.viewer.render()
-                    # if i % 45 == 0:
-                    #     self._take_picture()
                 
                 i+=1
                 if self.is_success():
@@ -252,15 +212,13 @@ class pick_bottles(Base_task):
             obs['real_joint_action'] = np.concatenate((observation['left_real_joint_action'], observation['left_real_joint_action']))
             model.update_obs(obs)
 
-            # print('real_qpos:   ',observation['real_joint_action'])
-            # print('target_qpos: ',actions[-1],'\n')
-
             print('cnt: ',cnt, end='\r')
 
             if success_flag:
                 print("\nsuccess!")
                 self.suc +=1
                 return
+        
             if self.actor_pose == False:
                 break
         print("\nfail!")
@@ -269,13 +227,9 @@ class pick_bottles(Base_task):
         red_target = [-0.046,-0.105]
         green_target = [0.057,-0.105]
         eps = 0.03
-        # target_z = 0.9
         red_bottle_pose = self.red_bottle.get_pose().p
         green_bottle_pose = self.green_bottle.get_pose().p
-        # print(red_bottle_pose)
-        # print(green_bottle_pose)
         if red_bottle_pose[2] < 0.78 or green_bottle_pose[2] < 0.78:
             self.actor_pose = False
         return abs(red_bottle_pose[0]-red_target[0])<eps and abs(red_bottle_pose[1]-red_target[1])<eps and red_bottle_pose[2]>0.9 and\
                abs(green_bottle_pose[0]-green_target[0])<eps and abs(green_bottle_pose[1]-green_target[1])<eps and green_bottle_pose[2]>0.9
-        # return 0

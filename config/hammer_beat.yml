@@ -1,9 +1,9 @@
 task_name: hammer_beat
 render_freq: 0       # render frequence (0: render off)
-use_seed: True          # use seed ,if value is True, the seed file has existed in ./seeds/{task_name}.txt  
+use_seed: False          # use seed ,if value is True, the seed file has existed in ./seeds/{task_name}.txt  
 collect_data: True  # collect data
 save_path: './data'
-st_episode: 41    # begin_episode 
+st_episode: 0    # begin_episode 
 camera_w: 336       #
 camera_h: 224       # camera args
 pcd_crop: True      #...  

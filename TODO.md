@@ -1,11 +1,11 @@
 - [ ] hammer_beat_block
-  - [x] 10 *success rate: 2/20*
+  - [x] 10 *success rate: 2/20 2/20()1200 2/20 1500*
   - [x] 20 *success rate: 7/20*
   - [ ] 50 *success rate: 8/20(2400.ckpt)*
 - [ ] pick_bottles
-  - [ ] 10 *success rate: 1/20*
+  - [ ] 10 *success rate: 1/20, 2/20*
   - [ ] 20 *success rate:*
-  - [ ] 50 *success rate:*
+  - [ ] 50 *success rate: 4/20)__3000, *
 - [ ] open_cabinet_put_apple
   - [ ] 10 *success rate:*
   - [ ] 20 *success rate:*
@@ -18,3 +18,4 @@
   - [ ] 10 *success rate:*
   - [ ] 20 *success rate:*
   - [ ] 50 *success rate:*
+- 

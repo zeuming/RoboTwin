@@ -1,1 +1,1 @@
-bash eval_dp3.sh robot_dp3 hammer_beat_10 test 0 0
+bash eval_dp3.sh robot_dp3 pick_bottles_50 pick_bottles_50 0 1

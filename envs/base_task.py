@@ -71,9 +71,9 @@ class Base_task(gym.Env):
         '''设置场景
         设置基础场景: 光源、viewer
         '''
-        # declare sapien sim
         self.engine = sapien.Engine()
         # declare sapien renderer
+        pdb.set_trace()
         self.renderer = sapien.SapienRenderer()
         # give renderer to sapien sim
         self.engine.set_renderer(self.renderer)

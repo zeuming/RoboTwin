@@ -7,11 +7,11 @@ import transforms3d as t3d
 
 def main():
     visualize_pcd = False
-    load_dir = './data/pick_bottles_pkl'
-    folder_num, num = 0, 10
+    load_dir = './data/hammer_beat_pkl'
+    folder_num, num = 0, 50
     total_count = 0
 
-    save_dir = './pick_bottles_10.zarr'
+    save_dir = './hammer_beat_50.zarr'
 
     if os.path.exists(save_dir):
         shutil.rmtree(save_dir)

@@ -7,6 +7,7 @@ if __name__ == "__main__":
     sys.path.append(ROOT_DIR)
     os.chdir(ROOT_DIR)
 
+
 import os
 import hydra
 import torch
@@ -17,7 +18,6 @@ from train import TrainDP3Workspace
 import pdb
 
 OmegaConf.register_new_resolver("eval", eval, replace=True)
-    
 
 @hydra.main(
     version_base=None,

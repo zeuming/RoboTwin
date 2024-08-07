@@ -50,7 +50,7 @@ class hammer_beat(Base_task):
 
     def load_actors(self):
         coaster_pose = rand_pose(
-            xlim=[0,0.27],
+            xlim=[0,0.25],
             ylim=[-0.05,0.15],
             zlim=[0.76],
             qpos=[-0.552, -0.551, -0.442, -0.444],
@@ -70,7 +70,7 @@ class hammer_beat(Base_task):
         pose1 = list(self.coaster.get_pose().p+[0.056,-0.095,0.27])+[-0.378,0.559,-0.316,-0.667]
         self.right_move_to_pose_with_screw(pose1,save_freq=10)
         pose1[2]-=0.06
-        self.right_move_to_pose_with_screw(pose1,save_freq=15)
+        self.right_move_to_pose_with_screw(pose1,save_freq=20)
         for  _ in range(2):
             self._take_picture()
         
@@ -83,7 +83,7 @@ class hammer_beat(Base_task):
         if self.render_freq:
             self.viewer.render()
         
-        while cnt < 180 : # num < 382
+        while cnt < 180:
             observation = self.get_obs()  
             obs = dict()
             obs['point_cloud'] = observation['pcd']
@@ -91,44 +91,11 @@ class hammer_beat(Base_task):
             obs['real_joint_action'] = np.concatenate((observation['left_real_joint_action'], observation['left_real_joint_action']))
             assert obs['agent_pos'].shape[0] == 14, 'agent_pose shape, error'
 
-            self._take_picture()
-            # import open3d as o3d
-            # point_cloud = o3d.geometry.PointCloud()
-            # point_cloud.points = o3d.utility.Vector3dVector(obs['point_cloud'])
-            # o3d.io.write_point_cloud('result.pcd', point_cloud)
-
-            if False:
-                import zarr
-                zarr_path = './hammer_beat_10.zarr'
-                # 打开.zarr文件
-                zarr_array = zarr.open(zarr_path, mode='r')
-
-                # 读取数据
-                actions = zarr_array['data']['action'][cnt:cnt+20]
-                left_arm_actions,left_arm_actions = actions[:, :6],actions[:, 6]
-                right_arm_actions,right_gripper = actions[:, 7:13],actions[:, 13]
-
-                qpos = self.robot.get_qpos()
-                arr = []
-                for x in self.right_arm_joint_id:
-                    arr.append(qpos[x])
-                print(arr)
-                # 打印特定数组的数据
-                print(actions.shape[0])
-                
-            # print('obs left gripper: ', obs['agent_pos'][6])
-            # print('obs right gripper: ', obs['agent_pos'][13])
-
-            # pdb.set_trace()
             actions = model.get_action(obs)
             left_arm_actions,left_gripper = actions[:, :6],actions[:, 6]
             right_arm_actions,right_gripper = actions[:, 7:13],actions[:, 13]
 
             left_current_qpos, right_current_qpos = obs['agent_pos'][:6], obs['agent_pos'][7:13]
-            
-            print(obs['agent_pos'][6], obs['agent_pos'][13])
-            print(left_gripper)
-            print(right_gripper,'\n')
             
             left_path = np.vstack((left_current_qpos, left_arm_actions))
             right_path = np.vstack((right_current_qpos, right_arm_actions))
@@ -143,6 +110,8 @@ class hammer_beat(Base_task):
             except:
                 topp_left_flag = False
                 left_n_step = 1
+            
+            left_n_step = 0
             
             if left_n_step == 0:
                 topp_left_flag = False
@@ -166,7 +135,6 @@ class hammer_beat(Base_task):
             
             n_step = max(left_n_step, right_n_step)
 
-            # n_step = right_pos.shape[0]
             obs_update_freq = n_step // actions.shape[0]
 
             now_left_id = 0 if topp_left_flag else 1e9
@@ -178,20 +146,17 @@ class hammer_beat(Base_task):
                     gravity=True, coriolis_and_centrifugal=True
                 )
                 self.robot.set_qf(qf)
-                # set the joint positions and velocities for move group joints only.
-                # The others are not the responsibility of the planner
-                # 同时规划双臂轨迹，同时开始同时结束
                 if topp_left_flag and now_left_id < left_n_step and now_left_id / left_n_step <= now_right_id / right_n_step:
                     for j in range(len(self.left_arm_joint_id)):
                         left_j = self.left_arm_joint_id[j]
                         self.active_joints[left_j].set_drive_target(left_result["position"][now_left_id][j])
                         self.active_joints[left_j].set_drive_velocity_target(left_result["velocity"][now_left_id][j])
 
-                    for joint in self.active_joints[34:36]:
-                        # joint.set_drive_target(left_result["position"][i][6])
-                        joint.set_drive_target(left_gripper[now_left_id])
-                        joint.set_drive_velocity_target(0.05)
-                        self.left_gripper_val = left_gripper[now_left_id]
+                    # for joint in self.active_joints[34:36]:
+                    #     # joint.set_drive_target(left_result["position"][i][6])
+                    #     joint.set_drive_target(left_gripper[now_left_id])
+                    #     joint.set_drive_velocity_target(0.05)
+                    #     self.left_gripper_val = left_gripper[now_left_id]
 
                     now_left_id +=1
                     
@@ -201,11 +166,11 @@ class hammer_beat(Base_task):
                         self.active_joints[right_j].set_drive_target(right_result["position"][now_right_id][j])
                         self.active_joints[right_j].set_drive_velocity_target(right_result["velocity"][now_right_id][j])
 
-                    for joint in self.active_joints[36:38]:
-                        # joint.set_drive_target(right_result["position"][i][6])
-                        joint.set_drive_target(right_gripper[now_right_id])
-                        joint.set_drive_velocity_target(0.05)
-                        self.right_gripper_val = right_gripper[now_right_id]
+                    # for joint in self.active_joints[36:38]:
+                    #     # joint.set_drive_target(right_result["position"][i][6])
+                    #     joint.set_drive_target(right_gripper[now_right_id])
+                    #     joint.set_drive_velocity_target(0.05)
+                    #     self.right_gripper_val = right_gripper[now_right_id]
 
                     now_right_id +=1
                 
@@ -223,8 +188,6 @@ class hammer_beat(Base_task):
                     self._update_render()
                     if self.render_freq and i % self.render_freq == 0:
                         self.viewer.render()
-                    # if i % 45 == 0:
-                    #     self._take_picture()
                 
                 i+=1
                 if self.is_success():
@@ -234,14 +197,6 @@ class hammer_beat(Base_task):
             self._update_render()
             if self.render_freq:
                 self.viewer.render()
-            # observation = self.get_obs()
-            # obs=dict()
-            # obs['point_cloud'] = observation['pcd']
-            # obs['agent_pos'] = observation['joint_action']
-            # model.update_obs(obs)
-
-            # print('real_qpos:   ',observation['real_joint_action'])
-            # print('target_qpos: ',actions[-1],'\n')
 
             print('cnt: ',cnt, end='\r')
 
@@ -256,8 +211,5 @@ class hammer_beat(Base_task):
     def is_success(self):
         hammer_pose = self.hammer.get_pose().p
         coaster_pose = self.coaster.get_pose().p
-        # print('now_hammer_pose: ',hammer_pose)
-        # print('now_target_pose: ',coaster_pose)
-        eps = 0.02#
+        eps = 0.02
         return abs(hammer_pose[0]-coaster_pose[0]-0.03)<eps and abs(hammer_pose[1] + 0.06 - coaster_pose[1])<eps and hammer_pose[2]>0.8 and hammer_pose[2] < 0.83
-        # return 1

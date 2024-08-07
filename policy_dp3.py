@@ -1,5 +1,6 @@
 import torch  
 import sapien.core as sapien
+import os
 
 # from envs import pick_empty_cup
 # from envs import pick_cup_with_liquids
@@ -28,22 +29,6 @@ def load_model(model_path):
     model = torch.load(model_path)
     model.eval()  # 设置为评估模式
     return model
-
-# class DP3:
-#     def __init__(self, cfg) -> None:
-#         self.policy, self.env_runner = self.get_policy_and_runner(cfg)
-        
-#     def get_action(self, observation):
-#         # 
-        
-#         # 
-#         action = self.env_runner.get_action(self.policy, obs)
-#         return action    
-
-#     def get_policy_and_runner(self, cfg):
-#         workspace = TrainDP3Workspace(cfg)
-#         policy, env_runner = workspace.get_policy_and_runner()
-#         return policy, env_runner
 
 @hydra.main(
     version_base=None,
@@ -137,9 +122,9 @@ def test_policy(Demo_class, args, dp3):
     test_num = 20
     succ_seed = 0
     suc_test_seed_list = []
-    # test_seed_list = [100, 101, 102, 103, 104, 105, 107, 108, 109, 110, 111, 113, 114, 115, 116, 118, 119, 120, 121, 122]       # hammer_beat
-    test_seed_list = [0, 1, 2, 3, 104, 105, 107, 108, 109, 110, 111, 113, 114, 115, 116, 118, 119, 120, 121, 122]
-    # args['is_save'] = True
+    test_seed_list = [100, 101, 102, 103, 104, 105, 107, 108, 109, 110, 111, 113, 114, 115, 116, 118, 119, 120, 121, 122]       # hammer_beat
+    # test_seed_list = [0, 1, 2, 3, 104, 105, 107, 108, 109, 110, 111, 113, 114, 115, 116, 118, 119, 120, 121, 122]
+    args['is_save'] = True
     for i in range(20):
     # for now_seed in test_seed_list:
         now_seed = test_seed_list[i]
@@ -170,10 +155,11 @@ def test_policy(Demo_class, args, dp3):
             Demo_class.viewer.close()
         dp3.env_runner.reset_obs()
         print(f"seed out of training: {Demo_class.suc}/{Demo_class.test_num}")
+        Demo_class._take_picture()
         if succ_seed == test_num:
             break
 
-    print(f"seed out of training: {Demo_class.suc}/{Demo_class.test_num}")
+    print(f"{Demo_class.task_name}" + args['checkpoint_num'] +"seed out of training: {Demo_class.suc}/{Demo_class.test_num}")
     print(suc_test_seed_list)
     # ===========================test set==========================
 
