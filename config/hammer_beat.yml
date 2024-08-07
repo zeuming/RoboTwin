@@ -9,6 +9,7 @@ camera_h: 224       # camera args
 pcd_crop: True      #...  
 pcd_down_sample_num: 1024    # pcd down sample num 
 episode_num: 50    # episode num
+dual_arm: False
 save_type:
   raw_data: False
   pkl: True

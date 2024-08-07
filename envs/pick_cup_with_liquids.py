@@ -3,6 +3,7 @@ from .base_task import Base_task
 from .base_task import rand_create_obj
 from .base_task import create_obj
 import sapien
+from .utils.hide_logging import suppress_stdout_stderr
 
 class pick_cup_with_liquids(Base_task):
     def setup_demo(self,**kwags):

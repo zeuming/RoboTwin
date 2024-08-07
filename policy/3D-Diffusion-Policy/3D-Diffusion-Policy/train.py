@@ -275,7 +275,7 @@ class TrainDP3Workspace:
             # checkpoint
             if ((self.epoch + 1) % cfg.training.checkpoint_every) == 0 and cfg.checkpoint.save_ckpt:
                 # checkpointing
-                self.save_checkpoint(f'data/{self.cfg.task.name}.zarr/checkpoints/{self.epoch + 1}.ckpt')
+                self.save_checkpoint(f'checkpoints/{self.cfg.task.name}/{self.epoch + 1}.ckpt')
 
             # ========= eval end for this epoch ==========
             policy.train()
@@ -297,7 +297,7 @@ class TrainDP3Workspace:
             output_dir=self.output_dir)
         assert isinstance(env_runner, BaseRunner)
         
-        ckpt_file = pathlib.Path(f'./policy/3D-Diffusion-Policy/3D-Diffusion-Policy/data/{self.cfg.task.name}.zarr/checkpoints/{checkpoint_num}.ckpt')
+        ckpt_file = pathlib.Path(f'./policy/3D-Diffusion-Policy/3D-Diffusion-Policy/checkpoints/{self.cfg.task.name}/{checkpoint_num}.ckpt')
         print('ckpt file exist:', ckpt_file.is_file())
         
         if ckpt_file.is_file():

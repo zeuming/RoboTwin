@@ -11,7 +11,7 @@ import transforms3d as t3d
 
 from copy import deepcopy
 import pdb
-from mplib.pymp import ArticulatedModel, PlanningWorld
+from .utils.hide_logging import suppress_stdout_stderr
 
 class hammer_beat(Base_task):
 
@@ -50,8 +50,8 @@ class hammer_beat(Base_task):
 
     def load_actors(self):
         coaster_pose = rand_pose(
-            xlim=[0,0.25],
-            ylim=[-0.05,0.15],
+            xlim=[0,0.3],
+            ylim=[-0.05,0.2],
             zlim=[0.76],
             qpos=[-0.552, -0.551, -0.442, -0.444],
             rotate_rand=True,
@@ -68,13 +68,14 @@ class hammer_beat(Base_task):
 
     def play_once(self):
         pose1 = list(self.coaster.get_pose().p+[0.056,-0.095,0.27])+[-0.378,0.559,-0.316,-0.667]
-        self.right_move_to_pose_with_screw(pose1,save_freq=10)
+        self.right_move_to_pose_with_screw(pose1,save_freq=15)
         pose1[2]-=0.06
-        self.right_move_to_pose_with_screw(pose1,save_freq=20)
+        self.right_move_to_pose_with_screw(pose1,save_freq=15)
         for  _ in range(2):
             self._take_picture()
         
-    def apply_policy(self, model):
+    
+    def apply_policy(self, model, step_lim = 400):
         cnt = 0
         self.test_num += 1
 
@@ -83,53 +84,65 @@ class hammer_beat(Base_task):
         if self.render_freq:
             self.viewer.render()
         
-        while cnt < 180:
+        self.actor_pose = True
+        
+        while cnt < step_lim:
             observation = self.get_obs()  
             obs = dict()
             obs['point_cloud'] = observation['pcd']
-            obs['agent_pos'] = np.concatenate((observation['left_joint_action'], observation['right_joint_action']))
-            obs['real_joint_action'] = np.concatenate((observation['left_real_joint_action'], observation['left_real_joint_action']))
-            assert obs['agent_pos'].shape[0] == 14, 'agent_pose shape, error'
-
-            actions = model.get_action(obs)
-            left_arm_actions,left_gripper = actions[:, :6],actions[:, 6]
-            right_arm_actions,right_gripper = actions[:, 7:13],actions[:, 13]
-
-            left_current_qpos, right_current_qpos = obs['agent_pos'][:6], obs['agent_pos'][7:13]
+            if self.dual_arm:
+                obs['agent_pos'] = np.concatenate((observation['left_joint_action'], observation['right_joint_action']))
+                obs['real_joint_action'] = np.concatenate((observation['left_real_joint_action'], observation['left_real_joint_action']))
+                assert obs['agent_pos'].shape[0] == 14, 'agent_pose shape, error'
+            else:
+                obs['agent_pos'] = np.array(observation['right_joint_action'])
+                obs['real_joint_action'] = np.array(observation['left_real_joint_action'])
+                assert obs['agent_pos'].shape[0] == 7, 'agent_pose shape, error'
             
-            left_path = np.vstack((left_current_qpos, left_arm_actions))
+            actions = model.get_action(obs)
+            left_arm_actions , left_gripper , left_current_qpos, left_path = [], [], [], []
+            right_arm_actions , right_gripper , right_current_qpos, right_path = [], [], [], []
+            if self.dual_arm:
+                left_arm_actions,left_gripper = actions[:, :6],actions[:, 6]
+                right_arm_actions,right_gripper = actions[:, 7:13],actions[:, 13]
+                left_current_qpos, right_current_qpos = obs['agent_pos'][:6], obs['agent_pos'][7:13]
+            else:
+                right_arm_actions,right_gripper = actions[:, :6],actions[:, 6]
+                right_current_qpos = obs['agent_pos'][:6]
+            
+            if self.dual_arm:
+                left_path = np.vstack((left_current_qpos, left_arm_actions))
             right_path = np.vstack((right_current_qpos, right_arm_actions))
 
-            topp_left_flag, topp_right_flag = True, True
-            try:
-                times, left_pos, left_vel, acc, duration = self.left_planner.TOPP(left_path, 1/250, verbose=True)
-                left_result = dict()
-                left_result['position'], left_result['velocity'] = left_pos, left_vel
-                left_n_step = left_result["position"].shape[0]
-                left_gripper = np.linspace(left_gripper[0], left_gripper[-1], left_n_step)
-            except:
-                topp_left_flag = False
-                left_n_step = 1
-            
-            left_n_step = 0
-            
-            if left_n_step == 0:
-                topp_left_flag = False
-                left_n_step = 1
+            with suppress_stdout_stderr():
+                topp_left_flag, topp_right_flag = True, True
+                try:
+                    times, left_pos, left_vel, acc, duration = self.left_planner.TOPP(left_path, 1/250, verbose=True)
+                    left_result = dict()
+                    left_result['position'], left_result['velocity'] = left_pos, left_vel
+                    left_n_step = left_result["position"].shape[0]
+                    left_gripper = np.linspace(left_gripper[0], left_gripper[-1], left_n_step)
+                except:
+                    topp_left_flag = False
+                    left_n_step = 1
+                
+                if left_n_step == 0 or (not self.dual_arm):
+                    topp_left_flag = False
+                    left_n_step = 1
 
-            try:
-                times, right_pos, right_vel, acc, duration = self.right_planner.TOPP(right_path, 1/250, verbose=True)            
-                right_result = dict()
-                right_result['position'], right_result['velocity'] = right_pos, right_vel
-                right_n_step = right_result["position"].shape[0]
-                right_gripper = np.linspace(right_gripper[0], right_gripper[-1], right_n_step)
-            except:
-                topp_right_flag = False
-                right_n_step = 1
-            
-            if right_n_step == 0:
-                topp_right_flag = False
-                right_n_step = 1
+                try:
+                    times, right_pos, right_vel, acc, duration = self.right_planner.TOPP(right_path, 1/250, verbose=True)            
+                    right_result = dict()
+                    right_result['position'], right_result['velocity'] = right_pos, right_vel
+                    right_n_step = right_result["position"].shape[0]
+                    right_gripper = np.linspace(right_gripper[0], right_gripper[-1], right_n_step)
+                except:
+                    topp_right_flag = False
+                    right_n_step = 1
+                
+                if right_n_step == 0:
+                    topp_right_flag = False
+                    right_n_step = 1
             
             cnt += actions.shape[0]
             
@@ -152,11 +165,11 @@ class hammer_beat(Base_task):
                         self.active_joints[left_j].set_drive_target(left_result["position"][now_left_id][j])
                         self.active_joints[left_j].set_drive_velocity_target(left_result["velocity"][now_left_id][j])
 
-                    # for joint in self.active_joints[34:36]:
-                    #     # joint.set_drive_target(left_result["position"][i][6])
-                    #     joint.set_drive_target(left_gripper[now_left_id])
-                    #     joint.set_drive_velocity_target(0.05)
-                    #     self.left_gripper_val = left_gripper[now_left_id]
+                    for joint in self.active_joints[34:36]:
+                        # joint.set_drive_target(left_result["position"][i][6])
+                        joint.set_drive_target(left_gripper[now_left_id])
+                        joint.set_drive_velocity_target(0.05)
+                        self.left_gripper_val = left_gripper[now_left_id]
 
                     now_left_id +=1
                     
@@ -166,11 +179,11 @@ class hammer_beat(Base_task):
                         self.active_joints[right_j].set_drive_target(right_result["position"][now_right_id][j])
                         self.active_joints[right_j].set_drive_velocity_target(right_result["velocity"][now_right_id][j])
 
-                    # for joint in self.active_joints[36:38]:
-                    #     # joint.set_drive_target(right_result["position"][i][6])
-                    #     joint.set_drive_target(right_gripper[now_right_id])
-                    #     joint.set_drive_velocity_target(0.05)
-                    #     self.right_gripper_val = right_gripper[now_right_id]
+                    for joint in self.active_joints[36:38]:
+                        # joint.set_drive_target(right_result["position"][i][6])
+                        joint.set_drive_target(right_gripper[now_right_id])
+                        joint.set_drive_velocity_target(0.05)
+                        self.right_gripper_val = right_gripper[now_right_id]
 
                     now_right_id +=1
                 
@@ -180,8 +193,15 @@ class hammer_beat(Base_task):
                     observation = self.get_obs()
                     obs=dict()
                     obs['point_cloud'] = observation['pcd']
-                    obs['agent_pos'] = np.concatenate((observation['left_joint_action'], observation['right_joint_action']))
-                    obs['real_joint_action'] = np.concatenate((observation['left_real_joint_action'], observation['left_real_joint_action']))
+                    if self.dual_arm:
+                        obs['agent_pos'] = np.concatenate((observation['left_joint_action'], observation['right_joint_action']))
+                        obs['real_joint_action'] = np.concatenate((observation['left_real_joint_action'], observation['left_real_joint_action']))
+                        assert obs['agent_pos'].shape[0] == 14, 'agent_pose shape, error'
+                    else:
+                        obs['agent_pos'] = np.array(observation['right_joint_action'])
+                        obs['real_joint_action'] = np.array(observation['left_real_joint_action'])
+                        assert obs['agent_pos'].shape[0] == 7, 'agent_pose shape, error'
+                    
                     model.update_obs(obs)
 
                 if i % 5==0:
@@ -193,17 +213,23 @@ class hammer_beat(Base_task):
                 if self.is_success():
                     success_flag = True
                     break
+
+                if self.actor_pose == False:
+                    break
             
             self._update_render()
             if self.render_freq:
                 self.viewer.render()
 
-            print('cnt: ',cnt, end='\r')
+            print(f'step: {cnt} / {step_lim}', end='\r')
 
             if success_flag:
                 print("\nsuccess!")
                 self.suc +=1
                 return
+            
+            if self.actor_pose == False:
+                break
             continue
         print("\nfail!")
         

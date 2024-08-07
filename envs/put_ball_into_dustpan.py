@@ -1,10 +1,9 @@
 
 from .base_task import Base_task
-from .base_task import rand_create_obj
-from .base_task import create_obj
-from .base_task import create_urdf_obj
+from .utils import *
 import numpy as np
 import sapien
+from .utils.hide_logging import suppress_stdout_stderr
 
 class put_ball_into_dustpan(Base_task):
     def setup_demo(self,**kwags):
@@ -71,8 +70,6 @@ class put_ball_into_dustpan(Base_task):
         self.close_left_gripper(pos=0.008)
         pose3[2] +=0.1
         self.left_move_to_pose_with_screw(pose=pose3,save_freq=None)
-        # while 1:
-        #     self.close_right_gripper(pos = -0.002)
 
         left_init_pose = [-0.3, -0.2, 1.05, 1,0,0,1]
         right_init_pose = [0.3, -0.2, 1.05, 1,0,0,1]
@@ -80,42 +77,35 @@ class put_ball_into_dustpan(Base_task):
         self.render_freq = render_freq
         
     def load_actors(self, **kwargs):    
-        self.tabel_tennis = rand_create_obj(
-            self.scene,
+        block_pose = rand_pose(
             xlim=[-0.15,0.15],
             ylim=[-0.05,0.15],
-            zlim=[0.765],
-            modelname="094_table_tennis",
-            rotate_rand=False,
-            qpos=[0.707,0.707,0,0],
-            convex=True,
-            scale=(0.022,0.022,0.022)
+            zlim=[0.76],
+            qpos=[-0.552, -0.551, -0.442, -0.444],
+            rotate_rand=True,
+            rotate_lim=[0,1,0],
         )
-        self.tabel_tennis.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.001
+        self.block = create_box(
+            scene = self.scene,
+            pose = block_pose,
+            half_size=(0.015,0.015,0.015),
+            color=(1,0,0),
+            name="box"
+        )
+        self.block.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.001
         
-    def play_once(self,save_freq=None):
-        # while 1:
-        #     self.close_right_gripper(pos=-0.002)
-
-        #-0.752,0.087, -0.642, -0.126
-        # print(self.tabel_tennis.get_pose().p)
-        left_pose0 = list(self.tabel_tennis.get_pose().p+[-0.3,-0.1,0])[:2] + [0.955, -0.665,0.092, -0.733, -0.114]
-        #-0.543,0.454, -0.454, -0.543
-        #  -0.463,0.510,-0.384,-0.615
-        right_pose0 = list(self.tabel_tennis.get_pose().p+[0.15,-0.15,0])[:2] + [0.92, -0.398,0.410,-0.455,-0.683]
-        self.together_move_to_pose_with_screw(left_target_pose=left_pose0,right_target_pose=right_pose0,save_freq=10)
-        # while 1:
-        #     self.close_right_gripper(pos = -0.002)
+    def play_once(self):
+        left_pose0 = list(self.block.get_pose().p+[-0.3,-0.1,0])[:2] + [0.955, -0.665,0.092, -0.733, -0.114]
+        right_pose0 = list(self.block.get_pose().p+[0.15,-0.15,0])[:2] + [0.92, -0.398,0.410,-0.455,-0.683]
+        self.together_move_to_pose_with_screw(left_target_pose=left_pose0,right_target_pose=right_pose0,save_freq=15)
         right_pose1 = right_pose0
         right_pose1[0] -=0.22
         right_pose1[1] -=0.05
         right_pose1[2] -=0.01
         # right_pose1[3:] = [-0.322,0.296,-0.512,-0.739]
-        self.right_move_to_pose_with_screw(pose=right_pose1,save_freq=20)
+        self.right_move_to_pose_with_screw(pose=right_pose1,save_freq=15)
         for _ in range(2):
             self._take_picture()
-        # while 1:
-        #     self.close_right_gripper(pos = -0.002)
         
     def apply_policy(self, model):
         cnt = 0
@@ -285,8 +275,6 @@ class put_ball_into_dustpan(Base_task):
         print("fail!")
 
     def is_success(self):
-        tabel_tennis_pose = self.tabel_tennis.get_pose().p
+        block_pose = self.block.get_pose().p
         dustpan_pose = self.dustpan.get_pose().p
-        # print(tabel_tennis_pose)
-        # print(dustpan_pose)
-        return abs(tabel_tennis_pose[0] - dustpan_pose[0] - 0.04)<0.05 and abs(tabel_tennis_pose[1] - dustpan_pose[1]) < 0.05 and tabel_tennis_pose[2] > 0.77
+        return abs(block_pose[0] - dustpan_pose[0] - 0.035)<0.035 and abs(block_pose[1] - dustpan_pose[1]) < 0.047 and block_pose[2] > 0.76

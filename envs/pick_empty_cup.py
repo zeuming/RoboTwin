@@ -5,6 +5,7 @@ from .base_task import create_obj
 
 import transforms3d as t3d
 import sapien
+from .utils.hide_logging import suppress_stdout_stderr
 
 class pick_empty_cup(Base_task):
     def setup_demo(self,**kwags):
