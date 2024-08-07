@@ -1,1 +1,1 @@
-bash scripts/train_policy.sh robot_dp3 pick_bottles_10 pick_bottles_10 0 3
+bash scripts/train_policy.sh robot_dp3 put_ball_into_dustpan_10 put_ball_into_dustpan_10 0 1

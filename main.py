@@ -45,6 +45,8 @@ def main():
         task = put_ball_into_dustpan()
     elif (args['task_name'] == "move_box"):
         task = move_box()
+    elif (args['task_name'] == "pick_bottles_ablation"):
+        task = pick_bottles_ablation()
     else :
         # pass
         raise SystemExit("No Task")

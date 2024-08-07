@@ -9,3 +9,4 @@ from .hammer_beat import *
 from .open_cabinet_put_apple import *
 from .put_ball_into_dustpan import *
 from .move_box import *
+from .pick_bottles_ablation import *

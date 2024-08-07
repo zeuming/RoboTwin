@@ -69,6 +69,7 @@ class Base_task(gym.Env):
         self.file_path = []
         self.plan_success = True
         self.pose_type = kwags.get('pose_type', "gt")
+        self.step_lim = None
         self.setup_scene()
 
     def setup_scene(self,**kwargs):
@@ -1119,7 +1120,7 @@ class Base_task(gym.Env):
         return obs
     
         
-    def apply_policy(self, model, step_lim = 400):
+    def apply_policy(self, model):
         cnt = 0
         self.test_num += 1
 
@@ -1130,7 +1131,7 @@ class Base_task(gym.Env):
         
         self.actor_pose = True
         
-        while cnt < step_lim:
+        while cnt < self.step_lim:
             observation = self.get_obs()  
             obs = dict()
             obs['point_cloud'] = observation['pcd']
@@ -1265,7 +1266,7 @@ class Base_task(gym.Env):
             if self.render_freq:
                 self.viewer.render()
 
-            print(f'step: {cnt} / {step_lim}', end='\r')
+            print(f'step: {cnt} / {self.step_lim}', end='\r')
 
             if success_flag:
                 print("\nsuccess!")

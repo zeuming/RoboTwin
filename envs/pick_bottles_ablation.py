@@ -5,9 +5,8 @@ from .base_task import create_obj
 import sapien
 import pdb
 import numpy as np
-from .utils.hide_logging import suppress_stdout_stderr
 
-class pick_bottles(Base_task):
+class pick_bottles_ablation(Base_task):
     def setup_demo(self,**kwags):
         super()._init(**kwags)
         self.create_table_and_wall()
@@ -76,9 +75,9 @@ class pick_bottles(Base_task):
             pass # TODO
         # pre_grasp
         
-        self.together_move_to_pose_with_screw(left_pose0,right_pose0,save_freq=15)
+        self.together_move_to_pose_with_screw(left_pose0,right_pose0,save_freq=10)
 
-        self.together_move_to_pose_with_screw(left_pose1,right_pose1,save_freq=15)
+        self.together_move_to_pose_with_screw(left_pose1,right_pose1,save_freq=20)
         for i in range(2):
             self._take_picture()
         self.together_close_gripper(save_freq=15)
@@ -87,10 +86,10 @@ class pick_bottles(Base_task):
             self._take_picture()
         left_pose1[2]+=0.08
         right_pose1[2]+=0.08
-        self.together_move_to_pose_with_screw(left_pose1,right_pose1,save_freq=15)
+        self.together_move_to_pose_with_screw(left_pose1,right_pose1,save_freq=20)
         for i in range(2):
             self._take_picture()
-        self.together_move_to_pose_with_screw(left_target_pose,right_target_pose,save_freq=15)
+        self.together_move_to_pose_with_screw(left_target_pose,right_target_pose,save_freq=10)
         for i in range(2):
             self._take_picture()
 

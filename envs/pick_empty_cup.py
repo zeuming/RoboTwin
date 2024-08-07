@@ -5,7 +5,6 @@ from .base_task import create_obj
 
 import transforms3d as t3d
 import sapien
-from .utils.hide_logging import suppress_stdout_stderr
 
 class pick_empty_cup(Base_task):
     def setup_demo(self,**kwags):
@@ -16,6 +15,7 @@ class pick_empty_cup(Base_task):
         self.load_camera(kwags.get('camera_w', 336),kwags.get('camera_h',224))
         self.pre_move()
         self.load_actors()
+        self.step_lim = 350
     
     def pre_move(self):
         render_freq = self.render_freq
@@ -23,21 +23,19 @@ class pick_empty_cup(Base_task):
         self.open_right_gripper()
         self.render_freq = render_freq
 
-    def load_actors(self, **kwargs):
-        # super().setup_scene()
+    def load_actors(self):
         cup = rand_create_obj(
             self.scene,
-            xlim=[0.2,0.3],
+            xlim=[0.15,0.3],
             ylim=[-0.2,0.05],
             zlim=[0.8],
             modelname="085_cup_2",
             rotate_rand=False,
             qpos=[0.707,0.707,0,0],
-            # scale=(0.05,0.05,0.05)
         )
         coaster = rand_create_obj(
             self.scene,
-            xlim=[-0.05,0.17],
+            xlim=[-0.05,0.1],
             ylim=[-0.2,0.05],
             zlim=[0.76],
             modelname="079_coaster_2",
@@ -71,29 +69,21 @@ class pick_empty_cup(Base_task):
         pose0 = list(self.cup.get_pose().p+[0.048,0,0.245])+[-0.557,0.473,-0.473,-0.489]
         self.right_move_to_pose_with_screw(pose0,save_freq=15)
 
-        # print(t3d.quaternions.mat2quat(self.all_joints[43].global_pose.to_transformation_matrix()[:3,:3] @ t3d.euler.euler2mat(3.14,0,0)))
-
-        self.close_right_gripper(pos = 0.02,save_freq=20)
+        self.close_right_gripper(pos = 0.02,save_freq=15)
         pose0[2] -=0.08
-        self.right_move_to_pose_with_screw(pose0,save_freq=20)
-        self.close_right_gripper(pos = -0.01,save_freq=20)
+        self.right_move_to_pose_with_screw(pose0,save_freq=15)
+        self.close_right_gripper(pos = -0.01,save_freq=15)
         pose0[2] +=0.09
-        self.right_move_to_pose_with_screw(pose0,save_freq=20)
+        self.right_move_to_pose_with_screw(pose0,save_freq=15)
         pose1 = list(self.coaster.get_pose().p+[0.035,-0.02,0.3])+[-0.557,0.473,-0.473,-0.489]
-        # print(pose0)
-        # print(pose1)
         self.right_move_to_pose_with_screw(pose1,save_freq=15)
         pose1[2] -=0.082
-        self.right_move_to_pose_with_screw(pose1,save_freq=20)
-        self.open_right_gripper(pos=0.02,save_freq=20)
+        self.right_move_to_pose_with_screw(pose1,save_freq=15)
+        self.open_right_gripper(pos=0.02,save_freq=115)
         pose1[2] +=0.06
-        self.right_move_to_pose_with_screw(pose1,save_freq=20)
+        self.right_move_to_pose_with_screw(pose1,save_freq=15)
         for _ in range(2):
             self._take_picture()
-        # self.open_right_gripper(save_freq=save_freq)
-        # pose1[2] +=0.03
-        # self.right_move_to_pose_with_screw(pose1,save_freq=save_freq)
-        # self.close_right_gripper(save_freq=save_freq)
     
     def is_success(self):
         eps = 0.05

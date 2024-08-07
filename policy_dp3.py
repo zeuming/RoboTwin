@@ -41,6 +41,7 @@ TASK = None
 )
 def main(cfg):
     global TASK
+    TASK = cfg.task.name
     # task_name = 'hammer_beat'
     with open(f'./policy.yml', 'r', encoding='utf-8') as f:
         args = yaml.load(f.read(), Loader=yaml.FullLoader)
@@ -74,6 +75,8 @@ def main(cfg):
         task = put_ball_into_dustpan()
     elif (args['task_name'] == "move_box"):
         task = move_box()
+    elif (args['task_name'] == "pick_bottles_ablation"):
+        task = pick_bottles_ablation()
     else:
         # pass
         raise SystemExit("No Task")
@@ -100,7 +103,7 @@ def main(cfg):
         suc_nums.append(suc_num)
 
     topk_success_rate = sorted(suc_nums, reverse=True)[:topk]
-    save_dir  = args.get('save_path', 'data') +'/' + str(cfg.task.name)
+    save_dir  = args.get('save_path', 'data') +'/' + str(TASK)
     file_path = os.path.join(save_dir, f'result.txt')
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
@@ -157,15 +160,15 @@ def test_policy(Demo_class, args, dp3, st_seed, test_num=20):
             Demo_class.setup_demo(now_ep_num=now_id, seed = now_seed, ** args)
             Demo_class.play_once()
             Demo_class.close()
-            # print(now_seed)
-            # 任务成功/失败 判定
-            if Demo_class.plan_success and Demo_class.is_success() or not expert_check:
-                # print(f"test seed = {now_seed} can work!")
-                succ_seed +=1
-                suc_test_seed_list.append(now_seed)
-            else:
-                now_seed += 1
-                continue
+            
+        if (not expert_check) or ( Demo_class.plan_success and Demo_class.is_success() ):
+            # print(f"test seed = {now_seed} can work!")
+            succ_seed +=1
+            suc_test_seed_list.append(now_seed)
+        else:
+            now_seed += 1
+            continue
+
 
         args['render_freq'] = render_freq
 
@@ -178,7 +181,7 @@ def test_policy(Demo_class, args, dp3, st_seed, test_num=20):
         if Demo_class.render_freq:
             Demo_class.viewer.close()
         dp3.env_runner.reset_obs()
-        print(f"seed out of training: {Demo_class.suc}/{Demo_class.test_num}\n")
+        print(f"{TASK} seed out of training: {Demo_class.suc}/{Demo_class.test_num}\n")
         Demo_class._take_picture()
         now_seed += 1
 
