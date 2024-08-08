@@ -70,6 +70,7 @@ class Base_task(gym.Env):
         self.plan_success = True
         self.pose_type = kwags.get('pose_type', "gt")
         self.step_lim = None
+        self.fix_gripper = False
         self.setup_scene()
 
     def setup_scene(self,**kwargs):
@@ -1209,12 +1210,12 @@ class Base_task(gym.Env):
                         left_j = self.left_arm_joint_id[j]
                         self.active_joints[left_j].set_drive_target(left_result["position"][now_left_id][j])
                         self.active_joints[left_j].set_drive_velocity_target(left_result["velocity"][now_left_id][j])
-
-                    for joint in self.active_joints[34:36]:
-                        # joint.set_drive_target(left_result["position"][i][6])
-                        joint.set_drive_target(left_gripper[now_left_id])
-                        joint.set_drive_velocity_target(0.05)
-                        self.left_gripper_val = left_gripper[now_left_id]
+                    if not self.fix_gripper:
+                        for joint in self.active_joints[34:36]:
+                            # joint.set_drive_target(left_result["position"][i][6])
+                            joint.set_drive_target(left_gripper[now_left_id])
+                            joint.set_drive_velocity_target(0.05)
+                            self.left_gripper_val = left_gripper[now_left_id]
 
                     now_left_id +=1
                     
@@ -1223,12 +1224,12 @@ class Base_task(gym.Env):
                         right_j = self.right_arm_joint_id[j]
                         self.active_joints[right_j].set_drive_target(right_result["position"][now_right_id][j])
                         self.active_joints[right_j].set_drive_velocity_target(right_result["velocity"][now_right_id][j])
-
-                    for joint in self.active_joints[36:38]:
-                        # joint.set_drive_target(right_result["position"][i][6])
-                        joint.set_drive_target(right_gripper[now_right_id])
-                        joint.set_drive_velocity_target(0.05)
-                        self.right_gripper_val = right_gripper[now_right_id]
+                    if not self.fix_gripper:
+                        for joint in self.active_joints[36:38]:
+                            # joint.set_drive_target(right_result["position"][i][6])
+                            joint.set_drive_target(right_gripper[now_right_id])
+                            joint.set_drive_velocity_target(0.05)
+                            self.right_gripper_val = right_gripper[now_right_id]
 
                     now_right_id +=1
                 

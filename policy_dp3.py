@@ -55,8 +55,8 @@ def main(cfg):
         # task = pick_apple_Demo()
         # task = pick_cup_with_liquids()
         pass
-    # elif (args['task_name'] == "pick_empty_cup"):
-    #     task = pick_empty_cup()
+    elif (args['task_name'] == "pick_empty_cup"):
+        task = pick_empty_cup()
     # elif (args['task_name'] == "pick_cup_with_liquids"):
     #     task = pick_cup_with_liquids()
     elif (args['task_name'] == "move_brush"):

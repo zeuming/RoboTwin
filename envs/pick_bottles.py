@@ -1,11 +1,7 @@
 
 from .base_task import Base_task
-from .base_task import rand_create_obj
-from .base_task import create_obj
+from .utils import *
 import sapien
-import pdb
-import numpy as np
-from .utils.hide_logging import suppress_stdout_stderr
 
 class pick_bottles(Base_task):
     def setup_demo(self,**kwags):

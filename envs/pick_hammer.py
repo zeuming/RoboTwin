@@ -4,8 +4,6 @@ from .utils import *
 import numpy as np
 import transforms3d as t3d
 import sapien
-import pdb
-from .utils.hide_logging import suppress_stdout_stderr
 
 class pick_hammer(Base_task):
     def setup_demo(self,**kwags):

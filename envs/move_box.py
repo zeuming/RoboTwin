@@ -1,15 +1,11 @@
 
 from .base_task import Base_task
-from .base_task import rand_create_obj
-from .base_task import create_obj
-from .base_task import rand_create_urdf_obj
+from .utils import *
 import sapien
 import numpy as np
 
 import transforms3d as t3d
 from transforms3d.quaternions import mat2quat
-
-
 
 class move_box(Base_task):
 
@@ -27,7 +23,7 @@ class move_box(Base_task):
         self.render_freq=0
 
         self.together_open_gripper()
-        self.together_close_gripper(left_pos=-0.01,right_pos=-0.01)
+        self.together_move_to_pose_with_screw(self.left_original_pose, self.right_original_pose)
 
         self.render_freq = render_freq
     
@@ -36,17 +32,16 @@ class move_box(Base_task):
         self.box = rand_create_urdf_obj(
             self.scene,
             modelname="box",
-            xlim=[-0.01,0],
-            ylim=[-0.15,0],
-            zlim=[0.83],     
-            # pose= sapien.Pose(p=[0,0.18,0.985])
+            xlim=[-0.1,0.1],
+            ylim=[-0.1,0.1],
+            zlim=[0.8],
             rotate_rand=True,
-            rotate_lim=[0,0,0.1],
             qpos=[1,0,0,1],
-            scale=0.15,
+            rotate_lim=[0,0,0.1],
+            scale=0.18,
             fix_root_link = False
         )
-        
+
     def get_box_grasp_pose(self):
         # 绕y轴旋转90度的变换矩阵
         rotation_matrix_y = np.array([
@@ -69,7 +64,7 @@ class move_box(Base_task):
         # 提取选旋转矩阵
         right_grasp_pose_matrix_q = right_grasp_pose_matrix[:3,:3]
         left_grasp_pose_matrix_q = left_grasp_pose_matrix[:3,:3]
-        # 提取评议向量
+        # 提取平移向量
         right_grasp_pose_matrix_p = right_grasp_pose_matrix[:3,3]
         left_grasp_pose_matrix_p = left_grasp_pose_matrix[:3,3]
         # 将旋转矩阵转换为四元数
@@ -81,23 +76,33 @@ class move_box(Base_task):
         
         return left_grasp_pose,right_grasp_pose
         
-
-        
-    def play_once(self,save_freq=None):
-        # start
-        self.together_open_gripper()
-        box_pose = list(self.box.get_pose().q)
+    def play_once(self):
         left_box_grasp_pose,right_box_grasp_pose = self.get_box_grasp_pose()
-        print(box_pose)
-        self.together_move_to_pose_with_screw(left_box_grasp_pose,right_box_grasp_pose)
 
-        while 1 :
-            self.open_left_gripper(save_freq = None)
+        self.together_move_to_pose_with_screw(left_box_grasp_pose,right_box_grasp_pose,save_freq=15)
+
+        left_box_grasp_pose[2]-=0.04
+        right_box_grasp_pose[2]-=0.04
+
+        for _ in range(2):
+            self._take_picture()
+
+        self.together_move_to_pose_with_screw(left_box_grasp_pose,right_box_grasp_pose,save_freq=15)
+
+        for _ in range(2):
+            self._take_picture()
+        self.together_close_gripper(left_pos=-0.1,right_pos=-0.1,save_freq=15)
+        for _ in range(2):
+            self._take_picture()
+        left_box_grasp_pose[1]=-0.25
+        right_box_grasp_pose[1]=-0.25
+        left_box_grasp_pose[0]=-0.12
+        right_box_grasp_pose[0]=0.12
+        self.together_move_to_pose_with_screw(left_box_grasp_pose,right_box_grasp_pose,save_freq=15)
+        for _ in range(2):
+            self._take_picture()
+        
     
     def is_success(self):
-        # TODO
-        # 刷子姿势和目标姿势想符
-        # 刷子在右臂而且不在左臂
-        target_z = 0.8
-        brush_pose = self.brush.get_pose().p
-        return brush_pose[2] > target_z and brush_pose[0] < -0.1
+        box_pose = self.box.get_pose().p
+        return abs(box_pose[0])<0.02 and abs(box_pose[0])<0.02

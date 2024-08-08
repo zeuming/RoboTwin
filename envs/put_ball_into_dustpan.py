@@ -14,6 +14,7 @@ class put_ball_into_dustpan(Base_task):
         self.pre_move()
         self.load_actors()
         self.step_lim = 150
+        self.fix_gripper = True
 
     def pre_move(self):
         render_freq = self.render_freq

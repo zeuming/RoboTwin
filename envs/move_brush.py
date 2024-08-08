@@ -1,11 +1,9 @@
 
 from .base_task import Base_task
-from .base_task import rand_create_obj
-from .base_task import create_obj
+from .utils import *
 import transforms3d as t3d
 import numpy as np
 import sapien
-from .utils.hide_logging import suppress_stdout_stderr
 
 class move_brush(Base_task):
 
@@ -17,6 +15,7 @@ class move_brush(Base_task):
         self.load_camera(kwags.get('camera_w', 336),kwags.get('camera_h',224))
         self.pre_move()
         self.load_actors()
+        self.step_lim = 600
     
     def pre_move(self):
         render_freq = self.render_freq
@@ -65,7 +64,7 @@ class move_brush(Base_task):
         self.left_move_to_pose_with_screw(pose0,save_freq=15)
 
         pose0[2]-=0.06
-        self.left_move_to_pose_with_screw(pose0,save_freq=20)
+        self.left_move_to_pose_with_screw(pose0,save_freq=15)
 
         self.close_left_gripper(pos = -0.005,save_freq=15)
         
@@ -73,15 +72,11 @@ class move_brush(Base_task):
             self._take_picture()
 
         pose0[2]+=0.09
-        self.left_move_to_pose_with_screw(pose0,save_freq=20)
+        self.left_move_to_pose_with_screw(pose0,save_freq=15)
         pose1 = [-0.13,0.003,0.95,-0.935,0.229,-0.14,-0.195]
-        self.left_move_to_pose_with_screw(pose1,save_freq=20)
+        self.left_move_to_pose_with_screw(pose1,save_freq=15)
 
-        # pose2 = [0.055,-0.2,0.895,-0.640,-0.05,-0.104,-0.760]
         pose2 = self.get_right_gripper()
-
-        # import pdb
-        # pdb.set_trace()
 
         self.right_move_to_pose_with_screw(pose2,save_freq=15)
 
@@ -96,7 +91,7 @@ class move_brush(Base_task):
             
         pose1[0]-=0.1
         pose1[1]-=0.1
-        self.left_move_to_pose_with_screw(pose=pose1, save_freq=20)
+        self.left_move_to_pose_with_screw(pose=pose1, save_freq=15)
 
         # self.left_move_to_pose_with_screw(pose1,save_freq=save_freq)
         # right_target_pose = [0.143,-0.2,0.865,-0.640,-0.05,-0.104,-0.760]

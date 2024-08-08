@@ -1,4 +1,4 @@
-task_name: hammer_beat
+task_name: pick_empty_cup
 dual_arm: False
 expert_check: True # !!!!!!!!!@@@@
 # pick_bottles

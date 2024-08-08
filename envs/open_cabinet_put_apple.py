@@ -1,10 +1,6 @@
 
 from .base_task import Base_task
-from .base_task import rand_create_obj
-from .base_task import create_obj
-from .base_task import create_urdf_obj
-from .base_task import rand_create_urdf_obj
-import numpy as np
+from .utils import *
 import sapien
 
 

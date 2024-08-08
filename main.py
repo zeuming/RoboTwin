@@ -15,7 +15,7 @@ import yaml
 
 def main():
     task_name = input('Please input task name: \n')
-    # task_name = 'hammer_beat'
+    
     with open(f'./config/{task_name}.yml', 'r', encoding='utf-8') as f:
         args = yaml.load(f.read(), Loader=yaml.FullLoader)
 
@@ -23,11 +23,11 @@ def main():
     task = None
 
     # 根据命令行参数指定任务，存入 task 中
-    # if (args['task_name'] == "pick_empty_cup"):
-    #     task = pick_empty_cup()
-    # elif (args['task_name'] == "pick_cup_with_liquids"):
-    #     task = pick_cup_with_liquids()
-    if (args['task_name'] == "pick_cup"):
+    if (args['task_name'] == "pick_empty_cup"):
+        task = pick_empty_cup()
+    elif (args['task_name'] == "pick_cup_with_liquids"):
+        task = pick_cup_with_liquids()
+    elif (args['task_name'] == "pick_cup"):
         task = pick_cup()
     elif (args['task_name'] == "move_brush"):
         task = move_brush()
@@ -35,8 +35,6 @@ def main():
         task = pick_bottles()
     elif (args['task_name'] == "hammer_beat"):
         task = hammer_beat()
-    # elif (args['task_name'] == "catch_pot_from_hands"):
-    #     task = catch_pot_from_hands()
     elif (args['task_name'] == "open_cabinet_put_apple"):
         task = open_cabinet_put_apple()
     elif (args['task_name'] == "pick_hammer"):
