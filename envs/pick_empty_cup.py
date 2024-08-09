@@ -66,6 +66,7 @@ class pick_empty_cup(Base_task):
         pose0 = list(self.cup.get_pose().p+[0.048,0,0.245])+[-0.557,0.473,-0.473,-0.489]
         self.right_move_to_pose_with_screw(pose0,save_freq=15)
 
+        print(self.cup.get_pose().p)
         self.close_right_gripper(pos = 0.02,save_freq=15)
         pose0[2] -=0.08
         self.right_move_to_pose_with_screw(pose0,save_freq=15)
@@ -84,7 +85,7 @@ class pick_empty_cup(Base_task):
     
     def is_success(self):
         eps = 0.05
-        coaster_x = self.coaster.get_pose().p[0]
-        coaster_y = self.coaster.get_pose().p[1]
-        cup_arix = [self.cup.get_pose().p[0],self.cup.get_pose().p[1]]
-        return abs(cup_arix[0] - coaster_x)<eps  and  abs(cup_arix[1] - coaster_y)<eps
+        coaster_pose = self.coaster.get_pose().p
+        cup_pose = self.cup.get_pose().p
+        # print(cup_pose)
+        return abs(cup_pose[0] - coaster_pose[0])<eps  and  abs(cup_pose[1] - coaster_pose[1])<eps and (cup_pose[2] - 0.792) < 0.005

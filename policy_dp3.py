@@ -75,8 +75,12 @@ def main(cfg):
         task = put_ball_into_dustpan()
     elif (args['task_name'] == "move_box"):
         task = move_box()
+    elif (args['task_name'] == "move_bottle"):
+        task = move_bottle()
     elif (args['task_name'] == "pick_bottles_ablation"):
         task = pick_bottles_ablation()
+    elif (args['task_name'] == "move_bottle_ablation"):
+        task = move_bottle_ablation()
     else:
         # pass
         raise SystemExit("No Task")
@@ -94,7 +98,7 @@ def main(cfg):
             st_seed, suc_num = test_policy(task, args, dp3, st_seed, test_num=test_num)
             suc_nums.append(suc_num)
     else:
-        st_seed = 100
+        st_seed = 125
         suc_nums = []
         test_num = 50
         topk = 1

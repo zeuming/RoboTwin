@@ -4,7 +4,7 @@ from .utils import *
 import sapien
 import math
 
-class move_bottle(Base_task):
+class move_bottle_ablation(Base_task):
     def setup_demo(self,**kwags):
         super()._init(**kwags)
         self.create_table_and_wall()
@@ -59,15 +59,15 @@ class move_bottle(Base_task):
         left_target_pose = [-0.19,-0.12,0.96,1,0,0,0]
         right_pick_pre_pose = [0.191,-0.11,0.87,0,0,0,1]
         right_pick_pose = [0.09,-0.11,0.85,0,0,0,1]
-        self.left_move_to_pose_with_screw(left_pose0, save_freq=15)
-        self.left_move_to_pose_with_screw(left_pose1, save_freq=15)
+        self.left_move_to_pose_with_screw(left_pose0, save_freq=20)
+        self.left_move_to_pose_with_screw(left_pose1, save_freq=10)
         self.close_left_gripper(save_freq=15)
         
         left_pose1[2] +=0.06
-        self.left_move_to_pose_with_screw(left_pose1, save_freq=15)
+        self.left_move_to_pose_with_screw(left_pose1, save_freq=10)
         self.together_move_to_pose_with_screw(left_target_pose,right_pick_pre_pose, save_freq=15)
 
-        self.right_move_to_pose_with_screw(right_pick_pose, save_freq=15)
+        self.right_move_to_pose_with_screw(right_pick_pose, save_freq=10)
         
         self.close_right_gripper(save_freq=15)
         
@@ -75,12 +75,12 @@ class move_bottle(Base_task):
         
         right_pick_pose[0]+=0.05
         left_target_pose[0]-=0.05
-        self.together_move_to_pose_with_screw(left_target_pose,right_pick_pose, save_freq=15)
+        self.together_move_to_pose_with_screw(left_target_pose,right_pick_pose, save_freq=10)
         right_target_pose = list(self.target.get_pose().p + [0.02,-0.13,0.11]) + [0.707,0,0,0.707]
 
         self.right_move_to_pose_with_screw(right_target_pose, save_freq=15)
         right_target_pose[2] -=0.06
-        self.right_move_to_pose_with_screw(right_target_pose, save_freq=15)
+        self.right_move_to_pose_with_screw(right_target_pose, save_freq=10)
 
         self.open_right_gripper(save_freq=15)
         # right_target_pose[1]-=0.12

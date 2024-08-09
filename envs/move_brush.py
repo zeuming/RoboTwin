@@ -105,6 +105,6 @@ class move_brush(Base_task):
         # 刷子在右臂而且不在左臂
         target_pose = [0.13298455, -0.03932355,  0.9]
         brush_pose = self.brush.get_pose().p
-        print(brush_pose)
+        # print(brush_pose)
         eps = 0.05
         return abs(brush_pose[0] - target_pose[0]) < eps and abs(brush_pose[1] - target_pose[1]) < eps and brush_pose[2] > target_pose[2]

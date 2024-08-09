@@ -15,7 +15,7 @@ import yaml
 
 def main():
     task_name = input('Please input task name: \n')
-    
+    # task_name = 'hammer_beat'
     with open(f'./config/{task_name}.yml', 'r', encoding='utf-8') as f:
         args = yaml.load(f.read(), Loader=yaml.FullLoader)
 
@@ -45,6 +45,10 @@ def main():
         task = move_box()
     elif (args['task_name'] == "pick_bottles_ablation"):
         task = pick_bottles_ablation()
+    elif (args['task_name'] == "move_bottle"):
+        task = move_bottle()
+    elif (args['task_name'] == "move_bottle_ablation"):
+        task = move_bottle_ablation()
     else :
         # pass
         raise SystemExit("No Task")

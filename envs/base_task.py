@@ -12,6 +12,7 @@ from PIL import Image, ImageColor
 
 from sapien.sensor import StereoDepthSensor, StereoDepthSensorConfig
 
+import toppra as ta
 import open3d as o3d
 import json
 
@@ -29,7 +30,6 @@ from collections import deque
 import cv2
 import torch
 
-from .utils.hide_logging import suppress_stdout_stderr
 
 # 基本环境类
 class Base_task(gym.Env):
@@ -53,6 +53,7 @@ class Base_task(gym.Env):
         self.render_fre:    render frequence
         '''
         super().__init__()
+        ta.setup_logging("WARNING") # hide logging
         np.random.seed(kwags.get('seed', 0))
         self.PCD_INDEX = 0
         self.task_name = kwags.get('task_name')
@@ -1069,7 +1070,7 @@ class Base_task(gym.Env):
         
         right_endpose_matrix = t3d.euler.euler2mat(roll,pitch,yaw) @ t3d.euler.euler2mat(3.14,0,0)
         right_endpose_quat = t3d.quaternions.mat2quat(right_endpose_matrix) * -1
-        right_endpose_array = np.array([x, y, z, *list(right_endpose_quat), gripper])
+        right_endpose_array = np.array([x, y, z, *list(right_endpose_quat), gripper[0]])
 
         # left arm endpose
         rpy = self.all_joints[42].global_pose.get_rpy()
@@ -1079,7 +1080,7 @@ class Base_task(gym.Env):
         
         left_endpose_matrix = t3d.euler.euler2mat(roll,pitch,yaw) @ t3d.euler.euler2mat(3.14,0,0)
         left_endpose_quat = t3d.quaternions.mat2quat(left_endpose_matrix) * -1
-        left_endpose_array = np.array([x, y, z, *list(left_endpose_quat), gripper])
+        left_endpose_array = np.array([x, y, z, *list(left_endpose_quat), gripper[0]])
 
         right_jointState = self.get_right_arm_jointState()
         right_jointState_array = np.array(right_jointState)
@@ -1160,35 +1161,35 @@ class Base_task(gym.Env):
                 left_path = np.vstack((left_current_qpos, left_arm_actions))
             right_path = np.vstack((right_current_qpos, right_arm_actions))
 
-            with suppress_stdout_stderr():
-                topp_left_flag, topp_right_flag = True, True
-                try:
-                    times, left_pos, left_vel, acc, duration = self.left_planner.TOPP(left_path, 1/250, verbose=True)
-                    left_result = dict()
-                    left_result['position'], left_result['velocity'] = left_pos, left_vel
-                    left_n_step = left_result["position"].shape[0]
-                    left_gripper = np.linspace(left_gripper[0], left_gripper[-1], left_n_step)
-                except:
-                    topp_left_flag = False
-                    left_n_step = 1
-                
-                if left_n_step == 0 or (not self.dual_arm):
-                    topp_left_flag = False
-                    left_n_step = 1
 
-                try:
-                    times, right_pos, right_vel, acc, duration = self.right_planner.TOPP(right_path, 1/250, verbose=True)            
-                    right_result = dict()
-                    right_result['position'], right_result['velocity'] = right_pos, right_vel
-                    right_n_step = right_result["position"].shape[0]
-                    right_gripper = np.linspace(right_gripper[0], right_gripper[-1], right_n_step)
-                except:
-                    topp_right_flag = False
-                    right_n_step = 1
-                
-                if right_n_step == 0:
-                    topp_right_flag = False
-                    right_n_step = 1
+            topp_left_flag, topp_right_flag = True, True
+            try:
+                times, left_pos, left_vel, acc, duration = self.left_planner.TOPP(left_path, 1/250, verbose=True)
+                left_result = dict()
+                left_result['position'], left_result['velocity'] = left_pos, left_vel
+                left_n_step = left_result["position"].shape[0]
+                left_gripper = np.linspace(left_gripper[0], left_gripper[-1], left_n_step)
+            except:
+                topp_left_flag = False
+                left_n_step = 1
+            
+            if left_n_step == 0 or (not self.dual_arm):
+                topp_left_flag = False
+                left_n_step = 1
+
+            try:
+                times, right_pos, right_vel, acc, duration = self.right_planner.TOPP(right_path, 1/250, verbose=True)            
+                right_result = dict()
+                right_result['position'], right_result['velocity'] = right_pos, right_vel
+                right_n_step = right_result["position"].shape[0]
+                right_gripper = np.linspace(right_gripper[0], right_gripper[-1], right_n_step)
+            except:
+                topp_right_flag = False
+                right_n_step = 1
+            
+            if right_n_step == 0:
+                topp_right_flag = False
+                right_n_step = 1
             
             cnt += actions.shape[0]
             

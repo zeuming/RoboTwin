@@ -10,3 +10,4 @@ from .put_ball_into_dustpan import *
 from .move_box import *
 from .pick_bottles_ablation import *
 from .move_bottle import *
+from .move_bottle_ablation import *
