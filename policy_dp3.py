@@ -57,6 +57,8 @@ def main(cfg):
         pass
     elif (args['task_name'] == "pick_empty_cup"):
         task = pick_empty_cup()
+    elif (args['task_name'] == "pick_empty_cup_ablation"):
+        task = pick_empty_cup_ablation()
     # elif (args['task_name'] == "pick_cup_with_liquids"):
     #     task = pick_cup_with_liquids()
     elif (args['task_name'] == "move_brush"):
@@ -69,6 +71,8 @@ def main(cfg):
     #     task = catch_pot_from_hands()
     elif (args['task_name'] == "open_cabinet_put_apple"):
         task = open_cabinet_put_apple()
+    elif (args['task_name'] == "open_cabinet_put_apple_ablation"):
+        task = open_cabinet_put_apple_ablation()
     elif (args['task_name'] == "pick_hammer"):
         task = pick_hammer()
     elif (args['task_name'] == "put_ball_into_dustpan"):
@@ -98,7 +102,7 @@ def main(cfg):
             st_seed, suc_num = test_policy(task, args, dp3, st_seed, test_num=test_num)
             suc_nums.append(suc_num)
     else:
-        st_seed = 125
+        st_seed = 100
         suc_nums = []
         test_num = 50
         topk = 1

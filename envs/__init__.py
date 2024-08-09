@@ -11,3 +11,5 @@ from .move_box import *
 from .pick_bottles_ablation import *
 from .move_bottle import *
 from .move_bottle_ablation import *
+from .pick_empty_cup_ablation import *
+from .open_cabinet_put_apple_ablation import *

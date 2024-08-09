@@ -13,7 +13,7 @@ class move_bottle_ablation(Base_task):
         self.load_camera(kwags.get('camera_w', 336),kwags.get('camera_h',224))
         self.pre_move()
         self.load_actors()
-        self.step_lim = 800
+        self.step_lim = 600
     
     def pre_move(self):
         render_freq = self.render_freq
@@ -38,8 +38,8 @@ class move_bottle_ablation(Base_task):
         )
 
         rand_pos = rand_pose(
-            xlim=[0.05,0.15],
-            ylim=[0,0.2],
+            xlim=[0.23,0.23],
+            ylim=[0.09,0.09],
             zlim=[0.74],
         )
 

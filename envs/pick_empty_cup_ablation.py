@@ -3,7 +3,7 @@ from .base_task import Base_task
 from .utils import *
 import sapien
 
-class pick_empty_cup(Base_task):
+class pick_empty_cup_ablation(Base_task):
     def setup_demo(self,**kwags):
         super()._init(**kwags)
         self.create_table_and_wall()
@@ -12,7 +12,7 @@ class pick_empty_cup(Base_task):
         self.load_camera(kwags.get('camera_w', 336),kwags.get('camera_h',224))
         self.pre_move()
         self.load_actors()
-        self.step_lim = 350
+        self.step_lim = 400
     
     def pre_move(self):
         render_freq = self.render_freq
@@ -65,18 +65,16 @@ class pick_empty_cup(Base_task):
     def play_once(self,save_freq=None):
         pose0 = list(self.cup.get_pose().p+[0.048,0,0.245])+[-0.557,0.473,-0.473,-0.489]
         self.right_move_to_pose_with_screw(pose0,save_freq=15)
-
-        # print(self.cup.get_pose().p)
         self.close_right_gripper(pos = 0.02,save_freq=15)
         pose0[2] -=0.08
-        self.right_move_to_pose_with_screw(pose0,save_freq=15)
+        self.right_move_to_pose_with_screw(pose0,save_freq=10)
         self.close_right_gripper(pos = -0.01,save_freq=15)
         pose0[2] +=0.09
-        self.right_move_to_pose_with_screw(pose0,save_freq=15)
+        self.right_move_to_pose_with_screw(pose0,save_freq=10)
         pose1 = list(self.coaster.get_pose().p+[0.035,-0.02,0.3])+[-0.557,0.473,-0.473,-0.489]
         self.right_move_to_pose_with_screw(pose1,save_freq=15)
         pose1[2] -=0.082
-        self.right_move_to_pose_with_screw(pose1,save_freq=15)
+        self.right_move_to_pose_with_screw(pose1,save_freq=10)
         self.open_right_gripper(pos=0.02,save_freq=15)
         pose1[2] +=0.06
         self.right_move_to_pose_with_screw(pose1,save_freq=15)
@@ -87,5 +85,4 @@ class pick_empty_cup(Base_task):
         eps = 0.05
         coaster_pose = self.coaster.get_pose().p
         cup_pose = self.cup.get_pose().p
-        # print(cup_pose)
         return abs(cup_pose[0] - coaster_pose[0])<eps  and  abs(cup_pose[1] - coaster_pose[1])<eps and (cup_pose[2] - 0.792) < 0.005

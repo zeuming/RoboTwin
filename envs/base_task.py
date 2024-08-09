@@ -53,7 +53,7 @@ class Base_task(gym.Env):
         self.render_fre:    render frequence
         '''
         super().__init__()
-        ta.setup_logging("WARNING") # hide logging
+        ta.setup_logging("CRITICAL") # hide logging
         np.random.seed(kwags.get('seed', 0))
         self.PCD_INDEX = 0
         self.task_name = kwags.get('task_name')
@@ -1267,6 +1267,8 @@ class Base_task(gym.Env):
             self._update_render()
             if self.render_freq:
                 self.viewer.render()
+            
+            self._take_picture()
 
             print(f'step: {cnt} / {self.step_lim}', end='\r')
 
