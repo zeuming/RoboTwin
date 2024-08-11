@@ -336,11 +336,9 @@ class Base_task(gym.Env):
     
     # 更新渲染，用于更新 camera 的 rgbd 信息（关闭渲染也需要更新render，否则无法采集数据）
     def _update_render(self):
-        self.scene.update_render()
-        # set_camera 判断是否需要同时更新 camera pose
-        # if set_camera:
         self.left_camera.entity.set_pose(self.all_links[46].get_pose())
         self.right_camera.entity.set_pose(self.all_links[49].get_pose())
+        self.scene.update_render()
 
     def left_follow_path(self, result, save_freq=None):
         '''
@@ -909,12 +907,14 @@ class Base_task(gym.Env):
         # # ---------------------------------------------------------------------------- #
         if self.data_type.get('rgb', False):
             # front_rgba = self._get_camera_rgba(self.front_camera, camera_pose='front')
-            # expert_rgba = self._get_camera_rgba(self.expert_camera, camera_pose='expert')
             top_rgba = self._get_camera_rgba(self.top_camera, camera_pose='top')
             left_rgba = self._get_camera_rgba(self.left_camera, camera_pose='left')
             right_rgba = self._get_camera_rgba(self.right_camera, camera_pose='right')
 
             if self.save_type.get('raw_data', True):
+                if self.data_type.get('expert', False):
+                    expert_rgba = self._get_camera_rgba(self.expert_camera, camera_pose='expert')
+                    save_img(self.file_path["expert_color"]+f"{self.PCD_INDEX}.png",expert_rgba)
                 save_img(self.file_path["f_color"]+f"{self.PCD_INDEX}.png",top_rgba)
                 save_img(self.file_path["l_color"]+f"{self.PCD_INDEX}.png",left_rgba)
                 save_img(self.file_path["r_color"]+f"{self.PCD_INDEX}.png",right_rgba)
@@ -1060,6 +1060,7 @@ class Base_task(gym.Env):
     
     def get_obs(self):
         self.scene.step()
+        self._update_render()
         obs = collections.OrderedDict()
         
         # right arm endpose
@@ -1235,6 +1236,7 @@ class Base_task(gym.Env):
                     now_right_id +=1
                 
                 self.scene.step()
+                self._update_render()
 
                 if i != 0 and i % obs_update_freq == 0:
                     observation = self.get_obs()

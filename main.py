@@ -4,13 +4,6 @@ from envs import *
 
 import pdb
 
-import threading
-import trimesh
-
-import argparse
-
-import script
-
 import yaml
 
 def main():
@@ -37,6 +30,8 @@ def main():
         task = pick_bottles()
     elif (args['task_name'] == "hammer_beat"):
         task = hammer_beat()
+    elif (args['task_name'] == "hammer_beat_cross"):
+        task = hammer_beat_cross()
     elif (args['task_name'] == "open_cabinet_put_apple"):
         task = open_cabinet_put_apple()
     elif (args['task_name'] == "open_cabinet_put_apple_ablation"):
@@ -45,6 +40,8 @@ def main():
         task = pick_hammer()
     elif (args['task_name'] == "put_ball_into_dustpan"):
         task = put_ball_into_dustpan()
+    elif (args['task_name'] == "put_block_into_dustpan"):
+        task = put_block_into_dustpan()
     elif (args['task_name'] == "move_box"):
         task = move_box()
     elif (args['task_name'] == "pick_bottles_ablation"):

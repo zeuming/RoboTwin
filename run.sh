@@ -1,2 +1,1 @@
-# bash eval_dp3.sh robot_dp3 move_bottle_50 move_bottle_50 0 2
-bash eval_dp3.sh robot_dp3 pick_empty_cup_ablation_20 pick_empty_cup_ablation_20 0 1
+bash eval_dp3.sh robot_dp3 open_cabinet_put_apple_10 open_cabinet_put_apple_10 0 1

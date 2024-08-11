@@ -82,7 +82,7 @@ class pick_empty_cup_ablation(Base_task):
             self._take_picture()
     
     def is_success(self):
-        eps = 0.05
+        eps = 0.025
         coaster_pose = self.coaster.get_pose().p
         cup_pose = self.cup.get_pose().p
         return abs(cup_pose[0] - coaster_pose[0])<eps  and  abs(cup_pose[1] - coaster_pose[1])<eps and (cup_pose[2] - 0.792) < 0.005

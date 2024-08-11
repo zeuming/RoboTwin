@@ -1,1 +1,1 @@
-bash scripts/train_policy.sh robot_dp3 move_bottle_ablation_20 final 0 3
+bash scripts/train_policy.sh robot_dp3 pick_empty_cup_50 0810_final 0 3

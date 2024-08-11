@@ -5,8 +5,10 @@ from .pick_cup import *
 from .pick_hammer import *
 from .pick_bottles import *
 from .hammer_beat import *
+from .hammer_beat_cross import *
 from .open_cabinet_put_apple import *
 from .put_ball_into_dustpan import *
+from .put_block_into_dustpan import *
 from .move_box import *
 from .pick_bottles_ablation import *
 from .move_bottle import *
