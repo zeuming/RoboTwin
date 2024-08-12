@@ -644,7 +644,7 @@ class Base_task(gym.Env):
             print("\n right arm palnning failed!")
             self.plan_success = False
         # else:
-        #     # fall back to RRTConnect if the screw motion fails (say contains collision)            
+        #     # fall back to RRTConnect if the screw motion fails (say contains collision)
         #     return self.move_to_pose_with_RRTConnect(pose, use_point_cloud, use_attach)
         
 
@@ -1040,18 +1040,21 @@ class Base_task(gym.Env):
 
             # 合并点云
             conbine_pcd = np.vstack((top_pcd , left_pcd , right_pcd , front_pcd))
-            pcd_array,index = fps(conbine_pcd[:,:3],self.pcd_down_sample_num)
+            pcd_array,index = conbine_pcd[:,:3], np.array(range(len(conbine_pcd)))
+            if self.pcd_down_sample_num > 0:
+                pcd_array,index = fps(conbine_pcd[:,:3],self.pcd_down_sample_num)
+                index = index.detach().cpu().numpy()[0]
 
             if self.save_type.get('raw_data', True):
                 point_cloud = o3d.geometry.PointCloud()
                 point_cloud.points = o3d.utility.Vector3dVector(pcd_array)
-                point_cloud.colors = o3d.utility.Vector3dVector(conbine_pcd[index.detach().cpu().numpy()[0],3:])
+                point_cloud.colors = o3d.utility.Vector3dVector(conbine_pcd[index,3:])
                 ensure_dir(self.file_path["f_pcd"] + f"{self.PCD_INDEX}.pcd")
                 o3d.io.write_point_cloud(self.file_path["f_pcd"] + f"{self.PCD_INDEX}.pcd", point_cloud)
 
             # pdb.set_trace()
             if self.save_type.get('pkl' , True):
-                pkl_dic["pointcloud"] = conbine_pcd[index.detach().cpu().numpy()][0]
+                pkl_dic["pointcloud"] = conbine_pcd[index]
         #===========================================================#
         if self.save_type.get('pkl' , True):
             save_pkl(self.file_path["pkl"]+f"{self.PCD_INDEX}.pkl", pkl_dic)
@@ -1266,7 +1269,7 @@ class Base_task(gym.Env):
                 if self.actor_pose == False:
                     break
             
-            self._update_render()
+            self. _update_render()
             if self.render_freq:
                 self.viewer.render()
             
