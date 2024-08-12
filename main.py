@@ -40,8 +40,6 @@ def main():
         task = put_block_into_dustpan()
     elif (args['task_name'] == "move_box"):
         task = move_box()
-    elif (args['task_name'] == "pick_bottles_ablation"):
-        task = pick_bottles_ablation()
     elif (args['task_name'] == "move_bottle"):
         task = move_bottle()
     else :

@@ -77,8 +77,6 @@ def main(cfg):
         task = move_box()
     elif (args['task_name'] == "move_bottle"):
         task = move_bottle()
-    elif (args['task_name'] == "pick_bottles_ablation"):
-        task = pick_bottles_ablation()
     else:
         # pass
         raise SystemExit("No Task")
