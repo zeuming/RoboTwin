@@ -11,10 +11,10 @@ class pick_hammer(Base_task):
         # pdb.set_trace()
         self.create_table_and_wall()
         self.load_robot()
+        self.setup_planner()
         self.load_camera(kwags.get('camera_w', 336),kwags.get('camera_h',224))
         self.pre_move()
         self.load_actors()
-        self.setup_planner()
     
     def pre_move(self):
         render_freq = self.render_freq
@@ -59,42 +59,42 @@ class pick_hammer(Base_task):
         gripper_quat = t3d.quaternions.mat2quat(gripper_mat)
         return list(self.hammer.get_pose().p+hammer_trans_mat @ np.array([0.008,-0.045,-0.27]).T) + list(gripper_quat)
 
-    def Do_task_once(self):
+    def play_once(self):
         pose0=self.get_left_gripper()
         pose0[3:] = [-0.787,0.07,0.06,-0.607]
         pose0 = self.left_original_pose
         pose0[3:] = [-0.787,0.07,0.06,-0.607]
         pose0[2] +=0.02
-        # self.left_move_to_pose_with_screw(pose=pose0, save_fre=save_fre)
+        # self.left_move_to_pose_with_screw(pose=pose0, save_freq=save_freq)
         pose0=self.get_left_gripper()
-        self.left_move_to_pose_with_screw(pose=pose0, save_fre=15)
+        self.left_move_to_pose_with_screw(pose=pose0, save_freq=15)
         # pose0[0] = -pose0[0]
-        # self.right_move_to_pose_with_screw(pose=pose0, save_fre=save_fre)
+        # self.right_move_to_pose_with_screw(pose=pose0, save_freq=save_freq)
         pose0[2] =0.899
-        self.left_move_to_pose_with_screw(pose=pose0, save_fre=20)
-        self.close_left_gripper(save_fre=20)
+        self.left_move_to_pose_with_screw(pose=pose0, save_freq=20)
+        self.close_left_gripper(save_freq=20)
 
         pose0[2] +=0.05
-        self.left_move_to_pose_with_screw(pose=pose0, save_fre=20)
+        self.left_move_to_pose_with_screw(pose=pose0, save_freq=20)
 
         pose1 = [-0.15, -0.19, 1.006, -0.912, 0,0,-0.410]
-        self.left_move_to_pose_with_screw(pose=pose1, save_fre=15)
+        self.left_move_to_pose_with_screw(pose=pose1, save_freq=15)
 
         right_pose0 = self.get_right_gripper()
-        self.right_move_to_pose_with_screw(pose=right_pose0,save_fre=15)
+        self.right_move_to_pose_with_screw(pose=right_pose0,save_freq=15)
 
         hammer_trans_mat = self.hammer.get_pose().to_transformation_matrix()[:3,:3]
         right_pose0[:3] = self.hammer.get_pose().p+hammer_trans_mat @ np.array([0.008,-0.045,-0.155]).T
-        self.right_move_to_pose_with_screw(pose=right_pose0,save_fre=20)
-        self.close_right_gripper(pos = -0.001, save_fre=20)
-        self.open_left_gripper(pos=0.02,save_fre=20)
+        self.right_move_to_pose_with_screw(pose=right_pose0,save_freq=20)
+        self.close_right_gripper(pos = -0.001, save_freq=20)
+        self.open_left_gripper(pos=0.02,save_freq=20)
 
         pose1[0] -=0.05
         pose1[1] -=0.05
-        self.left_move_to_pose_with_screw(pose1,save_fre=20)
+        self.left_move_to_pose_with_screw(pose1,save_freq=20)
         right_target_pose = [0.143,-0.2,0.865,1,0,0,1]
         left_target_pose = [-0.143,-0.2,0.865,1,0,0,1]
-        self.together_move_to_pose_with_screw(left_target_pose=left_target_pose,right_target_pose=right_target_pose,save_fre=20)
+        self.together_move_to_pose_with_screw(left_target_pose=left_target_pose,right_target_pose=right_target_pose,save_freq=20)
         # while 1:
         #     self.close_left_gripper()
     

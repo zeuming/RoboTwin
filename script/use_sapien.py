@@ -227,19 +227,15 @@ def main():
         scale=(0.167,0.167,0.167)
     )
 
-    print(brush.get_pose().to_transformation_matrix())
-    print(t3d.quaternions.quat2mat([-0.696134, 0.0893578, -0.706851, -0.0881731]))
     loader = scene.create_urdf_loader()
     loader.fix_root_link = True
     robot = loader.load("./aloha_maniskill_sim/urdf/arx5_description_isaac.urdf")
     robot.set_root_pose(sapien.Pose([0, -0.65, 0], [1, 0, 0, 1]))
     
     planner = mplib.Planner(
-        urdf="./aloha_maniskill_sim/urdf/arx5_description_isaac.urdf",
+        urdf="./aloha_maniskill_sim/urdf/arx5_description_isaac_mplib.urdf",
         srdf="./aloha_maniskill_sim/srdf/arx5_description_isaac.srdf",
-        move_group="fl_link6",
-        # user_link_names = ["fl_base_link","fl_link1","fl_link2","fl_link3","fl_link4","fl_link5","fl_link6"],
-        # user_joint_names = []
+        move_group="fr_link6",
     )
     pose = [-0.1,-0.1,0.8,1,0,0,0]
     

@@ -57,8 +57,6 @@ def main(cfg):
         pass
     elif (args['task_name'] == "pick_empty_cup"):
         task = pick_empty_cup()
-    elif (args['task_name'] == "pick_empty_cup_ablation"):
-        task = pick_empty_cup_ablation()
     # elif (args['task_name'] == "pick_cup_with_liquids"):
     #     task = pick_cup_with_liquids()
     elif (args['task_name'] == "move_brush"):
@@ -71,8 +69,6 @@ def main(cfg):
     #     task = catch_pot_from_hands()
     elif (args['task_name'] == "open_cabinet_put_apple"):
         task = open_cabinet_put_apple()
-    elif (args['task_name'] == "open_cabinet_put_apple_ablation"):
-        task = open_cabinet_put_apple_ablation()
     elif (args['task_name'] == "pick_hammer"):
         task = pick_hammer()
     elif (args['task_name'] == "put_ball_into_dustpan"):
@@ -83,8 +79,6 @@ def main(cfg):
         task = move_bottle()
     elif (args['task_name'] == "pick_bottles_ablation"):
         task = pick_bottles_ablation()
-    elif (args['task_name'] == "move_bottle_ablation"):
-        task = move_bottle_ablation()
     else:
         # pass
         raise SystemExit("No Task")
@@ -182,6 +176,7 @@ def test_policy(Demo_class, args, dp3, st_seed, test_num=20):
 
         Demo_class.setup_demo(now_ep_num=now_id, seed = now_seed, ** args)
         Demo_class.apply_policy(dp3)
+        print(Demo_class.box.get_pose().p)
 
         # 关闭当前任务和渲染
         now_id += 1

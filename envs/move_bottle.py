@@ -25,7 +25,7 @@ class move_bottle(Base_task):
     def load_actors(self, **kwargs):
         rand_pos = rand_pose(
             xlim=[-0.25,-0.05],
-            ylim=[0.,0.2],
+            ylim=[0.,0.25],
             zlim=[0.842],
             qpos=[-0.906,0,0,-0.424]
         )
@@ -74,12 +74,12 @@ class move_bottle(Base_task):
         self.open_left_gripper(save_freq=15)
         
         right_pick_pose[0]+=0.05
-        left_target_pose[0]-=0.05
+        left_target_pose[0]-=0.1
         self.together_move_to_pose_with_screw(left_target_pose,right_pick_pose, save_freq=15)
         right_target_pose = list(self.target.get_pose().p + [0.02,-0.13,0.11]) + [0.707,0,0,0.707]
 
         self.right_move_to_pose_with_screw(right_target_pose, save_freq=15)
-        right_target_pose[2] -=0.06
+        right_target_pose[2] -= 0.06
         self.right_move_to_pose_with_screw(right_target_pose, save_freq=15)
 
         self.open_right_gripper(save_freq=15)
@@ -89,5 +89,7 @@ class move_bottle(Base_task):
     def is_success(self):
         box_pos = self.box.get_pose().p
         target_pose = self.target.get_pose().p
+        if box_pos[2] < 0.78:
+            self.actor_pose = False
         eps = 0.0201
         return abs(box_pos[0] - target_pose[0]) < eps and abs(box_pos[1] - target_pose[1]) < eps and abs(box_pos[2] - 0.85) < 0.0015

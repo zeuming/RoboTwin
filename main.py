@@ -25,8 +25,6 @@ def main():
     # 根据命令行参数指定任务，存入 task 中
     if (args['task_name'] == "pick_empty_cup"):
         task = pick_empty_cup()
-    elif (args['task_name'] == "pick_empty_cup_ablation"):
-        task = pick_empty_cup_ablation()
     elif (args['task_name'] == "pick_cup_with_liquids"):
         task = pick_cup_with_liquids()
     elif (args['task_name'] == "pick_cup"):
@@ -37,10 +35,10 @@ def main():
         task = pick_bottles()
     elif (args['task_name'] == "hammer_beat"):
         task = hammer_beat()
+    elif (args['task_name'] == "hammer_beat_cross"):
+        task = hammer_beat_cross()
     elif (args['task_name'] == "open_cabinet_put_apple"):
         task = open_cabinet_put_apple()
-    elif (args['task_name'] == "open_cabinet_put_apple_ablation"):
-        task = open_cabinet_put_apple_ablation()
     elif (args['task_name'] == "pick_hammer"):
         task = pick_hammer()
     elif (args['task_name'] == "put_ball_into_dustpan"):
@@ -51,8 +49,6 @@ def main():
         task = pick_bottles_ablation()
     elif (args['task_name'] == "move_bottle"):
         task = move_bottle()
-    elif (args['task_name'] == "move_bottle_ablation"):
-        task = move_bottle_ablation()
     else :
         # pass
         raise SystemExit("No Task")

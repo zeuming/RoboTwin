@@ -1,5 +1,5 @@
-task_name: hammer_beat
-render_freq: 0       # render frequence (0: render off)
+task_name: hammer_beat_cross
+render_freq: 10       # render frequence (0: render off)
 use_seed: False          # use seed ,if value is True, the seed file has existed in ./seeds/{task_name}.txt  
 collect_data: True  # collect data
 save_path: './data'
@@ -23,3 +23,5 @@ data_type:          # the data types should be saved
   qpos: False
   mesh_segmentation: False
   actor_segmentation: False
+
+

@@ -1,25 +1,26 @@
 task_name: open_cabinet_put_apple
 render_freq: 0       # render frequence (0: render off)
-use_seed: False          # use seed ,if value is True, the seed file has existed in ./seeds/{task_name}.txt  
+use_seed: True          # use seed ,if value is True, the seed file has existed in ./seeds/{task_name}.txt  
 collect_data: True  # collect data
 save_path: './data'
 st_episode: 0    # begin_episode 
-camera_w: 336       #
-camera_h: 224       # camera args
+camera_w: 640       #
+camera_h: 480       # camera args
 pcd_crop: True      #...  
 pcd_down_sample_num: 1024    # pcd down sample num 
 dual_arm: True
 pose_type: "gt"
-episode_num: 50    # episode num
+episode_num: 1    # episode num
 save_type:
-  raw_data: False
-  pkl: True
+  raw_data: True
+  pkl: False
 data_type:          # the data types should be saved
-  rgb: False
+  rgb: True
+  expert : True
   depth: False
-  pointcloud: True
-  endpose: True
-  qpos: True
+  pointcloud: False
+  endpose: False
+  qpos: False
   mesh_segmentation: False
   actor_segmentation: False
 
