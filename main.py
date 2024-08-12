@@ -4,13 +4,6 @@ from envs import *
 
 import pdb
 
-import threading
-import trimesh
-
-import argparse
-
-import script
-
 import yaml
 
 def main():
@@ -43,6 +36,8 @@ def main():
         task = pick_hammer()
     elif (args['task_name'] == "put_ball_into_dustpan"):
         task = put_ball_into_dustpan()
+    elif (args['task_name'] == "put_block_into_dustpan"):
+        task = put_block_into_dustpan()
     elif (args['task_name'] == "move_box"):
         task = move_box()
     elif (args['task_name'] == "pick_bottles_ablation"):

@@ -12,7 +12,7 @@ class pick_empty_cup(Base_task):
         self.load_camera(kwags.get('camera_w', 336),kwags.get('camera_h',224))
         self.pre_move()
         self.load_actors()
-        self.step_lim = 350
+        self.step_lim = 500
     
     def pre_move(self):
         render_freq = self.render_freq

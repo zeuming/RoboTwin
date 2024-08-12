@@ -343,6 +343,7 @@ class Base_task(gym.Env):
         self.left_camera.entity.set_pose(self.all_links[46].get_pose())
         self.right_camera.entity.set_pose(self.all_links[49].get_pose())
         self.scene.update_render()
+        self.scene.update_render()
 
     def left_follow_path(self, result, save_freq=None):
         '''
@@ -649,6 +650,7 @@ class Base_task(gym.Env):
             self.plan_success = False
         # else:
         #     # fall back to RRTConnect if the screw motion fails (say contains collision)
+        #     # fall back to RRTConnect if the screw motion fails (say contains collision)
         #     return self.move_to_pose_with_RRTConnect(pose, use_point_cloud, use_attach)
         
 
@@ -911,13 +913,13 @@ class Base_task(gym.Env):
         # # ---------------------------------------------------------------------------- #
         if self.data_type.get('rgb', False):
             # front_rgba = self._get_camera_rgba(self.front_camera, camera_pose='front')
-            expert_rgba = self._get_camera_rgba(self.expert_camera, camera_pose='expert')
             top_rgba = self._get_camera_rgba(self.top_camera, camera_pose='top')
             left_rgba = self._get_camera_rgba(self.left_camera, camera_pose='left')
             right_rgba = self._get_camera_rgba(self.right_camera, camera_pose='right')
 
             if self.save_type.get('raw_data', True):
                 if self.data_type.get('expert', False):
+                    expert_rgba = self._get_camera_rgba(self.expert_camera, camera_pose='expert')
                     save_img(self.file_path["expert_color"]+f"{self.PCD_INDEX}.png",expert_rgba)
                 save_img(self.file_path["f_color"]+f"{self.PCD_INDEX}.png",top_rgba)
                 save_img(self.file_path["l_color"]+f"{self.PCD_INDEX}.png",left_rgba)
@@ -1054,11 +1056,13 @@ class Base_task(gym.Env):
                 point_cloud = o3d.geometry.PointCloud()
                 point_cloud.points = o3d.utility.Vector3dVector(pcd_array)
                 point_cloud.colors = o3d.utility.Vector3dVector(conbine_pcd[index,3:])
+                point_cloud.colors = o3d.utility.Vector3dVector(conbine_pcd[index,3:])
                 ensure_dir(self.file_path["f_pcd"] + f"{self.PCD_INDEX}.pcd")
                 o3d.io.write_point_cloud(self.file_path["f_pcd"] + f"{self.PCD_INDEX}.pcd", point_cloud)
 
             # pdb.set_trace()
             if self.save_type.get('pkl' , True):
+                pkl_dic["pointcloud"] = conbine_pcd[index]
                 pkl_dic["pointcloud"] = conbine_pcd[index]
         #===========================================================#
         if self.save_type.get('pkl' , True):
@@ -1068,6 +1072,7 @@ class Base_task(gym.Env):
     
     def get_obs(self):
         self.scene.step()
+        self._update_render()
         self._update_render()
         obs = collections.OrderedDict()
         
@@ -1244,6 +1249,7 @@ class Base_task(gym.Env):
                     now_right_id +=1
                 
                 self.scene.step()
+                self._update_render()
                 self._update_render()
 
                 if i != 0 and i % obs_update_freq == 0:

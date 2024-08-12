@@ -1,6 +1,6 @@
 task_name: move_bottle
-render_freq: 10       # render frequence (0: render off)
-use_seed: False          # use seed ,if value is True, the seed file has existed in ./seeds/{task_name}.txt  
+render_freq: 0       # render frequence (0: render off)
+use_seed: True          # use seed ,if value is True, the seed file has existed in ./seeds/{task_name}.txt  
 collect_data: True  # collect data
 save_path: './data'
 st_episode: 0    # begin_episode 
