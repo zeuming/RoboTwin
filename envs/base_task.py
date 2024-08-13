@@ -1266,6 +1266,7 @@ class Base_task(gym.Env):
                         assert obs['agent_pos'].shape[0] == 7, 'agent_pose shape, error'
                     
                     model.update_obs(obs)
+                    self._take_picture()
 
                 if i % 5==0:
                     self._update_render()

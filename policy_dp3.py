@@ -2,17 +2,8 @@ import torch
 import sapien.core as sapien
 import os
 import numpy as np
-
-# from envs import pick_empty_cup
-# from envs import pick_cup_with_liquids
-# from envs import pick_hammer
-# from envs import move_brush
-# from envs import pick_bottles
-# from envs import hammer_beat
-# from envs import catch_pot_from_hands
 from envs import *
 import hydra
-import pdb
 import pathlib
 from datetime import datetime
 
@@ -20,9 +11,6 @@ import sys
 sys.path.append('./policy/3D-Diffusion-Policy/3D-Diffusion-Policy')
 from dp3_policy import *
 
-import argparse
-
-import script
 import yaml
 
 import numpy as np
@@ -51,34 +39,33 @@ def main(cfg):
     task = None
 
     # 根据命令行参数指定任务，存入 task 中
-    if (args['task_name'] == "pick_apple_to_plate"):
-        # task = pick_apple_Demo()
-        # task = pick_cup_with_liquids()
-        pass
-    elif (args['task_name'] == "pick_empty_cup"):
+    if (args['task_name'] == "pick_empty_cup"):
         task = pick_empty_cup()
-    # elif (args['task_name'] == "pick_cup_with_liquids"):
-    #     task = pick_cup_with_liquids()
+    elif (args['task_name'] == "pick_cup_with_liquids"):
+        task = pick_cup_with_liquids()
+    elif (args['task_name'] == "pick_cup"):
+        task = pick_cup()
     elif (args['task_name'] == "move_brush"):
         task = move_brush()
     elif (args['task_name'] == "pick_bottles"):
         task = pick_bottles()
     elif (args['task_name'] == "hammer_beat"):
         task = hammer_beat()
-    # elif (args['task_name'] == "catch_pot_from_hands"):
-    #     task = catch_pot_from_hands()
+    elif (args['task_name'] == "hammer_beat_cross"):
+        task = hammer_beat_cross()
     elif (args['task_name'] == "open_cabinet_put_apple"):
         task = open_cabinet_put_apple()
     elif (args['task_name'] == "pick_hammer"):
         task = pick_hammer()
     elif (args['task_name'] == "put_ball_into_dustpan"):
         task = put_ball_into_dustpan()
+    elif (args['task_name'] == "put_block_into_dustpan"):
+        task = put_block_into_dustpan()
     elif (args['task_name'] == "move_box"):
         task = move_box()
     elif (args['task_name'] == "move_bottle"):
         task = move_bottle()
-    else:
-        # pass
+    else :
         raise SystemExit("No Task")
 
     if checkpoint_num == -1:
@@ -96,7 +83,7 @@ def main(cfg):
     else:
         st_seed = 100
         suc_nums = []
-        test_num = 50
+        test_num = 20
         topk = 1
         dp3 = DP3(cfg, checkpoint_num)
         st_seed, suc_num = test_policy(task, args, dp3, st_seed, test_num=test_num)
@@ -145,7 +132,6 @@ def test_policy(Demo_class, args, dp3, st_seed, test_num=20):
     Demo_class.suc = 0
     Demo_class.test_num =0
 
-    # args['is_save'] = True
     now_id = 0
     succ_seed = 0
     suc_test_seed_list = []
@@ -174,7 +160,6 @@ def test_policy(Demo_class, args, dp3, st_seed, test_num=20):
 
         Demo_class.setup_demo(now_ep_num=now_id, seed = now_seed, ** args)
         Demo_class.apply_policy(dp3)
-        print(Demo_class.box.get_pose().p)
 
         # 关闭当前任务和渲染
         now_id += 1

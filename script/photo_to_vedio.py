@@ -3,7 +3,7 @@ import os
 
 def create_video(image_folder, output_video_file, save_dir='./task_video/', fps=30):
     # 修复创建目录的语法错误
-    video_dir = os.path.join(save_dir, output_video_file)
+    video_dir = save_dir
     if not os.path.exists(video_dir):
         os.makedirs(video_dir)
 
@@ -32,12 +32,13 @@ def create_video(image_folder, output_video_file, save_dir='./task_video/', fps=
 #     create_video('./policy_data/test/episode0/camera/color/front/0.png', 'pick_cup_with_liquid_top.mp4')
 
 if __name__ == '__main__':
-    create_video('./policy_data/pick_bottles/episode0/camera/color/front/','pick_bottles_policy_top.mp4', save_dir='./task_video/')
-    create_video('./policy_data/pick_bottles/episode0/camera/color/expert/','pick_bottles_policy_expert.mp4', save_dir='./task_video/')
+    task_list = ['hammer_beat', 'move_bottle', 'open_cabinet_put_apple', 'pick_bottles', 'pick_empty_cup', 'put_block_into_dustpan']
+    load_dir = './data'
+    # for task in task_list:
+        # create_video(f'{load_dir}/{task}/episode0/camera/color/front/',f'{task}_top.mp4', save_dir=f'./task_video/success/')
+        # create_video(f'{load_dir}/{task}/episode0/camera/color/expert/',f'{task}_expert.mp4', save_dir='./task_video/success/')
+        # create_video(f'{load_dir}/{task}/episode1/camera/color/front/',f'{task}_top.mp4', save_dir=f'./task_video/fail/')
+        # create_video(f'{load_dir}/{task}/episode1/camera/color/expert/',f'{task}_expert.mp4', save_dir='./task_video/fail/')
 
-# dir = "./czx_benchmark_data/open_cabinet_put_apple/episode0/camera/color/front/"
-# create_video(dir, "open_cabinet_put_apple_top.mp4", "./task_video/open_cabinet_put_apple/")
-# dir = "./czx_benchmark_data/open_cabinet_put_apple/episode0/camera/color/left/"
-# create_video(dir, "open_cabinet_put_apple_left.mp4", "./task_video/open_cabinet_put_apple/")
-# dir = "./czx_benchmark_data/open_cabinet_put_apple/episode0/camera/color/right/"
-# create_video(dir, "open_cabinet_put_apple_right.mp4", "./task_video/open_cabinet_put_apple/")
+        # create_video(f'{load_dir}/{task}/episode0/camera/color/front/',f'{task}_top.mp4', save_dir=f'./task_video_benchmark/')
+        # create_video(f'{load_dir}/{task}/episode0/camera/color/expert/',f'{task}_expert.mp4', save_dir='./task_video_benchmark/')
