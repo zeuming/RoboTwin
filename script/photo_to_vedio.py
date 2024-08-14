@@ -34,11 +34,13 @@ def create_video(image_folder, output_video_file, save_dir='./task_video/', fps=
 if __name__ == '__main__':
     task_list = ['hammer_beat', 'move_bottle', 'open_cabinet_put_apple', 'pick_bottles', 'pick_empty_cup', 'put_block_into_dustpan']
     load_dir = './data'
-    # for task in task_list:
+    for task in task_list:
         # create_video(f'{load_dir}/{task}/episode0/camera/color/front/',f'{task}_top.mp4', save_dir=f'./task_video/success/')
         # create_video(f'{load_dir}/{task}/episode0/camera/color/expert/',f'{task}_expert.mp4', save_dir='./task_video/success/')
         # create_video(f'{load_dir}/{task}/episode1/camera/color/front/',f'{task}_top.mp4', save_dir=f'./task_video/fail/')
         # create_video(f'{load_dir}/{task}/episode1/camera/color/expert/',f'{task}_expert.mp4', save_dir='./task_video/fail/')
 
-        # create_video(f'{load_dir}/{task}/episode0/camera/color/front/',f'{task}_top.mp4', save_dir=f'./task_video_benchmark/')
-        # create_video(f'{load_dir}/{task}/episode0/camera/color/expert/',f'{task}_expert.mp4', save_dir='./task_video_benchmark/')
+        create_video(f'{load_dir}/{task}/episode0/camera/color/front/',f'{task}_top.mp4', save_dir=f'./task_video_benchmark/')
+        create_video(f'{load_dir}/{task}/episode0/camera/color/expert/',f'{task}_expert.mp4', save_dir='./task_video_benchmark/')
+        create_video(f'{load_dir}/{task}/episode0/camera/color/left/',f'{task}_left.mp4', save_dir='./task_video_benchmark/')
+        create_video(f'{load_dir}/{task}/episode0/camera/color/right/',f'{task}_right.mp4', save_dir='./task_video_benchmark/')

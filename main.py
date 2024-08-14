@@ -106,6 +106,22 @@ def run(Demo_class, args):
         for id in range(args['st_episode'], args['episode_num']):
             Demo_class.setup_demo(now_ep_num=id, seed = seed_list[id],**args)
             Demo_class.play_once()
+            if Demo_class.save_type.get('raw_data', True):
+                top_config = Demo_class.get_camera_config(Demo_class.top_camera)
+                left_config = Demo_class.get_camera_config(Demo_class.left_camera)
+                right_config = Demo_class.get_camera_config(Demo_class.right_camera)
+                save_json(Demo_class.file_path["f_color"]+"config.json", top_config)
+                save_json(Demo_class.file_path["l_color"]+"config.json", left_config)
+                save_json(Demo_class.file_path["r_color"]+"config.json", right_config)
+
+                save_json(Demo_class.file_path["f_depth"]+"config.json", top_config)
+                save_json(Demo_class.file_path["l_depth"]+"config.json", left_config)
+                save_json(Demo_class.file_path["r_depth"]+"config.json", right_config)
+
+                save_json(Demo_class.file_path["f_pcd"]+"config.json", top_config)
+                save_json(Demo_class.file_path["l_pcd"]+"config.json", left_config)
+                save_json(Demo_class.file_path["r_pcd"]+"config.json", right_config)
+
             Demo_class.close()
             print('\nsuccess!')
 

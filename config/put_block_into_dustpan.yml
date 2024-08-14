@@ -6,21 +6,21 @@ save_path: './data'
 st_episode: 0    # begin_episode 
 camera_w: 640       #
 camera_h: 480       # camera args
-pcd_crop: True      #...  
-pcd_down_sample_num: 1024    # pcd down sample num 
+pcd_crop: False      #...  
+pcd_down_sample_num: 0    # pcd down sample num 
 dual_arm: True
 pose_type: "gt"
-episode_num: 1    # episode num
+episode_num: 50    # episode num
 save_type:
   raw_data: True
   pkl: False
 data_type:          # the data types should be saved
   rgb: True
-  expert : True
-  depth: False
+  expert : False
+  depth: True
   pointcloud: False
-  endpose: False
-  qpos: False
-  mesh_segmentation: False
-  actor_segmentation: False
-
+  conbine: False
+  endpose: True
+  qpos: True
+  mesh_segmentation: True
+  actor_segmentation: True

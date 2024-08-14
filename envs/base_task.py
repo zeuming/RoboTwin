@@ -725,23 +725,18 @@ class Base_task(gym.Env):
     
     # 获取camera的PointCloud
     def _get_camera_pcd(self, camera, point_num = 0):
-        # 假设 camera.get_picture 和 camera.get_model_matrix 已经返回了NumPy数组
-        # pdb.set_trace()
         rgba = camera.get_picture_cuda("Color").torch()  # [H, W, 4]
         position = camera.get_picture_cuda("Position").torch()  # 获取位置数据
         model_matrix = camera.get_model_matrix()  # 获取模型矩阵
 
-        # 将NumPy数组转换为PyTorch张量，并移动到GPU
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         model_matrix = torch.tensor(model_matrix, dtype=torch.float32).to(device)
 
         # 提取有效的三维点和对应的颜色数据
-        valid_mask = position[..., 3] < 1  # 扩展维度以匹配RGBA形状
+        valid_mask = position[..., 3] < 1
         # pdb.set_trace()
         points_opengl = position[..., :3][valid_mask]
         points_color = rgba[valid_mask][:,:3]
-
-        # pdb.set_trace()
         # 转换到世界坐标系
         points_world = torch.bmm(points_opengl.view(1, -1, 3), model_matrix[:3, :3].transpose(0,1).view(-1, 3, 3)).squeeze(1) + model_matrix[:3, 3]
 
@@ -751,66 +746,69 @@ class Base_task(gym.Env):
         points_world = points_world.squeeze(0)
         # 如果需要裁剪点云
         if self.pcd_crop:
-            # aabb = o3d.geometry.AxisAlignedBoundingBox(self.pcd_crop_bbox[0], self.pcd_crop_bbox[1])
-            # pcd_file = pcd_file.crop(aabb)min_bound = torch.tensor(self.pcd_crop_bbox[0], dtype=torch.float32)
             min_bound = torch.tensor(self.pcd_crop_bbox[0], dtype=torch.float32).to(device)
             max_bound = torch.tensor(self.pcd_crop_bbox[1], dtype=torch.float32).to(device)
-            # 检查每个点是否在边界框内
-            # 我们使用逻辑运算符来创建一个布尔掩码
             inside_bounds_mask = (points_world.squeeze(0) >= min_bound).all(dim=1) & (points_world.squeeze(0)  <= max_bound).all(dim=1)
             points_world = points_world[inside_bounds_mask]
             points_color = points_color[inside_bounds_mask]
         
-
         # 将张量转换回NumPy数组以用于Open3D
         points_world_np = points_world.cpu().numpy()
         points_color_np = points_color.cpu().numpy()
-        # 创建Open3D点云
-        # pcd_file = o3d.geometry.PointCloud()
-        # pcd_file.points = o3d.utility.Vector3dVector(points_world_np)
-        # pcd_file.colors = o3d.utility.Vector3dVector(points_color_np[:, :3] / 255)
+
+        if point_num > 0:
+            points_world_np,index = fps(points_world_np,point_num)
+            index = index.detach().cpu().numpy()[0]
+            points_color_np = points_color_np[index,:]
+
         return np.hstack((points_world_np, points_color_np))
 
-    def _get_camera_pcd_bac(self, camera, point_num = 0):
-        use_farthest_point_sample = True
+    # def _get_camera_pcd_bac(self, camera, point_num = 0):
+    #     use_farthest_point_sample = True
 
-        rgba = camera.get_picture("Color")  # [H, W, 4]
-        # rgba_tmp = camera.get_picture_cuda("Color")  # [H, W, 4]
-        position = camera.get_picture("Position")  # 获取位置数据
-        points_opengl = position[..., :3][position[..., 3] < 1]  # 提取有效的三维点
-        points_color = rgba[position[..., 3] < 1]  # 提取对应的颜色数据
-        model_matrix = camera.get_model_matrix()  # 获取模型矩阵
-        points_world = points_opengl @ model_matrix[:3, :3].T + model_matrix[:3, 3]  # 转换到世界坐标系
-        points_color = (np.clip(points_color, 0, 1) * 255).astype(np.uint8)  # 格式化颜色数据
-        pcd_file = o3d.geometry.PointCloud()
-        pcd_file.points = o3d.utility.Vector3dVector(points_world)
-        # pcd_file.points = o3d.utility.Vector3dVector(points_opengl)
-        pcd_file.colors = o3d.utility.Vector3dVector(points_color[:, :3] / 255)  # 颜色需要归一化到[0, 1]
-        # camera_size = camera.get_width() * camera.get_height()
-        # # ---------------------------------------------------------------------------- #
-        # # PointCloud crop
-        # # ---------------------------------------------------------------------------- #   
-        if self.pcd_crop:
-            aabb = o3d.geometry.AxisAlignedBoundingBox(self.pcd_crop_bbox[0], self.pcd_crop_bbox[1])
-            pcd_file = pcd_file.crop(aabb)
-        now_point_num = np.array(pcd_file.points).shape[0]
-        # pdb.set_trace()
-        # # ---------------------------------------------------------------------------- #
-        # # PointCloud down sample
-        # # ---------------------------------------------------------------------------- #  
-        # if point_num:  
-        #     if point_num >= 10000:
-        #         # pcd_file,_ = voxel_sample_points(points = pcd_file,method="voxel",point_number=point_num*2)
-        #         pass
+    #     rgba = camera.get_picture("Color")  # [H, W, 4]
+    #     # rgba_tmp = camera.get_picture_cuda("Color")  # [H, W, 4]
+    #     position = camera.get_picture("Position")  # 获取位置数据
+    #     points_opengl = position[..., :3][position[..., 3] < 1]  # 提取有效的三维点
+    #     points_color = rgba[position[..., 3] < 1]  # 提取对应的颜色数据
+    #     model_matrix = camera.get_model_matrix()  # 获取模型矩阵
+    #     points_world = points_opengl @ model_matrix[:3, :3].T + model_matrix[:3, 3]  # 转换到世界坐标系
+    #     points_color = (np.clip(points_color, 0, 1) * 255).astype(np.uint8)  # 格式化颜色数据
+    #     pcd_file = o3d.geometry.PointCloud()
+    #     pcd_file.points = o3d.utility.Vector3dVector(points_world)
+    #     # pcd_file.points = o3d.utility.Vector3dVector(points_opengl)
+    #     pcd_file.colors = o3d.utility.Vector3dVector(points_color[:, :3] / 255)  # 颜色需要归一化到[0, 1]
+    #     # camera_size = camera.get_width() * camera.get_height()
+    #     # # ---------------------------------------------------------------------------- #
+    #     # # PointCloud crop
+    #     # # ---------------------------------------------------------------------------- #   
+    #     if self.pcd_crop:
+    #         aabb = o3d.geometry.AxisAlignedBoundingBox(self.pcd_crop_bbox[0], self.pcd_crop_bbox[1])
+    #         pcd_file = pcd_file.crop(aabb)
+    #     now_point_num = np.array(pcd_file.points).shape[0]
+    #     # pdb.set_trace()
+    #     # # ---------------------------------------------------------------------------- #
+    #     # # PointCloud down sample
+    #     # # ---------------------------------------------------------------------------- #  
+    #     # if point_num:  
+    #     #     if point_num >= 10000:
+    #     #         # pcd_file,_ = voxel_sample_points(points = pcd_file,method="voxel",point_number=point_num*2)
+    #     #         pass
         
-        #     if use_farthest_point_sample:
-        #         pcd_file = fps(pcd_file,point_num)
-        #     else : # random piont sample
-        #         point_num = min(point_num, now_point_num)
-        #         indices = np.random.choice(now_point_num, point_num, replace=False)
-        #         pcd_file = pcd_file.select_by_index(indices)
-        return pcd_file
+    #     #     if use_farthest_point_sample:
+    #     #         pcd_file = fps(pcd_file,point_num)
+    #     #     else : # random piont sample
+    #     #         point_num = min(point_num, now_point_num)
+    #     #         indices = np.random.choice(now_point_num, point_num, replace=False)
+    #     #         pcd_file = pcd_file.select_by_index(indices)
+    #     return pcd_file
 
+    def arr2pcd(self,point_arr,colors_arr = None):
+        point_cloud = o3d.geometry.PointCloud()
+        point_cloud.points = o3d.utility.Vector3dVector(point_arr)
+        point_cloud.colors = o3d.utility.Vector3dVector(colors_arr)
+        return point_cloud
+        
     def get_left_arm_jointState(self) -> list:
         jointState_list = []
         for id in self.left_arm_joint_id:
@@ -841,7 +839,38 @@ class Base_task(gym.Env):
             "z": float(z),
         }
         return endpose
-        
+    
+    def get_camera_config(self,camera: sapien.render.RenderCameraComponent):
+        config = {
+                    "D" : [ 0, 0, 0, 0, 0 ],
+                    "K" : camera.get_intrinsic_matrix().ravel().tolist(),
+                    "P" : np.vstack((camera.get_intrinsic_matrix(), [0,0,0])).ravel().tolist(),
+                    "R" : [ 1, 0, 0, 0, 1, 0, 0, 0, 1 ],
+                    "binning_x" : 0,
+                    "binning_y" : 0,
+                    "distortion_model" : "plumb_bob",
+                    "height" : camera.get_height(),
+                    "parent_frame" : 
+                    {
+                        "pitch" : 0,
+                        "roll" : 1.57,
+                        "x" : 0,
+                        "y" : 0,
+                        "yaw" : 1.57,
+                        "z" : 0
+                    },
+                    "roi" : 
+                    {
+                        "do_rectify" : 0,
+                        "height" : 0,
+                        "width" : 0,
+                        "x_offset" : 0,
+                        "y_offset" : 0
+                    },
+                    "width" : camera.get_width()
+                }
+        return config
+    
     # 保存数据
     def _take_picture(self):
         if not self.is_save:
@@ -849,7 +878,6 @@ class Base_task(gym.Env):
 
         print('saving: episode = ', self.ep_num, ' index = ',self.PCD_INDEX, end='\r')
         self._update_render()
-        # self.front_camera.take_picture()
         self.left_camera.take_picture()
         self.right_camera.take_picture()
         self.top_camera.take_picture()
@@ -889,6 +917,7 @@ class Base_task(gym.Env):
                 "ml_joint" : f"{self.save_dir}/episode{self.ep_num}/arm/jointState/masterLeft/",
                 "mr_joint" : f"{self.save_dir}/episode{self.ep_num}/arm/jointState/masterRight/",
                 "pkl" : f"{self.save_dir}_pkl/episode{self.ep_num}/",
+                "conbine_pcd" : f"{self.save_dir}/episode{self.ep_num}/camera/pointCloud/conbine/",
             }
 
                 
@@ -1030,35 +1059,31 @@ class Base_task(gym.Env):
         # # ---------------------------------------------------------------------------- #
         # # PointCloud
         # # ---------------------------------------------------------------------------- #
-        if self.data_type.get('pointcloud', False) and self.PCD_INDEX >= 30:
+        if self.data_type.get('pointcloud', False):
             # 保存点云到PCD文件
             # pdb.set_trace()
             top_pcd = self._get_camera_pcd(self.top_camera, point_num=self.pcd_down_sample_num)
             left_pcd = self._get_camera_pcd(self.left_camera, point_num=self.pcd_down_sample_num)
             right_pcd = self._get_camera_pcd(self.right_camera, point_num=self.pcd_down_sample_num) 
-            front_pcd = self._get_camera_pcd(self.front_camera,point_num=self.pcd_down_sample_num)
-            # ensure_dir(self.file_path["f_pcd"] + f"{self.PCD_INDEX}.pcd")
-            # o3d.io.write_point_cloud(self.file_path["f_pcd"] + f"{self.PCD_INDEX}.pcd", top_pcd) 
-            # ensure_dir(self.file_path["l_pcd"] + f"{self.PCD_INDEX}.pcd")
-            # o3d.io.write_point_cloud(self.file_path["l_pcd"] + f"{self.PCD_INDEX}.pcd", left_pcd)
-            # ensure_dir(self.file_path["r_pcd"] + f"{self.PCD_INDEX}.pcd")
-            # o3d.io.write_point_cloud(self.file_path["r_pcd"] + f"{self.PCD_INDEX}.pcd", right_pcd)
 
             # 合并点云
-            # conbine_pcd = np.vstack((top_pcd , left_pcd , right_pcd , front_pcd))
-            conbine_pcd = top_pcd
-            pcd_array,index = conbine_pcd[:,:3], np.array(range(len(conbine_pcd)))
-            if self.pcd_down_sample_num > 0:
-                pcd_array,index = fps(conbine_pcd[:,:3],self.pcd_down_sample_num)
-                index = index.detach().cpu().numpy()[0]
+            if self.data_type.get("conbine", False):
+                conbine_pcd = np.vstack((top_pcd , left_pcd , right_pcd))
+                pcd_array,index = conbine_pcd[:,:3], np.array(range(len(conbine_pcd)))
+                if self.pcd_down_sample_num > 0:
+                    pcd_array,index = fps(conbine_pcd[:,:3],self.pcd_down_sample_num)
+                    index = index.detach().cpu().numpy()[0]
 
             if self.save_type.get('raw_data', True):
-                point_cloud = o3d.geometry.PointCloud()
-                point_cloud.points = o3d.utility.Vector3dVector(pcd_array)
-                point_cloud.colors = o3d.utility.Vector3dVector(conbine_pcd[index,3:])
-                point_cloud.colors = o3d.utility.Vector3dVector(conbine_pcd[index,3:])
                 ensure_dir(self.file_path["f_pcd"] + f"{self.PCD_INDEX}.pcd")
-                o3d.io.write_point_cloud(self.file_path["f_pcd"] + f"{self.PCD_INDEX}.pcd", point_cloud)
+                o3d.io.write_point_cloud(self.file_path["f_pcd"] + f"{self.PCD_INDEX}.pcd", self.arr2pcd(top_pcd[:,:3], top_pcd[:,3:])) 
+                ensure_dir(self.file_path["l_pcd"] + f"{self.PCD_INDEX}.pcd")
+                o3d.io.write_point_cloud(self.file_path["l_pcd"] + f"{self.PCD_INDEX}.pcd", self.arr2pcd(left_pcd[:,:3], left_pcd[:,3:]))
+                ensure_dir(self.file_path["r_pcd"] + f"{self.PCD_INDEX}.pcd")
+                o3d.io.write_point_cloud(self.file_path["r_pcd"] + f"{self.PCD_INDEX}.pcd", self.arr2pcd(right_pcd[:,:3], right_pcd[:,3:]))
+                if self.data_type.get("conbine", False):
+                    ensure_dir(self.file_path["conbine_pcd"] + f"{self.PCD_INDEX}.pcd")
+                    o3d.io.write_point_cloud(self.file_path["conbine_pcd"] + f"{self.PCD_INDEX}.pcd", self.arr2pcd(pcd_array, conbine_pcd[index,3:]))
 
             # pdb.set_trace()
             if self.save_type.get('pkl' , True):
@@ -1249,7 +1274,6 @@ class Base_task(gym.Env):
                     now_right_id +=1
                 
                 self.scene.step()
-                self._update_render()
                 self._update_render()
 
                 if i != 0 and i % obs_update_freq == 0:

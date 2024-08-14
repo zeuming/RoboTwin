@@ -9,7 +9,13 @@ class hammer_beat_cross(Base_task):
         super()._init(**kwags)
         self.create_table_and_wall()
         self.load_robot()
+
+        import time
+        st_time = time.time()
         self.setup_planner()
+        ed_time = time.time()
+
+        print(ed_time - st_time)
         self.load_camera(kwags.get('camera_w', 336),kwags.get('camera_h',224))
         self.pre_move()
         self.load_actors()
