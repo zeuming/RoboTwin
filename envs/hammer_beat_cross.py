@@ -70,7 +70,7 @@ class hammer_beat_cross(Base_task):
         for  _ in range(2):
             self._take_picture()
 
-    def is_success(self):
+    def check_success(self):
         hammer_pose = self.hammer.get_pose().p
         coaster_pose = self.coaster.get_pose().p
         eps = 0.02#

@@ -83,7 +83,7 @@ class empty_cup_place(Base_task):
         for _ in range(2):
             self._take_picture()
     
-    def is_success(self):
+    def check_success(self):
         eps = 0.025
         coaster_pose = self.coaster.get_pose().p
         cup_pose = self.cup.get_pose().p

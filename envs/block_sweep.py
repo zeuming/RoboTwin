@@ -107,7 +107,7 @@ class block_sweep(Base_task):
         for _ in range(2):
             self._take_picture()
 
-    def is_success(self):
+    def check_success(self):
         block_pose = self.block.get_pose().p
         dustpan_pose = self.dustpan.get_pose().p
         return abs(block_pose[0] - dustpan_pose[0] - 0.035)<0.035 and abs(block_pose[1] - dustpan_pose[1]) < 0.047 and block_pose[2] > 0.76

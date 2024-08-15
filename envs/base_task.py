@@ -1314,7 +1314,7 @@ class Base_task(gym.Env):
                         self.viewer.render()
                 
                 i+=1
-                if self.is_success():
+                if self.check_success():
                     success_flag = True
                     break
 
@@ -1342,7 +1342,7 @@ class Base_task(gym.Env):
     def play_once(self):
         pass
     
-    def is_success(self):
+    def check_success(self):
         pass
 
     def pre_move(self):

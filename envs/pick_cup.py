@@ -127,7 +127,7 @@ class pick_cup(Base_task):
             self.close_right_gripper(save_freq=15)
 
         
-    def is_success(self):
+    def check_success(self):
         eps = 0.03
         coaster_pose = self.coaster.get_pose().p
         cup_pose = self.cup.get_pose().p

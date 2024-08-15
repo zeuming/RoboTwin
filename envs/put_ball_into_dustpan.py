@@ -102,7 +102,7 @@ class put_ball_into_dustpan(Base_task):
         for _ in range(2):
             self._take_picture()
 
-    def is_success(self):
+    def check_success(self):
         tabel_tennis_pose = self.tabel_tennis.get_pose().p
         dustpan_pose = self.dustpan.get_pose().p
         # print(tabel_tennis_pose)

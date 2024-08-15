@@ -183,7 +183,7 @@ class pick_cup_with_liquids(Base_task):
                 gt_action = observation['endpose_ctx']
                 # pdb.set_trace()
             self._update_render()
-    def is_success(self):
+    def check_success(self):
         eps = 0.02
         coaster_pose = self.coaster.get_pose().p
         cup_pose = [self.cup.get_pose().p[0],self.cup.get_pose().p[1]]

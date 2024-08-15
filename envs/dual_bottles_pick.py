@@ -90,7 +90,7 @@ class dual_bottles_pick(Base_task):
         for i in range(2):
             self._take_picture()
 
-    def is_success(self):
+    def check_success(self):
         red_target = [-0.046,-0.105]
         green_target = [0.057,-0.105]
         eps = 0.03

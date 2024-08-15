@@ -98,7 +98,7 @@ class pick_hammer(Base_task):
         # while 1:
         #     self.close_left_gripper()
     
-    def is_success(self):
+    def check_success(self):
         hammer_pose = self.hammer.get_pose().p
         target_pose = [0.125,-0.04,0.9]
         eps = 0.05

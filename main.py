@@ -72,7 +72,7 @@ def run(Demo_class, args):
             Demo_class.play_once()
 
             # 任务成功/失败 判定
-            if Demo_class.plan_success and Demo_class.is_success():
+            if Demo_class.plan_success and Demo_class.check_success():
                 print(f"simulate data episode {suc_num} success! (seed = {epid})")
                 seed_list.append(epid)
                 suc_num+=1

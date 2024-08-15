@@ -103,6 +103,6 @@ class move_box(Base_task):
             self._take_picture()
         
     
-    def is_success(self):
+    def check_success(self):
         box_pose = self.box.get_pose().p
         return abs(box_pose[0])<0.02 and abs(box_pose[0])<0.02

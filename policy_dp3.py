@@ -147,7 +147,7 @@ def test_policy(Demo_class, args, dp3, st_seed, test_num=20):
             Demo_class.play_once()
             Demo_class.close()
             
-        if (not expert_check) or ( Demo_class.plan_success and Demo_class.is_success() ):
+        if (not expert_check) or ( Demo_class.plan_success and Demo_class.check_success() ):
             # print(f"test seed = {now_seed} can work!")
             succ_seed +=1
             suc_test_seed_list.append(now_seed)

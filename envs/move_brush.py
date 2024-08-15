@@ -99,7 +99,7 @@ class move_brush(Base_task):
         left_target_pose = [-0.143,-0.2,0.865,1,0,0,1]
         self.together_move_to_pose_with_screw(left_target_pose=left_target_pose,right_target_pose=right_target_pose,save_freq=20)
 
-    def is_success(self):
+    def check_success(self):
         # TODO
         # 刷子姿势和目标姿势想符
         # 刷子在右臂而且不在左臂

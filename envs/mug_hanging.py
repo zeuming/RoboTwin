@@ -46,7 +46,7 @@ class mug_hanging(Base_task):
         while 1:
             self.close_left_gripper()
 
-    def is_success(self):
+    def check_success(self):
         eps = 0.03
         coaster_pose = self.coaster.get_pose().p
         cup_pose = self.cup.get_pose().p

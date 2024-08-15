@@ -86,7 +86,7 @@ class apple_cabinet_storage(Base_task):
         for _ in range(2):
             self._take_picture()
         
-    def is_success(self):
+    def check_success(self):
         cabinet_pos = self.cabinet.get_pose().p
         eps = 0.03
         apple_pose = self.apple.get_pose().p

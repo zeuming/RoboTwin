@@ -86,7 +86,7 @@ class catch_pot_from_hands(Base_task):
         # self.together_close_gripper(save_freq=None)
 
     
-    def is_success(self):
+    def check_success(self):
         target_pose = [-0.01, -0.2, 0.814]
         target_rotate = 0.707
         pot_pose = self.pot.get_pose().p
