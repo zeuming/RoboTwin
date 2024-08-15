@@ -38,7 +38,7 @@ pip install torch==2.3.1 sapien==3.0.0b1 scipy==1.10.1 mplib gymnasium==0.29.1 t
 ```
 2. Install pytorch3d
 ```
-cd third_party/pytorch3d_simplified && pip install -e . && cd ..
+cd third_party/pytorch3d_simplified && pip install -e . && cd ../..
 ```
 
 3. Install DP3 (Optional)
