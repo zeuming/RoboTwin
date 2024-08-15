@@ -32,7 +32,7 @@ def create_video(image_folder, output_video_file, save_dir='./task_video/', fps=
 #     create_video('./policy_data/test/episode0/camera/color/front/0.png', 'pick_cup_with_liquid_top.mp4')
 
 if __name__ == '__main__':
-    task_list = ['hammer_beat', 'move_bottle', 'open_cabinet_put_apple', 'pick_bottles', 'pick_empty_cup', 'put_block_into_dustpan']
+    task_list = ['block_hammer_beat', 'block_handover', 'apple_cabinet_storage', 'dual_bottles_pick', 'empty_cup_place', 'block_sweep']
     load_dir = './data'
     for task in task_list:
         # create_video(f'{load_dir}/{task}/episode0/camera/color/front/',f'{task}_top.mp4', save_dir=f'./task_video/success/')

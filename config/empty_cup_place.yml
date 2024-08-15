@@ -1,4 +1,4 @@
-task_name: pick_empty_cup
+task_name: empty_cup_place
 render_freq: 0       # render frequence (0: render off)
 use_seed: True          # use seed ,if value is True, the seed file has existed in ./seeds/{task_name}.txt  
 collect_data: True  # collect data

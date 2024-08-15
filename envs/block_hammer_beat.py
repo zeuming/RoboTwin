@@ -3,7 +3,7 @@ from .base_task import Base_task
 from .utils import *
 import sapien
 
-class hammer_beat(Base_task):
+class block_hammer_beat(Base_task):
 
     def setup_demo(self,**kwags):
         super()._init(**kwags)

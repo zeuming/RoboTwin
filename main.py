@@ -8,7 +8,7 @@ import yaml
 
 def main():
     task_name = input('Please input task name: \n')
-    # task_name = 'hammer_beat'
+    # task_name = 'block_hammer_beat'
     with open(f'./config/{task_name}.yml', 'r', encoding='utf-8') as f:
         args = yaml.load(f.read(), Loader=yaml.FullLoader)
 
@@ -16,32 +16,34 @@ def main():
     task = None
 
     # 根据命令行参数指定任务，存入 task 中
-    if (args['task_name'] == "pick_empty_cup"):
-        task = pick_empty_cup()
+    if (args['task_name'] == "empty_cup_place"):
+        task = empty_cup_place()
     elif (args['task_name'] == "pick_cup_with_liquids"):
         task = pick_cup_with_liquids()
     elif (args['task_name'] == "pick_cup"):
         task = pick_cup()
     elif (args['task_name'] == "move_brush"):
         task = move_brush()
-    elif (args['task_name'] == "pick_bottles"):
-        task = pick_bottles()
-    elif (args['task_name'] == "hammer_beat"):
-        task = hammer_beat()
+    elif (args['task_name'] == "dual_bottles_pick"):
+        task = dual_bottles_pick()
+    elif (args['task_name'] == "block_hammer_beat"):
+        task = block_hammer_beat()
     elif (args['task_name'] == "hammer_beat_cross"):
         task = hammer_beat_cross()
-    elif (args['task_name'] == "open_cabinet_put_apple"):
-        task = open_cabinet_put_apple()
+    elif (args['task_name'] == "apple_cabinet_storage"):
+        task = apple_cabinet_storage()
     elif (args['task_name'] == "pick_hammer"):
         task = pick_hammer()
     elif (args['task_name'] == "put_ball_into_dustpan"):
         task = put_ball_into_dustpan()
-    elif (args['task_name'] == "put_block_into_dustpan"):
-        task = put_block_into_dustpan()
+    elif (args['task_name'] == "block_sweep"):
+        task = block_sweep()
     elif (args['task_name'] == "move_box"):
         task = move_box()
-    elif (args['task_name'] == "move_bottle"):
-        task = move_bottle()
+    elif (args['task_name'] == "block_handover"):
+        task = block_handover()
+    elif (args['task_name'] == "mug_hanging"):
+        task = mug_hanging()
     else :
         # pass
         raise SystemExit("No Task")

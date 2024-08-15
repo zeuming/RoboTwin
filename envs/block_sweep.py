@@ -4,7 +4,7 @@ from .utils import *
 import numpy as np
 import sapien
 
-class put_block_into_dustpan(Base_task):
+class block_sweep(Base_task):
     def setup_demo(self,**kwags):
         super()._init(**kwags)
         self.create_table_and_wall()

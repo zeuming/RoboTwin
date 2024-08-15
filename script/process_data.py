@@ -8,7 +8,7 @@ import transforms3d as t3d
 
 def main():
     visualize_pcd = False
-    task_name = input('Please input task name: (such as hammer_beat): ')
+    task_name = input('Please input task name: (such as block_hammer_beat): ')
     num = input('Please input episode number: (such as 50): ')
     current_ep, num = 0, int(num)
     load_dir = f'./data/{task_name}_pkl'

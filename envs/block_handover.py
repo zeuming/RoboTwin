@@ -4,7 +4,7 @@ from .utils import *
 import sapien
 import math
 
-class move_bottle(Base_task):
+class block_handover(Base_task):
     def setup_demo(self,**kwags):
         super()._init(**kwags)
         self.create_table_and_wall()

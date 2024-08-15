@@ -4,7 +4,7 @@ from .utils import *
 import sapien
 
 
-class open_cabinet_put_apple(Base_task):
+class apple_cabinet_storage(Base_task):
     def setup_demo(self,**kwags):
         super()._init(**kwags)
         self.create_table_and_wall()

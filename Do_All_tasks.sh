@@ -1,6 +1,6 @@
-echo "hammer_beat" | python main.py
-echo "move_bottle" | python main.py
-echo "pick_bottles" | python main.py
-echo "open_cabinet_put_apple" | python main.py
-echo "pick_empty_cup" | python main.py
-echo "put_block_into_dustpan" | python main.py
+echo "block_hammer_beat" | python main.py
+echo "block_handover" | python main.py
+echo "dual_bottles_pick" | python main.py
+echo "apple_cabinet_storage" | python main.py
+echo "empty_cup_place" | python main.py
+echo "block_sweep" | python main.py

@@ -1,4 +1,4 @@
-task_name: move_bottle
+task_name: apple_cabinet_storage
 render_freq: 0       # render frequence (0: render off)
 use_seed: True          # use seed ,if value is True, the seed file has existed in ./seeds/{task_name}.txt  
 collect_data: True  # collect data
@@ -24,3 +24,4 @@ data_type:          # the data types should be saved
   qpos: True
   mesh_segmentation: False
   actor_segmentation: False
+

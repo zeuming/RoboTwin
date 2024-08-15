@@ -51,7 +51,7 @@ def rand_create_obj(
     scale = (1,1,1),
     convex = False,
     is_static = False,
-    model_data = False,
+    load_model_data = False,
 ) -> sapien.Entity:
     
     obj_pose = rand_pose(
@@ -62,17 +62,16 @@ def rand_create_obj(
         rotate_lim=rotate_lim,
         qpos=qpos
     )
-    mesh = create_obj(
+
+    return create_obj(
         scene=scene,
         pose=obj_pose,
         modelname=modelname,
         scale=scale,
         convex=convex,
         is_static=is_static,
-        model_data = model_data
+        load_model_data = load_model_data
     )
-
-    return mesh
 
 def rand_create_urdf_obj(
     scene: sapien.Scene,
@@ -84,7 +83,7 @@ def rand_create_urdf_obj(
     rotate_lim = [0,0,0],
     qpos = [1,0,0,0],
     scale = 1.0,
-    fix_root_link = True
+    fix_root_link = True,
 )->sapienp.PhysxArticulation: 
     
     obj_pose = rand_pose(
@@ -95,16 +94,14 @@ def rand_create_urdf_obj(
         rotate_lim=rotate_lim,
         qpos=qpos
     )
-    
-    object = create_urdf_obj(
+
+    return create_urdf_obj(
         scene,
         pose= obj_pose,
         modelname=modelname,
         scale=scale,
         fix_root_link = fix_root_link
     )
-
-    return object
 
 
 def rand_create_glb(
@@ -119,7 +116,7 @@ def rand_create_glb(
     scale = (1,1,1),
     convex = False,
     is_static = False,
-    model_data=False
+    load_model_data=False
 ) -> sapien.Entity:
     
     obj_pose = rand_pose(
@@ -130,14 +127,13 @@ def rand_create_glb(
         rotate_lim=rotate_lim,
         qpos=qpos
     )
-    mesh = create_glb(
+
+    return create_glb(
         scene=scene,
         pose=obj_pose,
         modelname=modelname,
         scale=scale,
         convex=convex,
         is_static=is_static,
-        model_data =model_data
+        load_model_data =load_model_data
     )
-
-    return mesh
