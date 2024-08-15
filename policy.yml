@@ -1,11 +1,11 @@
 task_name: move_bottle
 dual_arm: True
 expert_check: False # !!!!!!!!!@@@@
-render_freq: 0      # render frequence (0: render off)
+render_freq: 10      # render frequence (0: render off)
 save_path: './result'
 st_episode: 0    # begin_episode 
-camera_w: 640       #
-camera_h: 480       # camera args
+camera_w: 336       #
+camera_h: 224       # camera args
 pcd_crop: True      #...  
 pcd_down_sample_num: 1024    # pcd down sample num 
 checkpoint_num: 3000
@@ -15,7 +15,7 @@ save_type:
   pkl: False
 data_type:          # the data types should be saved
   rgb: True
-  expert : True
+  observer : True
   depth: False
   pointcloud: False
   endpose: False

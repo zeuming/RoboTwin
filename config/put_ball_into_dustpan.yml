@@ -16,7 +16,7 @@ save_type:
   pkl: False
 data_type:          # the data types should be saved
   rgb: True
-  expert : False
+  observer : False
   depth: False
   pointcloud: True
   endpose: False

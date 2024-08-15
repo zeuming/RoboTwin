@@ -129,7 +129,7 @@ def run(Demo_class, args):
     # for id in range(args['st_episode'], args['episode_num']):
     #     dir = f"{Demo_class.save_dir}episode{id}/camera/color/front"
     #     script.create_video(dir, f"{args['task_name']}_top.mp4", f"./task_video/{args['task_name']}/episode{id}/")
-    #     dir = f"{Demo_class.save_dir}episode{id}/camera/color/expert"
+    #     dir = f"{Demo_class.save_dir}episode{id}/camera/color/observer"
     #     script.create_video(dir, f"{args['task_name']}_expert.mp4", f"./task_video/{args['task_name']}/episode{id}/")
     #     dir = f"{Demo_class.save_dir}episode{id}/camera/segmentation/front/actor"
     #     script.create_video(dir, f"{args['task_name']}_top_seg.mp4", f"./task_video/{args['task_name']}/episode{id}/")

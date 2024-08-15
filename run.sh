@@ -1,1 +1,1 @@
-bash eval_dp3.sh robot_dp3 move_bottle_50 move_bottle_50 0 0python
+bash eval_dp3.sh robot_dp3 move_bottle_50 move_bottle_50 0 0

@@ -245,7 +245,7 @@ class Base_task(gym.Env):
         top_mat44[:3, :3] = np.stack([top_cam_forward, top_cam_left, top_up], axis=1)
         top_mat44[:3, 3] = top_cam_pos
 
-        # expert camera
+        # observer camera
         expert_cam_pos = np.array([0.4, 0.22, 1.42])
         expert_cam_forward = np.array([-1,-1,-1])
         expert_cam_left = np.array([1,-1, 0])
@@ -717,8 +717,8 @@ class Base_task(gym.Env):
     def _get_camera_depth(self, camera):
         position = camera.get_picture("Position")
         depth = -position[..., 2]
-        depth_image = (depth * 1000.0).astype(np.uint16)
-        # depth_image = (depth * 1000.0).astype(np.float32)
+        # depth_image = (depth * 1000.0).astype(np.uint16)
+        depth_image = (depth * 1000.0).astype(np.float32)
         # depth_pil = Image.fromarray(depth_image)
         
         return depth_image
@@ -762,46 +762,6 @@ class Base_task(gym.Env):
             points_color_np = points_color_np[index,:]
 
         return np.hstack((points_world_np, points_color_np))
-
-    # def _get_camera_pcd_bac(self, camera, point_num = 0):
-    #     use_farthest_point_sample = True
-
-    #     rgba = camera.get_picture("Color")  # [H, W, 4]
-    #     # rgba_tmp = camera.get_picture_cuda("Color")  # [H, W, 4]
-    #     position = camera.get_picture("Position")  # 获取位置数据
-    #     points_opengl = position[..., :3][position[..., 3] < 1]  # 提取有效的三维点
-    #     points_color = rgba[position[..., 3] < 1]  # 提取对应的颜色数据
-    #     model_matrix = camera.get_model_matrix()  # 获取模型矩阵
-    #     points_world = points_opengl @ model_matrix[:3, :3].T + model_matrix[:3, 3]  # 转换到世界坐标系
-    #     points_color = (np.clip(points_color, 0, 1) * 255).astype(np.uint8)  # 格式化颜色数据
-    #     pcd_file = o3d.geometry.PointCloud()
-    #     pcd_file.points = o3d.utility.Vector3dVector(points_world)
-    #     # pcd_file.points = o3d.utility.Vector3dVector(points_opengl)
-    #     pcd_file.colors = o3d.utility.Vector3dVector(points_color[:, :3] / 255)  # 颜色需要归一化到[0, 1]
-    #     # camera_size = camera.get_width() * camera.get_height()
-    #     # # ---------------------------------------------------------------------------- #
-    #     # # PointCloud crop
-    #     # # ---------------------------------------------------------------------------- #   
-    #     if self.pcd_crop:
-    #         aabb = o3d.geometry.AxisAlignedBoundingBox(self.pcd_crop_bbox[0], self.pcd_crop_bbox[1])
-    #         pcd_file = pcd_file.crop(aabb)
-    #     now_point_num = np.array(pcd_file.points).shape[0]
-    #     # pdb.set_trace()
-    #     # # ---------------------------------------------------------------------------- #
-    #     # # PointCloud down sample
-    #     # # ---------------------------------------------------------------------------- #  
-    #     # if point_num:  
-    #     #     if point_num >= 10000:
-    #     #         # pcd_file,_ = voxel_sample_points(points = pcd_file,method="voxel",point_number=point_num*2)
-    #     #         pass
-        
-    #     #     if use_farthest_point_sample:
-    #     #         pcd_file = fps(pcd_file,point_num)
-    #     #     else : # random piont sample
-    #     #         point_num = min(point_num, now_point_num)
-    #     #         indices = np.random.choice(now_point_num, point_num, replace=False)
-    #     #         pcd_file = pcd_file.select_by_index(indices)
-    #     return pcd_file
 
     def arr2pcd(self,point_arr,colors_arr = None):
         point_cloud = o3d.geometry.PointCloud()
@@ -887,10 +847,23 @@ class Base_task(gym.Env):
         # clear save dir
         if self.PCD_INDEX==0:
             self.file_path ={
-                "expert_color" : f"{self.save_dir}/episode{self.ep_num}/camera/color/expert/",
+                "expert_color" : f"{self.save_dir}/episode{self.ep_num}/camera/color/observer/",
                 "l_color" : f"{self.save_dir}/episode{self.ep_num}/camera/color/left/",
                 "l_depth" : f"{self.save_dir}/episode{self.ep_num}/camera/depth/left/",
                 "l_pcd" : f"{self.save_dir}/episode{self.ep_num}/camera/pointCloud/left/",
+
+
+                "f_color" : f"{self.save_dir}/episode{self.ep_num}/camera/color/front/",
+                "f_depth" : f"{self.save_dir}/episode{self.ep_num}/camera/depth/front/",
+                "f_pcd" : f"{self.save_dir}/episode{self.ep_num}/camera/pointCloud/front/",
+
+                "r_color" : f"{self.save_dir}/episode{self.ep_num}/camera/color/right/",
+                "r_depth" : f"{self.save_dir}/episode{self.ep_num}/camera/depth/right/",
+                "r_pcd" : f"{self.save_dir}/episode{self.ep_num}/camera/pointCloud/right/",
+
+                "t_color" : f"{self.save_dir}/episode{self.ep_num}/camera/color/top/",
+                "t_depth" : f"{self.save_dir}/episode{self.ep_num}/camera/depth/top/",
+                "t_pcd" : f"{self.save_dir}/episode{self.ep_num}/camera/pointCloud/top/",
 
                 "f_seg_mesh" : f"{self.save_dir}/episode{self.ep_num}/camera/segmentation/front/mesh/",
                 "l_seg_mesh" : f"{self.save_dir}/episode{self.ep_num}/camera/segmentation/left/mesh/",
@@ -899,15 +872,11 @@ class Base_task(gym.Env):
                 "l_seg_actor" : f"{self.save_dir}/episode{self.ep_num}/camera/segmentation/left/actor/",
                 "r_seg_actor" : f"{self.save_dir}/episode{self.ep_num}/camera/segmentation/right/actor/",
 
-                "f_color" : f"{self.save_dir}/episode{self.ep_num}/camera/color/front/",
-                "f_depth" : f"{self.save_dir}/episode{self.ep_num}/camera/depth/front/",
-                "f_pcd" : f"{self.save_dir}/episode{self.ep_num}/camera/pointCloud/front/",
-                "r_color" : f"{self.save_dir}/episode{self.ep_num}/camera/color/right/",
-                "r_depth" : f"{self.save_dir}/episode{self.ep_num}/camera/depth/right/",
-                "r_pcd" : f"{self.save_dir}/episode{self.ep_num}/camera/pointCloud/right/",
-                "t_color" : f"{self.save_dir}/episode{self.ep_num}/camera/color/front/",
-                "t_depth" : f"{self.save_dir}/episode{self.ep_num}/camera/depth/front/",
-                "t_pcd" : f"{self.save_dir}/episode{self.ep_num}/camera/pointCloud/front/",
+                "f_camera" : f"{self.save_dir}/episode{self.ep_num}/camera/model_camera/front/",
+                "t_camera" : f"{self.save_dir}/episode{self.ep_num}/camera/model_camera/top/",
+                "l_camera" : f"{self.save_dir}/episode{self.ep_num}/camera/model_camera/left/",
+                "r_camera" : f"{self.save_dir}/episode{self.ep_num}/camera/model_camera/right/",
+
                 "ml_ep" : f"{self.save_dir}/episode{self.ep_num}/arm/endPose/masterLeft/",
                 "mr_ep" : f"{self.save_dir}/episode{self.ep_num}/arm/endPose/masterRight/",
                 "pl_ep" : f"{self.save_dir}/episode{self.ep_num}/arm/endPose/puppetLeft/",
@@ -921,41 +890,85 @@ class Base_task(gym.Env):
             }
 
                 
-            for directory in self.file_path.values():
-                if os.path.exists(directory):
-                    file_list = os.listdir(directory)
-                    for file in file_list:
-                        os.remove(directory + file)
+            # for directory in self.file_path.values():
+            #     if os.path.exists(directory):
+            #         file_list = os.listdir(directory)
+            #         for file in file_list:
+            #             os.remove(directory + file)
 
         pkl_dic = {
             "observations":{
-                "head_camera":{},       #rbg , mesh_seg , actior_seg , depth , intrinsic_cv , extrinsic_cv , cam2world_gl
+                "head_camera":{},       #rbg , mesh_seg , actior_seg , depth , intrinsic_cv , extrinsic_cv , cam2world_gl(model_matrix)
                 "left_camera":{},
-                "right_camera":{}
+                "right_camera":{},
+                "front_camera":{}
             },
             "pointcloud":[],        # conbinet pcd
             "joint_action":[],
             "endpose":[]
         }
+        
+        top_camera_intrinsic_cv = self.top_camera.get_intrinsic_matrix()
+        top_camera_extrinsic_cv = self.top_camera.get_extrinsic_matrix()
+        top_camera_model_matrix = self.top_camera.get_model_matrix()
+
+        pkl_dic["observations"]["head_camera"] = {
+            "intrinsic_cv" : top_camera_intrinsic_cv,
+            "extrinsic_cv" : top_camera_extrinsic_cv,
+            "cam2world_gl" : top_camera_model_matrix
+        }
+
+        front_camera_intrinsic_cv = self.front_camera.get_intrinsic_matrix()
+        front_camera_extrinsic_cv = self.front_camera.get_extrinsic_matrix()
+        front_camera_model_matrix = self.front_camera.get_model_matrix()
+
+        pkl_dic["observations"]["front_camera"] = {
+            "intrinsic_cv" : front_camera_intrinsic_cv,
+            "extrinsic_cv" : front_camera_extrinsic_cv,
+            "cam2world_gl" : front_camera_model_matrix
+        }
+
+        left_camera_intrinsic_cv = self.left_camera.get_intrinsic_matrix()
+        left_camera_extrinsic_cv = self.left_camera.get_extrinsic_matrix()
+        left_camera_model_matrix = self.left_camera.get_model_matrix()
+
+        pkl_dic["observations"]["left_camera"] = {
+            "intrinsic_cv" : left_camera_intrinsic_cv,
+            "extrinsic_cv" : left_camera_extrinsic_cv,
+            "cam2world_gl" : left_camera_model_matrix
+        }
+
+        right_camera_intrinsic_cv = self.right_camera.get_intrinsic_matrix()
+        right_camera_extrinsic_cv = self.right_camera.get_extrinsic_matrix()
+        right_camera_model_matrix = self.right_camera.get_model_matrix()
+
+        pkl_dic["observations"]["right_camera"] = {
+            "intrinsic_cv" : right_camera_intrinsic_cv,
+            "extrinsic_cv" : right_camera_extrinsic_cv,
+            "cam2world_gl" : right_camera_model_matrix
+        }
+
         # # ---------------------------------------------------------------------------- #
         # # RGBA
         # # ---------------------------------------------------------------------------- #
         if self.data_type.get('rgb', False):
-            # front_rgba = self._get_camera_rgba(self.front_camera, camera_pose='front')
+            front_rgba = self._get_camera_rgba(self.front_camera, camera_pose='front')
             top_rgba = self._get_camera_rgba(self.top_camera, camera_pose='top')
             left_rgba = self._get_camera_rgba(self.left_camera, camera_pose='left')
             right_rgba = self._get_camera_rgba(self.right_camera, camera_pose='right')
 
             if self.save_type.get('raw_data', True):
-                if self.data_type.get('expert', False):
-                    expert_rgba = self._get_camera_rgba(self.expert_camera, camera_pose='expert')
+                if self.data_type.get('observer', False):
+                    expert_rgba = self._get_camera_rgba(self.expert_camera, camera_pose='observer')
                     save_img(self.file_path["expert_color"]+f"{self.PCD_INDEX}.png",expert_rgba)
-                save_img(self.file_path["f_color"]+f"{self.PCD_INDEX}.png",top_rgba)
+                save_img(self.file_path["t_color"]+f"{self.PCD_INDEX}.png",top_rgba)
+                save_img(self.file_path["f_color"]+f"{self.PCD_INDEX}.png",front_rgba)
                 save_img(self.file_path["l_color"]+f"{self.PCD_INDEX}.png",left_rgba)
                 save_img(self.file_path["r_color"]+f"{self.PCD_INDEX}.png",right_rgba)
 
             if self.save_type.get('pkl' , True):
                 pkl_dic["observations"]["head_camera"]["rgb"] = top_rgba[:,:,:3]
+                pkl_dic["observations"]["front_camera"]["rgb"] = front_rgba[:,:,:3]
                 pkl_dic["observations"]["left_camera"]["rgb"] = left_rgba[:,:,:3]
                 pkl_dic["observations"]["right_camera"]["rgb"] = right_rgba[:,:,:3]
         # # ---------------------------------------------------------------------------- #
@@ -973,6 +986,7 @@ class Base_task(gym.Env):
 
             if self.save_type.get('pkl' , True):
                 pkl_dic["observations"]["head_camera"]["mesh_segmentation"] = top_seg
+                # pkl_dic["observations"]["front_camera"]["mesh_segmentation"] = front_seg
                 pkl_dic["observations"]["left_camera"]["mesh_segmentation"] = left_seg
                 pkl_dic["observations"]["right_camera"]["mesh_segmentation"] = right_seg
         # # ---------------------------------------------------------------------------- #
@@ -995,17 +1009,19 @@ class Base_task(gym.Env):
         # # DEPTH
         # # ---------------------------------------------------------------------------- #
         if self.data_type.get('depth', False):
-            # front_depth = self._get_camera_depth(self.front_camera)
+            front_depth = self._get_camera_depth(self.front_camera)
             top_depth = self._get_camera_depth(self.top_camera)
             left_depth = self._get_camera_depth(self.left_camera)
             right_depth = self._get_camera_depth(self.right_camera)
 
             if self.save_type.get('raw_data', True):
-                save_img(self.file_path["f_depth"]+f"{self.PCD_INDEX}.png", top_depth)
+                save_img(self.file_path["t_depth"]+f"{self.PCD_INDEX}.png", top_depth)
+                save_img(self.file_path["f_depth"]+f"{self.PCD_INDEX}.png", front_depth)
                 save_img(self.file_path["l_depth"]+f"{self.PCD_INDEX}.png", left_depth)
                 save_img(self.file_path["r_depth"]+f"{self.PCD_INDEX}.png", right_depth)
             if self.save_type.get('pkl' , True):
                 pkl_dic["observations"]["head_camera"]["depth"] = top_depth
+                pkl_dic["observations"]["front_camera"]["depth"] = front_depth
                 pkl_dic["observations"]["left_camera"]["depth"] = left_depth
                 pkl_dic["observations"]["right_camera"]["depth"] = right_depth
         # # ---------------------------------------------------------------------------- #
@@ -1062,13 +1078,14 @@ class Base_task(gym.Env):
         if self.data_type.get('pointcloud', False):
             # 保存点云到PCD文件
             # pdb.set_trace()
-            top_pcd = self._get_camera_pcd(self.top_camera, point_num=self.pcd_down_sample_num)
-            left_pcd = self._get_camera_pcd(self.left_camera, point_num=self.pcd_down_sample_num)
-            right_pcd = self._get_camera_pcd(self.right_camera, point_num=self.pcd_down_sample_num) 
+            top_pcd = self._get_camera_pcd(self.top_camera, point_num=0)
+            front_pcd = self._get_camera_pcd(self.front_camera, point_num=0)
+            left_pcd = self._get_camera_pcd(self.left_camera, point_num=0)
+            right_pcd = self._get_camera_pcd(self.right_camera, point_num=0) 
 
             # 合并点云
             if self.data_type.get("conbine", False):
-                conbine_pcd = np.vstack((top_pcd , left_pcd , right_pcd))
+                conbine_pcd = np.vstack((top_pcd , left_pcd , right_pcd, front_pcd))
                 pcd_array,index = conbine_pcd[:,:3], np.array(range(len(conbine_pcd)))
                 if self.pcd_down_sample_num > 0:
                     pcd_array,index = fps(conbine_pcd[:,:3],self.pcd_down_sample_num)
@@ -1087,7 +1104,6 @@ class Base_task(gym.Env):
 
             # pdb.set_trace()
             if self.save_type.get('pkl' , True):
-                pkl_dic["pointcloud"] = conbine_pcd[index]
                 pkl_dic["pointcloud"] = conbine_pcd[index]
         #===========================================================#
         if self.save_type.get('pkl' , True):
