@@ -16,7 +16,8 @@
 4. check_success，检查任务是否成功
 main.py调用每个任务的类并完成数据采集
 
-
+部署实现不重要，先跳过。
+跑任务可以用`echo "block_hammer_beat" | python main.py`之类的
 
 # Installation
 See [Installation.md](./Installation.md) for installation instructions. 
