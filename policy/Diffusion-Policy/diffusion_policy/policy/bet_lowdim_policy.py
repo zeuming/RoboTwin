@@ -8,7 +8,7 @@ from diffusion_policy.model.common.normalizer import LinearNormalizer
 from diffusion_policy.policy.base_lowdim_policy import BaseLowdimPolicy
 from diffusion_policy.model.bet.action_ae.discretizers.k_means import KMeansDiscretizer
 from diffusion_policy.model.bet.latent_generators.mingpt import MinGPT
-from diffusion_policy.model.bet.utils import eval_mode
+from diffusion_policy.model.betutils import eval_mode
 
 class BETLowdimPolicy(BaseLowdimPolicy):
     def __init__(self, 

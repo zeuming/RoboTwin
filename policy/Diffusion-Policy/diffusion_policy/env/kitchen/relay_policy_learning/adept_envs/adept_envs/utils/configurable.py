@@ -135,7 +135,7 @@ def configurable(config_id=None, pickleable=False, config_cache=global_config):
         # If the class is pickleable, overwrite the state methods to save
         # the constructor arguments and config.
         if pickleable:
-            # Use same pickle keys as gym.utils.ezpickle for backwards compat.
+            # Use same pickle keys as gymutils.ezpickle for backwards compat.
             PKL_ARGS_KEY = '_ezpickle_args'
             PKL_KWARGS_KEY = '_ezpickle_kwargs'
 

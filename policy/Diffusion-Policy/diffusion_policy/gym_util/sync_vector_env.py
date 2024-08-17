@@ -3,7 +3,7 @@ from copy import deepcopy
 
 from gym import logger
 from gym.vector.vector_env import VectorEnv
-from gym.vector.utils import concatenate, create_empty_array
+from gym.vectorutils import concatenate, create_empty_array
 
 __all__ = ["SyncVectorEnv"]
 

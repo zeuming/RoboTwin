@@ -44,6 +44,8 @@ def main():
         task = block_handover()
     elif (args['task_name'] == "mug_hanging"):
         task = mug_hanging()
+    elif (args['task_name'] == "diverse_bottles_pick"):
+        task = diverse_bottles_pick()
     else :
         # pass
         raise SystemExit("No Task")

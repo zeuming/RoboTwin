@@ -16,4 +16,4 @@
 
 import adept_envs.franka
 
-from adept_envs.utils.configurable import global_config
+from adept_envsutils.configurable import global_config

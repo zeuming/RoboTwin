@@ -12,7 +12,7 @@ import numpy as np
 import torch
 import torch.optim as optim
 from torch.optim.lr_scheduler import LambdaLR
-from torch.utils.data.dataloader import DataLoader
+from torchutils.data.dataloader import DataLoader
 
 logger = logging.getLogger(__name__)
 
@@ -90,7 +90,7 @@ class Trainer:
                     # backprop and update the parameters
                     model.zero_grad()
                     loss.backward()
-                    torch.nn.utils.clip_grad_norm_(
+                    torch.nnutils.clip_grad_norm_(
                         model.parameters(), config.grad_norm_clip
                     )
                     optimizer.step()

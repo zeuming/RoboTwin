@@ -18,7 +18,7 @@
 import os
 import numpy as np
 from adept_envs import robot_env
-from adept_envs.utils.configurable import configurable
+from adept_envsutils.configurable import configurable
 from gym import spaces
 from dm_control.mujoco import engine
 

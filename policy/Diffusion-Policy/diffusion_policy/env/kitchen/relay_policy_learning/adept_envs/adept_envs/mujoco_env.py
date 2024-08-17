@@ -24,7 +24,7 @@ from typing import Dict, Optional
 
 import gym
 from gym import spaces
-from gym.utils import seeding
+from gymutils import seeding
 import numpy as np
 
 from adept_envs.simulation.sim_robot import MujocoSimRobot, RenderMode

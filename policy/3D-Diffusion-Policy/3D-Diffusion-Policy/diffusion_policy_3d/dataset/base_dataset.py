@@ -5,7 +5,7 @@ import torch.nn
 from diffusion_policy_3d.model.common.normalizer import LinearNormalizer
 
 
-class BaseDataset(torch.utils.data.Dataset):
+class BaseDataset(torchutils.data.Dataset):
     def get_validation_dataset(self) -> 'BaseDataset':
         # return an empty dataset by default
         return BaseDataset()

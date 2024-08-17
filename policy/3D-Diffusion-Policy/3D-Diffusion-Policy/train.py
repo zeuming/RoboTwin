@@ -14,7 +14,7 @@ import torch
 import dill
 from omegaconf import OmegaConf
 import pathlib
-from torch.utils.data import DataLoader
+from torchutils.data import DataLoader
 import copy
 import random
 import wandb
@@ -59,18 +59,18 @@ class TrainDP3Workspace:
         random.seed(seed)
 
         # configure model
-        self.model: DP3 = hydra.utils.instantiate(cfg.policy)
+        self.model: DP3 = hydrautils.instantiate(cfg.policy)
 
         self.ema_model: DP3 = None
         if cfg.training.use_ema:
             try:
                 self.ema_model = copy.deepcopy(self.model)
             except: # minkowski engine could not be copied. recreate it
-                self.ema_model = hydra.utils.instantiate(cfg.policy)
+                self.ema_model = hydrautils.instantiate(cfg.policy)
 
 
         # configure training state
-        self.optimizer = hydra.utils.instantiate(
+        self.optimizer = hydrautils.instantiate(
             cfg.optimizer, params=self.model.parameters())
 
         # configure training state
@@ -108,7 +108,7 @@ class TrainDP3Workspace:
 
         # configure dataset
         dataset: BaseDataset
-        dataset = hydra.utils.instantiate(cfg.task.dataset)
+        dataset = hydrautils.instantiate(cfg.task.dataset)
 
         assert isinstance(dataset, BaseDataset), print(f"dataset must be BaseDataset, got {type(dataset)}")
         train_dataloader = DataLoader(dataset, **cfg.dataloader)
@@ -138,7 +138,7 @@ class TrainDP3Workspace:
         # configure ema
         ema: EMAModel = None
         if cfg.training.use_ema:
-            ema = hydra.utils.instantiate(
+            ema = hydrautils.instantiate(
                 cfg.ema,
                 model=self.ema_model)
         
@@ -292,7 +292,7 @@ class TrainDP3Workspace:
         
         cfg = copy.deepcopy(self.cfg)
         env_runner: BaseRunner
-        env_runner = hydra.utils.instantiate(
+        env_runner = hydrautils.instantiate(
             cfg.task.env_runner,
             output_dir=self.output_dir)
         assert isinstance(env_runner, BaseRunner)

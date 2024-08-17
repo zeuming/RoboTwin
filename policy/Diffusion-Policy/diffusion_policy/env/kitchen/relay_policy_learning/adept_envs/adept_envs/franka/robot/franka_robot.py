@@ -22,7 +22,7 @@ import copy
 import click
 
 from adept_envs import base_robot
-from adept_envs.utils.config import (get_config_root_node, read_config_from_node)
+from adept_envsutils.config import (get_config_root_node, read_config_from_node)
 
 # observations structure
 from collections import namedtuple

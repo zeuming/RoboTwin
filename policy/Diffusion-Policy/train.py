@@ -27,7 +27,7 @@ def main(cfg: OmegaConf):
     # will use the same time.
     OmegaConf.resolve(cfg)
 
-    cls = hydra.utils.get_class(cfg._target_)
+    cls = hydrautils.get_class(cfg._target_)
     workspace: BaseWorkspace = cls(cfg)
     workspace.run()
 

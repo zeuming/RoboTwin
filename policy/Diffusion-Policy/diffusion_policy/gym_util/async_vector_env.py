@@ -20,7 +20,7 @@ from gym.error import (
     ClosedEnvironmentError,
     CustomSpaceError,
 )
-from gym.vector.utils import (
+from gym.vectorutils import (
     create_shared_memory,
     create_empty_array,
     write_to_shared_memory,

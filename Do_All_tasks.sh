@@ -4,3 +4,5 @@ echo "dual_bottles_pick" | python main.py
 echo "apple_cabinet_storage" | python main.py
 echo "empty_cup_place" | python main.py
 echo "block_sweep" | python main.py
+echo "mug_hanging" | python main.py
+echo "diverse_bottles_pick" | python main.py

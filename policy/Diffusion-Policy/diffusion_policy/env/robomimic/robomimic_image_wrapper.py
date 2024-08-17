@@ -126,8 +126,8 @@ def test():
     shape_meta = cfg['shape_meta']
 
 
-    import robomimic.utils.file_utils as FileUtils
-    import robomimic.utils.env_utils as EnvUtils
+    import robomimicutils.file_utils as FileUtils
+    import robomimicutils.env_utils as EnvUtils
     from matplotlib import pyplot as plt
 
     dataset_path = os.path.expanduser('~/dev/diffusion_policy/data/robomimic/datasets/square/ph/image.hdf5')

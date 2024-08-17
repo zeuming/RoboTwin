@@ -82,7 +82,7 @@ def main(input, output, robot_ip, match_dataset, match_episode,
     ckpt_path = input
     payload = torch.load(open(ckpt_path, 'rb'), pickle_module=dill)
     cfg = payload['cfg']
-    cls = hydra.utils.get_class(cfg._target_)
+    cls = hydrautils.get_class(cfg._target_)
     workspace = cls(cfg)
     workspace: BaseWorkspace
     workspace.load_payload(payload, exclude_keys=None, include_keys=None)

@@ -96,8 +96,8 @@ class RobomimicLowdimWrapper(gym.Env):
 
 
 def test():
-    import robomimic.utils.file_utils as FileUtils
-    import robomimic.utils.env_utils as EnvUtils
+    import robomimicutils.file_utils as FileUtils
+    import robomimicutils.env_utils as EnvUtils
     from matplotlib import pyplot as plt
 
     dataset_path = '/home/cchi/dev/diffusion_policy/data/robomimic/datasets/square/ph/low_dim.hdf5'

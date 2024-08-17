@@ -281,7 +281,7 @@ def test():
     with hydra.initialize('../diffusion_policy/config'):
         cfg = hydra.compose('train_robomimic_real_image_workspace')
         OmegaConf.resolve(cfg)
-        dataset = hydra.utils.instantiate(cfg.task.dataset)
+        dataset = hydrautils.instantiate(cfg.task.dataset)
 
     from matplotlib import pyplot as plt
     normalizer = dataset.get_normalizer()

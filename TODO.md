@@ -1,4 +1,6 @@
-- [ ] Random drinks, dual_arm pick
+# 0816
 
-
-block_hammer_beat  block_hammer_beat
+- [ ] `diverse_bottles` task
+- [ ] `mug_hanging` task
+- [ ] find new hammer model and modeify `block_hammer_beat` task
+- [ ] `many_bottles_into_box` task

@@ -30,7 +30,7 @@ def main(checkpoint, output_dir, device):
     # load checkpoint
     payload = torch.load(open(checkpoint, 'rb'), pickle_module=dill)
     cfg = payload['cfg']
-    cls = hydra.utils.get_class(cfg._target_)
+    cls = hydrautils.get_class(cfg._target_)
     workspace = cls(cfg, output_dir=output_dir)
     workspace: BaseWorkspace
     workspace.load_payload(payload, exclude_keys=None, include_keys=None)
@@ -45,7 +45,7 @@ def main(checkpoint, output_dir, device):
     policy.eval()
     
     # run eval
-    env_runner = hydra.utils.instantiate(
+    env_runner = hydrautils.instantiate(
         cfg.task.env_runner,
         output_dir=output_dir)
     runner_log = env_runner.run(policy)

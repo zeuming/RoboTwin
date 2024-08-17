@@ -83,29 +83,6 @@ def create_table(
     table.set_pose(pose)
     return table
 
-def create_rack(
-    scene: sapien.Scene,
-    pose: sapien.Pose,
-    name="",
-) -> sapien.Entity:
-    box_half_size = np.array([0.07,0.07,0.005])
-    builder: sapien.ActorBuilder = scene.create_actor_builder()
-
-    builder.add_box_collision(half_size=box_half_size)  # Add collision shape
-    builder.add_box_visual(half_size=box_half_size, material=[0.2, 0.6, 1.0, 1.0])  # Add visual shape
-    
-    builder.add_cylinder_collision(pose =sapien.Pose(p=[0,0,0.155],q=[0.707,0,-0.707,0]) ,radius = 0.017,half_length = 0.15)  # Add collision shape
-    builder.add_cylinder_visual(pose =sapien.Pose(p=[0,0,0.155],q=[0.707,0,-0.707,0]) ,radius = 0.017,half_length = 0.15, material = [0.2, 0.6, 1.0, 1.0])  # Add visual shape
-    
-    builder.add_cylinder_collision(pose =sapien.Pose(p=[0,-0.05,0.16],q=[-0.698,0.112,0.112,0.698]) ,radius = 0.007,half_length = 0.06)  # Add collision shape
-    builder.add_cylinder_visual(pose =sapien.Pose(p=[0,-0.05,0.16],q=[-0.698,0.112,0.112,0.698]) ,radius = 0.007,half_length = 0.06, material = [0.2, 0.6, 1.0, 1.0])  # Add visual shape
-    
-    builder.set_physx_body_type("static")
-    
-    rack: sapien.Entity = builder.build(name=name)
-    rack.set_pose(pose)
-    return rack
-
 # create obj model
 def create_obj(
     scene: sapien.Scene,
@@ -114,31 +91,32 @@ def create_obj(
     scale = (1,1,1),
     convex = False,
     is_static = False,
-    load_model_data = False,
-    multi_id = None
+    model_id = None
 ) -> sapien.Entity:
     modeldir = "./models/"+modelname+"/"
+    if model_id is None:
+        file_name = modeldir + "textured.obj"
+        json_file_path = modeldir + 'model_data.json'
+    else:
+        file_name = modeldir + f"textured{model_id}.obj"
+        json_file_path = modeldir + f'model_data{model_id}.json'
 
-    model_data = None
-    if load_model_data == True:
-        json_file_path = modeldir + 'model_data.json'  # 替换为你的JSON文件路径
-        # 读取并解析JSON文件
-        try:
-            with open(json_file_path, 'r') as file:
-                model_data = json.load(file)
-            scale = model_data["scale"]
-        except:
-            print("\nNo model data file!\n")
+    # 读取并解析JSON文件
+    try:
+        with open(json_file_path, 'r') as file:
+            model_data = json.load(file)
+        scale = model_data["scale"]
+    except:
+        model_data = None
         
     builder = scene.create_actor_builder()
     if is_static:
         builder.set_physx_body_type("static")
 
-    file_name = modeldir+"textured.obj"
 
     # 创建凸包或非凸包碰撞对象
     if convex==True:
-        builder.add_convex_collision_from_file(
+        builder.add_multiple_convex_collisions_from_file(
             filename = file_name,
             scale= scale
         )
@@ -149,7 +127,7 @@ def create_obj(
         )
     
     builder.add_visual_from_file(
-        filename=modeldir + "textured.obj",
+        filename=file_name,
         scale= scale)
     mesh = builder.build(name=modelname)
     mesh.set_pose(pose)
@@ -165,42 +143,46 @@ def create_glb(
     scale = (1,1,1),
     convex = False,
     is_static = False,
-    load_model_data = False,
-    multi_id = None
+    model_id = None,
+    model_z_val = False
 ) -> sapien.Entity:
     modeldir = "./models/"+modelname+"/"
-
-    model_data = None
-    if load_model_data == True:
-        json_file_path = modeldir + 'model_data.json'  # 替换为你的JSON文件路径
-        # 读取并解析JSON文件
-        try:
-            with open(json_file_path, 'r') as file:
-                model_data = json.load(file)
-            scale = model_data["scale"]
-        except:
-            print("\nNo model data file!\n")
+    if model_id is None:
+        file_name = modeldir + "base.glb"
+        json_file_path = modeldir + 'model_data.json'
+    else:
+        file_name = modeldir + f"base{model_id}.glb"
+        json_file_path = modeldir + f'model_data{model_id}.json'
+    
+    # 读取并解析JSON文件
+    try:
+        with open(json_file_path, 'r') as file:
+            model_data = json.load(file)
+        scale = model_data["scale"]
+    except:
+        model_data = None
     
     builder = scene.create_actor_builder()
     if is_static:
         builder.set_physx_body_type("static")
 
-    file_name = modeldir+"base.glb"
+    if model_z_val:
+        pose.set_p(pose.get_p()[:2].tolist() + [0.74 + (t3d.quaternions.quat2mat(pose.get_q()) @ (np.array(model_data["extents"]) * scale))[2]/2])
 
     # 创建凸包或非凸包碰撞对象
     if convex==True:
-        builder.add_convex_collision_from_file(
+        builder.add_multiple_convex_collisions_from_file(
             filename = file_name,
             scale= scale
         )
     else:
         builder.add_nonconvex_collision_from_file(
             filename = file_name,
-            scale = scale
+            scale = scale,
         )
     
     builder.add_visual_from_file(
-        filename=modeldir + "base.glb",
+        filename=file_name,
         scale= scale)
     mesh = builder.build(name=modelname)
     mesh.set_pose(pose)

@@ -2,7 +2,7 @@ import abc
 import torch
 from typing import Tuple, Optional
 
-import diffusion_policy.model.bet.utils as utils
+import diffusion_policy.model.betutils as utils
 
 
 class AbstractLatentGenerator(abc.ABC, utils.SaveModule):

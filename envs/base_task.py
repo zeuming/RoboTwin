@@ -10,20 +10,14 @@ import pdb
 import numpy as np
 from PIL import Image, ImageColor
 
-from sapien.sensor import StereoDepthSensor, StereoDepthSensorConfig
-
 import toppra as ta
 import open3d as o3d
 import json
 
-import os
 import transforms3d as t3d
-from script import fps
-# from script import voxel_sample_points
+from .utils import fps
 from collections import OrderedDict
 from .utils import *
-
-from transforms3d.euler import mat2euler
 
 import collections
 from collections import deque
@@ -1339,6 +1333,37 @@ class Base_task(gym.Env):
             continue
         print("\nfail!")
     
+    def get_grasp_pose(self, actor, actor_data, grasp_matrix = np.array([[0,0,1,0],[-1,0,0,0],[0,-1,0,0],[0,0,0,1]]),pre_dis = 0, id = 0):
+        actor_matrix = actor.get_pose().to_transformation_matrix()
+        local_contact_matrix = np.asarray(actor_data['contact_pose'][id])
+        trans_matrix = np.asarray(actor_data['trans_matrix'])
+        local_contact_matrix[:3,3] *= actor_data['scale']
+        global_contact_pose_matrix = actor_matrix  @ local_contact_matrix @ trans_matrix @ grasp_matrix
+        global_contact_pose_matrix_q = global_contact_pose_matrix[:3,:3]
+        global_grasp_pose_p = global_contact_pose_matrix[:3,3] + global_contact_pose_matrix_q @ np.array([-0.12-pre_dis,0,0]).T
+        global_grasp_pose_q = t3d.quaternions.mat2quat(global_contact_pose_matrix_q)
+        pose = list(global_grasp_pose_p)+list(global_grasp_pose_q)
+        return pose
+
+    def get_grasp_pose_from_point(self,actor,actor_data,grasp_qpos: list = None, pre_dis = 0, id = 0):
+        actor_matrix = actor.get_pose().to_transformation_matrix()
+        local_contact_matrix = np.asarray(actor_data['contact_pose'][id])
+        local_contact_matrix[:3,3] *= actor_data['scale']
+        grasp_matrix= t3d.quaternions.quat2mat(grasp_qpos)
+        global_contact_pose_matrix = actor_matrix @ local_contact_matrix
+        global_grasp_pose_p = global_contact_pose_matrix[:3,3] + grasp_matrix @ np.array([-0.12-pre_dis,0,0]).T
+        pose = list(global_grasp_pose_p) + grasp_qpos
+        return pose
+
+    def get_actor_target_pose_trans_endpose_matrix(self, actor, actor_data, endpose):
+        actor_matrix = actor.get_pose().to_transformation_matrix()
+        local_target_matrix = np.asarray(actor_data['target_pose'])
+        local_target_matrix[:3,3] *= actor_data['scale']
+        res_matrix = np.eye(4)
+        res_matrix[:3,3] = (actor_matrix  @ local_target_matrix)[:3,3] - endpose.global_pose.p
+        res_matrix[:3,3] = np.linalg.inv(t3d.quaternions.quat2mat(endpose.global_pose.q) @ np.array([[1,0,0],[0,-1,0],[0,0,-1]])) @ res_matrix[:3,3]
+        return res_matrix
+
     def play_once(self):
         pass
     

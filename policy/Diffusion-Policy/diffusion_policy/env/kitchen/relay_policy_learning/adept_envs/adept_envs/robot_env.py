@@ -26,8 +26,8 @@ import numpy as np
 
 from adept_envs import mujoco_env
 from adept_envs.base_robot import BaseRobot
-from adept_envs.utils.configurable import import_class_from_path
-from adept_envs.utils.constants import MODELS_PATH
+from adept_envsutils.configurable import import_class_from_path
+from adept_envsutils.constants import MODELS_PATH
 
 
 class RobotEnv(mujoco_env.MujocoEnv):
@@ -70,7 +70,7 @@ class RobotEnv(mujoco_env.MujocoEnv):
         self.remote_viz = None
 
         try:
-            from adept_envs.utils.remote_viz import RemoteViz
+            from adept_envsutils.remote_viz import RemoteViz
             self.remote_viz = RemoteViz(model_path)
         except ImportError:
             pass          

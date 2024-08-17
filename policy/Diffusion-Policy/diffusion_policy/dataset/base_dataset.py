@@ -4,7 +4,7 @@ import torch
 import torch.nn
 from diffusion_policy.model.common.normalizer import LinearNormalizer
 
-class BaseLowdimDataset(torch.utils.data.Dataset):
+class BaseLowdimDataset(torchutils.data.Dataset):
     def get_validation_dataset(self) -> 'BaseLowdimDataset':
         # return an empty dataset by default
         return BaseLowdimDataset()
@@ -27,7 +27,7 @@ class BaseLowdimDataset(torch.utils.data.Dataset):
         raise NotImplementedError()
 
 
-class BaseImageDataset(torch.utils.data.Dataset):
+class BaseImageDataset(torchutils.data.Dataset):
     def get_validation_dataset(self) -> 'BaseLowdimDataset':
         # return an empty dataset by default
         return BaseImageDataset()

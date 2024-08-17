@@ -346,7 +346,7 @@ The entrypoint for training is `train.py` which uses `@hydra.main` decorator. Re
 
 ### `Dataset`
 A `Dataset` object:
-* Inherits from `torch.utils.data.Dataset`.
+* Inherits from `torchutils.data.Dataset`.
 * Returns a sample conforming to [the interface](#the-interface) depending on whether the task has Low Dim or Image observations.
 * Has a method `get_normalizer` that returns a `LinearNormalizer` conforming to [the interface](#the-interface).
 

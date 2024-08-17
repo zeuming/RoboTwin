@@ -2,9 +2,9 @@ import numpy as np
 import copy
 
 import h5py
-import robomimic.utils.obs_utils as ObsUtils
-import robomimic.utils.file_utils as FileUtils
-import robomimic.utils.env_utils as EnvUtils
+import robomimicutils.obs_utils as ObsUtils
+import robomimicutils.file_utils as FileUtils
+import robomimicutils.env_utils as EnvUtils
 from scipy.spatial.transform import Rotation
 
 from robomimic.config import config_factory

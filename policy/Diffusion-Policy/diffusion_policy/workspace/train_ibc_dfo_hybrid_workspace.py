@@ -12,7 +12,7 @@ import hydra
 import torch
 from omegaconf import OmegaConf
 import pathlib
-from torch.utils.data import DataLoader
+from torchutils.data import DataLoader
 import copy
 import random
 import wandb
@@ -44,10 +44,10 @@ class TrainIbcDfoHybridWorkspace(BaseWorkspace):
         random.seed(seed)
 
         # configure model
-        self.model: IbcDfoHybridImagePolicy= hydra.utils.instantiate(cfg.policy)
+        self.model: IbcDfoHybridImagePolicy= hydrautils.instantiate(cfg.policy)
 
         # configure training state
-        self.optimizer = hydra.utils.instantiate(
+        self.optimizer = hydrautils.instantiate(
             cfg.optimizer, params=self.model.parameters())
 
         # configure training state
@@ -66,7 +66,7 @@ class TrainIbcDfoHybridWorkspace(BaseWorkspace):
 
         # configure dataset
         dataset: BaseImageDataset
-        dataset = hydra.utils.instantiate(cfg.task.dataset)
+        dataset = hydrautils.instantiate(cfg.task.dataset)
         assert isinstance(dataset, BaseImageDataset)
         train_dataloader = DataLoader(dataset, **cfg.dataloader)
         normalizer = dataset.get_normalizer()
@@ -92,7 +92,7 @@ class TrainIbcDfoHybridWorkspace(BaseWorkspace):
 
         # configure env
         env_runner: BaseImageRunner
-        env_runner = hydra.utils.instantiate(
+        env_runner = hydrautils.instantiate(
             cfg.task.env_runner,
             output_dir=self.output_dir)
         assert isinstance(env_runner, BaseImageRunner)

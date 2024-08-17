@@ -6,7 +6,7 @@ from diffusion_policy.common.pytorch_util import dict_apply
 
 from robomimic.algo import algo_factory
 from robomimic.algo.algo import PolicyAlgo
-import robomimic.utils.obs_utils as ObsUtils
+import robomimicutils.obs_utils as ObsUtils
 from diffusion_policy.common.robomimic_config_util import get_robomimic_config
 
 class RobomimicImagePolicy(BaseImagePolicy):

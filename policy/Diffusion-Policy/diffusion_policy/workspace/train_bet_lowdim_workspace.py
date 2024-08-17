@@ -12,7 +12,7 @@ import hydra
 import torch
 from omegaconf import OmegaConf
 import pathlib
-from torch.utils.data import DataLoader
+from torchutils.data import DataLoader
 import copy
 import random
 import wandb
@@ -50,7 +50,7 @@ class TrainBETLowdimWorkspace(BaseWorkspace):
 
         # configure model
         self.policy: BETLowdimPolicy
-        self.policy = hydra.utils.instantiate(cfg.policy)
+        self.policy = hydrautils.instantiate(cfg.policy)
 
         # configure training state
         self.optimizer = self.policy.get_optimizer(**cfg.optimizer)
@@ -72,7 +72,7 @@ class TrainBETLowdimWorkspace(BaseWorkspace):
 
         # configure dataset
         dataset: BaseLowdimDataset
-        dataset = hydra.utils.instantiate(cfg.task.dataset)
+        dataset = hydrautils.instantiate(cfg.task.dataset)
         assert isinstance(dataset, BaseLowdimDataset)
         train_dataloader = DataLoader(dataset, **cfg.dataloader)
 
@@ -98,7 +98,7 @@ class TrainBETLowdimWorkspace(BaseWorkspace):
 
         # configure env runner
         env_runner: BaseLowdimRunner
-        env_runner = hydra.utils.instantiate(
+        env_runner = hydrautils.instantiate(
             cfg.task.env_runner,
             output_dir=self.output_dir)
         assert isinstance(env_runner, BaseLowdimRunner)
@@ -159,7 +159,7 @@ class TrainBETLowdimWorkspace(BaseWorkspace):
                         loss.backward()
 
                         # clip grad norm
-                        torch.nn.utils.clip_grad_norm_(
+                        torch.nnutils.clip_grad_norm_(
                             self.policy.state_prior.parameters(), cfg.training.grad_norm_clip
                         )
 

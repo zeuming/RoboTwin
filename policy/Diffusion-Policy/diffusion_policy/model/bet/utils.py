@@ -8,7 +8,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from torch.utils.data import random_split
+from torchutils.data import random_split
 import wandb
 
 

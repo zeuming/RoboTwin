@@ -19,7 +19,6 @@ import socket
 import pickle
 
 
-
 # def farthest_point_sampling(points, num_points=1024, use_cuda=True):
 def fps(points, num_points=1024, use_cuda=True):
 

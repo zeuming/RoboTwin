@@ -19,7 +19,7 @@ import glob
 import pickle
 import numpy as np
 from parse_mjl import parse_mjl_logs, viz_parsed_mjl_logs
-from mjrl.utils.gym_env import GymEnv
+from mjrlutils.gym_env import GymEnv
 import adept_envs
 import time as timer
 import skvideo.io

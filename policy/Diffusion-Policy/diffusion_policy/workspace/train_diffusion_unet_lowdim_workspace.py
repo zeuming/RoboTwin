@@ -12,7 +12,7 @@ import hydra
 import torch
 from omegaconf import OmegaConf
 import pathlib
-from torch.utils.data import DataLoader
+from torchutils.data import DataLoader
 import copy
 import numpy as np
 import random
@@ -47,14 +47,14 @@ class TrainDiffusionUnetLowdimWorkspace(BaseWorkspace):
 
         # configure model
         self.model: DiffusionUnetLowdimPolicy
-        self.model = hydra.utils.instantiate(cfg.policy)
+        self.model = hydrautils.instantiate(cfg.policy)
 
         self.ema_model: DiffusionUnetLowdimPolicy = None
         if cfg.training.use_ema:
             self.ema_model = copy.deepcopy(self.model)
 
         # configure training state
-        self.optimizer = hydra.utils.instantiate(
+        self.optimizer = hydrautils.instantiate(
             cfg.optimizer, params=self.model.parameters())
 
         self.global_step = 0
@@ -72,7 +72,7 @@ class TrainDiffusionUnetLowdimWorkspace(BaseWorkspace):
 
         # configure dataset
         dataset: BaseLowdimDataset
-        dataset = hydra.utils.instantiate(cfg.task.dataset)
+        dataset = hydrautils.instantiate(cfg.task.dataset)
         assert isinstance(dataset, BaseLowdimDataset)
         train_dataloader = DataLoader(dataset, **cfg.dataloader)
         normalizer = dataset.get_normalizer()
@@ -101,13 +101,13 @@ class TrainDiffusionUnetLowdimWorkspace(BaseWorkspace):
         # configure ema
         ema: EMAModel = None
         if cfg.training.use_ema:
-            ema = hydra.utils.instantiate(
+            ema = hydrautils.instantiate(
                 cfg.ema,
                 model=self.ema_model)
 
         # configure env runner
         env_runner: BaseLowdimRunner
-        env_runner = hydra.utils.instantiate(
+        env_runner = hydrautils.instantiate(
             cfg.task.env_runner,
             output_dir=self.output_dir)
         assert isinstance(env_runner, BaseLowdimRunner)

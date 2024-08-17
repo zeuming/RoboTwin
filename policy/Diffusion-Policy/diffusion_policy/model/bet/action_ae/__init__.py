@@ -1,11 +1,11 @@
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader
+from torchutils.data import DataLoader
 import abc
 
 from typing import Optional, Union
 
-import diffusion_policy.model.bet.utils as utils
+import diffusion_policy.model.betutils as utils
 
 
 class AbstractActionAE(utils.SaveModule, abc.ABC):
