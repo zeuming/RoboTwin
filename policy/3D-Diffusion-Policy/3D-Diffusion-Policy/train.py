@@ -14,7 +14,7 @@ import torch
 import dill
 from omegaconf import OmegaConf
 import pathlib
-from torchutils.data import DataLoader
+from torch.utils.data import DataLoader
 import copy
 import random
 import wandb
@@ -59,18 +59,18 @@ class TrainDP3Workspace:
         random.seed(seed)
 
         # configure model
-        self.model: DP3 = hydrautils.instantiate(cfg.policy)
+        self.model: DP3 = hydra.utils.instantiate(cfg.policy)
 
         self.ema_model: DP3 = None
         if cfg.training.use_ema:
             try:
                 self.ema_model = copy.deepcopy(self.model)
             except: # minkowski engine could not be copied. recreate it
-                self.ema_model = hydrautils.instantiate(cfg.policy)
+                self.ema_model = hydra.utils.instantiate(cfg.policy)
 
 
         # configure training state
-        self.optimizer = hydrautils.instantiate(
+        self.optimizer = hydra.utils.instantiate(
             cfg.optimizer, params=self.model.parameters())
 
         # configure training state
@@ -79,6 +79,8 @@ class TrainDP3Workspace:
 
     def run(self):
         cfg = copy.deepcopy(self.cfg)
+
+        WANDB = False
         
         if cfg.training.debug:
             cfg.training.num_epochs = 100
@@ -108,7 +110,7 @@ class TrainDP3Workspace:
 
         # configure dataset
         dataset: BaseDataset
-        dataset = hydrautils.instantiate(cfg.task.dataset)
+        dataset = hydra.utils.instantiate(cfg.task.dataset)
 
         assert isinstance(dataset, BaseDataset), print(f"dataset must be BaseDataset, got {type(dataset)}")
         train_dataloader = DataLoader(dataset, **cfg.dataloader)
@@ -138,7 +140,7 @@ class TrainDP3Workspace:
         # configure ema
         ema: EMAModel = None
         if cfg.training.use_ema:
-            ema = hydrautils.instantiate(
+            ema = hydra.utils.instantiate(
                 cfg.ema,
                 model=self.ema_model)
         
@@ -150,16 +152,17 @@ class TrainDP3Workspace:
         cprint(f"[WandB] name: {cfg.logging.name}", "yellow")
         cprint("-----------------------------", "yellow")
         # configure logging
-        wandb_run = wandb.init(
-            dir=str(self.output_dir),
-            config=OmegaConf.to_container(cfg, resolve=True),
-            **cfg.logging
-        )
-        wandb.config.update(
-            {
-                "output_dir": self.output_dir,
-            }
-        )
+        if WANDB:
+            wandb_run = wandb.init(
+                dir=str(self.output_dir),
+                config=OmegaConf.to_container(cfg, resolve=True),
+                **cfg.logging
+            )
+            wandb.config.update(
+                {
+                    "output_dir": self.output_dir,
+                }
+            )
 
         # configure checkpoint
         topk_manager = TopKCheckpointManager(
@@ -235,7 +238,8 @@ class TrainDP3Workspace:
                     is_last_batch = (batch_idx == (len(train_dataloader)-1))
                     if not is_last_batch:
                         # log of last step is combined with validation and rollout
-                        wandb_run.log(step_log, step=self.global_step)
+                        if WANDB:
+                            wandb_run.log(step_log, step=self.global_step)
                         self.global_step += 1
 
                     if (cfg.training.max_train_steps is not None) \
@@ -282,7 +286,8 @@ class TrainDP3Workspace:
 
             # end of epoch
             # log of last step is combined with validation and rollout
-            wandb_run.log(step_log, step=self.global_step)
+            if WANDB:
+                wandb_run.log(step_log, step=self.global_step)
             self.global_step += 1
             self.epoch += 1
             del step_log
@@ -292,7 +297,7 @@ class TrainDP3Workspace:
         
         cfg = copy.deepcopy(self.cfg)
         env_runner: BaseRunner
-        env_runner = hydrautils.instantiate(
+        env_runner = hydra.utils.instantiate(
             cfg.task.env_runner,
             output_dir=self.output_dir)
         assert isinstance(env_runner, BaseRunner)

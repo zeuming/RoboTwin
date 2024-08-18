@@ -1,55 +1,27 @@
 import sapien.core as sapien
-
 from envs import *
-
 import pdb
-
 import yaml
+import importlib
+
+def class_decorator(class_name):
+    envs_module = importlib.import_module('envs')
+    
+    try:
+        env_class = getattr(envs_module, class_name)
+        env_instance = env_class()
+    except:
+        raise SystemExit("No Task")
+    return env_instance
 
 def main():
     task_name = input('Please input task name: \n')
-    # task_name = 'block_hammer_beat'
+    
+    # task 为任务类
+    task = class_decorator(task_name)
     with open(f'./config/{task_name}.yml', 'r', encoding='utf-8') as f:
         args = yaml.load(f.read(), Loader=yaml.FullLoader)
 
-    # task 为任务类
-    task = None
-
-    # 根据命令行参数指定任务，存入 task 中
-    if (args['task_name'] == "empty_cup_place"):
-        task = empty_cup_place()
-    elif (args['task_name'] == "pick_cup_with_liquids"):
-        task = pick_cup_with_liquids()
-    elif (args['task_name'] == "pick_cup"):
-        task = pick_cup()
-    elif (args['task_name'] == "move_brush"):
-        task = move_brush()
-    elif (args['task_name'] == "dual_bottles_pick"):
-        task = dual_bottles_pick()
-    elif (args['task_name'] == "block_hammer_beat"):
-        task = block_hammer_beat()
-    elif (args['task_name'] == "hammer_beat_cross"):
-        task = hammer_beat_cross()
-    elif (args['task_name'] == "apple_cabinet_storage"):
-        task = apple_cabinet_storage()
-    elif (args['task_name'] == "pick_hammer"):
-        task = pick_hammer()
-    elif (args['task_name'] == "put_ball_into_dustpan"):
-        task = put_ball_into_dustpan()
-    elif (args['task_name'] == "block_sweep"):
-        task = block_sweep()
-    elif (args['task_name'] == "move_box"):
-        task = move_box()
-    elif (args['task_name'] == "block_handover"):
-        task = block_handover()
-    elif (args['task_name'] == "mug_hanging"):
-        task = mug_hanging()
-    elif (args['task_name'] == "diverse_bottles_pick"):
-        task = diverse_bottles_pick()
-    else :
-        # pass
-        raise SystemExit("No Task")
-    
     # 执行任务，采集数据
     run(task, args)
 

@@ -4,15 +4,18 @@ from .utils import *
 import sapien
 
 class diverse_bottles_pick(Base_task):
-    def setup_demo(self,**kwags):
+    def setup_demo(self,is_test = False,**kwags):
         super()._init(**kwags)
         self.create_table_and_wall()
         self.load_robot()
         self.setup_planner()
         self.load_camera(kwags.get('camera_w', 336),kwags.get('camera_h',224))
         self.pre_move()
-        self.train_id_list = [2*i for i in range(11)]
-        self.test_id_list = [2*i + 1 for i in range(11)]
+        if is_test:
+            self.id_list = [2*i + 1 for i in range(11)]
+            # self.id_list = [i for i in range(22)]
+        else:
+            self.id_list = [2*i for i in range(11)]
         self.load_actors()
         self.step_lim = 400
     
@@ -36,7 +39,7 @@ class diverse_bottles_pick(Base_task):
             rotate_rand=False,
             qpos=[0.66, 0.66, -0.25, -0.25],
             convex=False,
-            model_id = np.random.choice(self.train_id_list),
+            model_id = np.random.choice(self.id_list),
             # model_id = self.ep_num,
             model_z_val = True
         )
@@ -50,7 +53,7 @@ class diverse_bottles_pick(Base_task):
             rotate_rand=False,
             qpos=[0.65, 0.65, 0.27, 0.27],
             convex=False,
-            model_id = np.random.choice(self.train_id_list),
+            model_id = np.random.choice(self.id_list),
             # model_id = self.ep_num,
             model_z_val = True
         )

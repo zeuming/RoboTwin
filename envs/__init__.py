@@ -13,3 +13,8 @@ from .move_box import *
 from .block_handover import *
 from .mug_hanging import *
 from .diverse_bottles_pick import *
+from .shoe_place import *
+from .put_multiobj_into_box import *
+from .block_hammer_beat_hard import *
+from .blocks_stack import *
+from .shoes_place_hard import *

@@ -77,8 +77,8 @@ class mug_hanging(Base_task):
 
         target_pose_p = [0.191, 0.123, 0.93]
         target_pose_q = [-0.371601, -0.176777, -0.391124, -0.823216]
-        target_pose_trans_endpose_matrix = self.get_actor_target_pose_trans_endpose_matrix(self.mug,self.mug_data,self.right_endpose)
-        right_target_pose = list(target_pose_p - t3d.quaternions.quat2mat(target_pose_q) @ target_pose_trans_endpose_matrix[:3,3]) + target_pose_q
+        right_target_pose = self.get_grasp_pose_from_target_point_and_qpose(self.mug,self.mug_data,self.right_endpose,target_pose_p,target_pose_q)
+        # right_target_pose = list(target_pose_p - t3d.quaternions.quat2mat(target_pose_q) @ target_pose_trans_endpose_matrix[:3,3]) + target_pose_q
         self.right_move_to_pose_with_screw(pose=right_target_pose,save_freq=15)
         right_target_pose[0] += 0.04
         right_target_pose[2] -= 0.04

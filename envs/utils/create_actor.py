@@ -42,6 +42,34 @@ def create_box(
     scene.add_entity(entity)
     return entity
 
+# create box
+def create_visual_box(
+    scene: sapien.Scene,
+    pose: sapien.Pose,
+    half_size,
+    color=None,
+    name="",
+) -> sapien.Entity:
+    entity = sapien.Entity()
+    entity.set_name(name)
+    entity.set_pose(pose)
+
+    # create render body for visualization
+    render_component = sapien.render.RenderBodyComponent()
+    render_component.attach(
+        # add a box visual shape with given size and rendering material
+        sapien.render.RenderShapeBox(
+            half_size, sapien.render.RenderMaterial(base_color=[*color[:3], 1])
+        )
+    )
+
+    entity.add_component(render_component)
+    entity.set_pose(pose)
+
+    # in general, entity should only be added to scene after it is fully built
+    scene.add_entity(entity)
+    return entity
+
 # 创建桌子（后续优化）
 def create_table(
     scene: sapien.Scene,
@@ -91,7 +119,8 @@ def create_obj(
     scale = (1,1,1),
     convex = False,
     is_static = False,
-    model_id = None
+    model_id = None,
+    model_z_val = False
 ) -> sapien.Entity:
     modeldir = "./models/"+modelname+"/"
     if model_id is None:
@@ -113,7 +142,9 @@ def create_obj(
     if is_static:
         builder.set_physx_body_type("static")
 
-
+    if model_z_val:
+        pose.set_p(pose.get_p()[:2].tolist() + [0.74 + (t3d.quaternions.quat2mat(pose.get_q()) @ (np.array(model_data["extents"]) * scale))[2]/2])
+        
     # 创建凸包或非凸包碰撞对象
     if convex==True:
         builder.add_multiple_convex_collisions_from_file(

@@ -23,13 +23,13 @@ class block_sweep(Base_task):
         self.together_open_gripper()
         self.together_close_gripper(left_pos=-0.01,right_pos=-0.01)
         
-        self.brush = create_obj(
+        self.brush,_ = create_obj(
             self.scene,
             pose=sapien.Pose([-0.1,-0.05,0.755],[-0.588,0.391,0.476,0.413]),
             modelname="086_brush_2",
             scale=(0.167,0.167,0.167),
         )
-        self.dustpan = create_obj(
+        self.dustpan,_ = create_obj(
             self.scene,
             pose=sapien.Pose([-0.238,0.071,0.79],[0.404, 0.404, 0.580, 0.580]),
             modelname="095_dustpan",
