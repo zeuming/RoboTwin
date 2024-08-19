@@ -17,7 +17,7 @@ save_type:
 data_type:          # the data types should be saved
   rgb: True
   observer : False
-  depth: True
+  depth: False
   pointcloud: False
   conbine: False
   endpose: True
