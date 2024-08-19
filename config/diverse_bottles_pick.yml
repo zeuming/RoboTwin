@@ -15,11 +15,11 @@ save_type:
   raw_data: False
   pkl: True
 data_type:          # the data types should be saved
-  rgb: False
+  rgb: True
   observer : False
-  depth: False
-  pointcloud: True
-  conbine: True
+  depth: True
+  pointcloud: False
+  conbine: False
   endpose: True
   qpos: True
   mesh_segmentation: False

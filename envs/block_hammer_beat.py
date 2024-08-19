@@ -19,55 +19,54 @@ class block_hammer_beat(Base_task):
         render_freq = self.render_freq
         self.render_freq=0
 
-        self.hammer = create_obj(
+        self.hammer,self.hammer_data = create_glb(
             self.scene,
-            pose=sapien.Pose([0.25, -0.05, 0.78],[0, -0.05, 1, 0.23]),
-            modelname="081_hammer_2",
-            scale=(0.063,0.079,0.079)
+            pose=sapien.Pose([0, -0.06, 0.783],[0, 0, 0.995, 0.105]),
+            modelname="020_hammer_2",
         )
-        self.hammer.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.01
-        self.close_right_gripper()
-        self.open_right_gripper()
-        pose0 = list(self.hammer.get_pose().p+[0,-0.08,0.18])+[-0.591,0.425,-0.320,-0.606]
-        self.right_move_to_pose_with_screw(pose0,save_freq=None)
-        pose0[2] -=0.05
-        self.right_move_to_pose_with_screw(pose0,save_freq=None)
-        self.close_right_gripper(save_freq=None)
-        init_pose = [0.301, -0.216, 0.988, -0.683, 0.183, -0.183, -0.683]
+        self.hammer.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.001
+        pose1 = self.get_grasp_pose(self.hammer,self.hammer_data,pre_dis=0.1)
+        pose2 = self.get_grasp_pose(self.hammer,self.hammer_data,pre_dis=0.01)
+        self.open_right_gripper(save_freq=15)
+        self.right_move_to_pose_with_screw(pose1,save_freq = 15)
+        self.right_move_to_pose_with_screw(pose2,save_freq = 15)
+        self.close_right_gripper(save_freq=15)
+        pose2[2] += 0.07
+        self.right_move_to_pose_with_screw(pose2,save_freq = 15)
+
+        init_pose = [0.301, -0.216, 1.018, -0.683, 0.183, -0.183, -0.683]
         self.right_move_to_pose_with_screw(init_pose,save_freq=None)
-        pose1 = [0.301, -0.216, 1.018, -0.683, 0.183, -0.183, -0.683]
-        self.right_move_to_pose_with_screw(pose1,save_freq=None)
         self.render_freq = render_freq
 
     def load_actors(self):
-        coaster_pose = rand_pose(
-            xlim=[0,0.3],
-            ylim=[-0.05,0.2],
+        block_pose = rand_pose(
+            xlim=[0.,0.25],
+            ylim=[-0.05,0.15],
             zlim=[0.76],
             qpos=[-0.552, -0.551, -0.442, -0.444],
             rotate_rand=True,
             rotate_lim=[0,1,0],
         )
-        self.coaster = create_box(
+        self.block = create_box(
             scene = self.scene,
-            pose = coaster_pose,
+            pose = block_pose,
             half_size=(0.025,0.025,0.025),
             color=(1,0,0),
             name="box"
         )
-        self.coaster.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.001
+        self.block.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.001
 
     def play_once(self):
-        pose1 = list(self.coaster.get_pose().p+[0.056,-0.095,0.27])+[-0.378,0.559,-0.316,-0.667]
-        self.right_move_to_pose_with_screw(pose1,save_freq=15)
-        pose1[2]-=0.06
-        self.right_move_to_pose_with_screw(pose1,save_freq=15)
+        pose3 = self.get_grasp_pose_from_target_point_and_qpose(self.hammer,self.hammer_data,self.right_endpose,self.block.get_pose().p+[0,0,0.08],[-0.55,0.45,-0.45,-0.55])
+        self.right_move_to_pose_with_screw(pose3,save_freq = 15)
+        pose3[2] -= 0.06
+        self.right_move_to_pose_with_screw(pose3,save_freq = 15)
         for  _ in range(2):
             self._take_picture()
         
 
     def check_success(self):
-        hammer_pose = self.hammer.get_pose().p
-        coaster_pose = self.coaster.get_pose().p
-        eps = 0.02
-        return abs(hammer_pose[0]-coaster_pose[0]-0.03)<eps and abs(hammer_pose[1] + 0.06 - coaster_pose[1])<eps and hammer_pose[2]>0.8 and hammer_pose[2] < 0.83
+        hammer_target_pose = self.get_actor_target_pose(self.hammer,self.hammer_data)
+        block_pose = self.block.get_pose().p
+        eps = np.array([0.02,0.02])
+        return np.all(abs(hammer_target_pose[:2] - block_pose[:2])<eps) and hammer_target_pose[2] < 0.81 and hammer_target_pose[2] > 0.78

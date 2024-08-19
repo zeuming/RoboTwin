@@ -18,3 +18,4 @@ from .put_multiobj_into_box import *
 from .block_hammer_beat_hard import *
 from .blocks_stack import *
 from .shoes_place_hard import *
+# from .empty_cup_place_hard import *

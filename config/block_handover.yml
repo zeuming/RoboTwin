@@ -18,8 +18,8 @@ data_type:          # the data types should be saved
   rgb: True
   observer : False
   depth: True
-  pointcloud: True
-  conbine: True
+  pointcloud: False
+  conbine: False
   endpose: True
   qpos: True
   mesh_segmentation: False

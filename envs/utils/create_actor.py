@@ -229,6 +229,18 @@ def create_urdf_obj(
     scale = 1.0,
     fix_root_link = True
 )->sapienp.PhysxArticulation: 
+    modeldir = "./models/"+modelname+"/"
+    file_name = modeldir + "base.glb"
+    json_file_path = modeldir + 'model_data.json'
+    
+    # 读取并解析JSON文件
+    try:
+        with open(json_file_path, 'r') as file:
+            model_data = json.load(file)
+        scale = model_data["scale"]
+    except:
+        model_data = None
+
     loader: sapien.URDFLoader = scene.create_urdf_loader()
     loader.scale = scale
     loader.fix_root_link = fix_root_link
@@ -237,4 +249,4 @@ def create_urdf_obj(
     object: sapien.Articulation = loader.load(modeldir+"mobility.urdf")
     
     object.set_root_pose(pose)
-    return object
+    return object, model_data

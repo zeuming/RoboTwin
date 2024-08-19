@@ -53,7 +53,7 @@ class block_handover(Base_task):
         self.target.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 1
         self.box.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.1
 
-    def play_once(self,save_freq=None):
+    def play_once(self):
         left_pose0 = list(self.box.get_pose().p+[-0.14,-0.18,0.07])+[-0.906,0,0,-0.424]
         left_pose1 = list(self.box.get_pose().p+[-0.08,-0.11,0.07])+[-0.906,0,0,-0.424]
         left_target_pose = [-0.19,-0.12,0.96,1,0,0,0]

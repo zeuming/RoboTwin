@@ -1,6 +1,6 @@
 task_name: shoe_place
 render_freq: 0       # render frequence (0: render off)
-use_seed: False          # use seed ,if value is True, the seed file has existed in ./seeds/{task_name}.txt  
+use_seed: True          # use seed ,if value is True, the seed file has existed in ./seeds/{task_name}.txt  
 collect_data: True  # collect data
 save_path: './data'
 dual_arm: True
@@ -15,11 +15,11 @@ save_type:
   raw_data: False
   pkl: True
 data_type:          # the data types should be saved
-  rgb: False
+  rgb: True
   observer : False
-  depth: False
-  pointcloud: True
-  conbine: True
+  depth: True
+  pointcloud: False
+  conbine: False
   endpose: True
   qpos: True
   mesh_segmentation: False

@@ -23,16 +23,16 @@ class block_sweep(Base_task):
         self.together_open_gripper()
         self.together_close_gripper(left_pos=-0.01,right_pos=-0.01)
         
-        self.brush,_ = create_obj(
+        self.brush,_ = create_glb(
             self.scene,
             pose=sapien.Pose([-0.1,-0.05,0.755],[-0.588,0.391,0.476,0.413]),
-            modelname="086_brush_2",
+            modelname="024_brush",
             scale=(0.167,0.167,0.167),
         )
-        self.dustpan,_ = create_obj(
+        self.dustpan,self.dustpan_data = create_glb(
             self.scene,
             pose=sapien.Pose([-0.238,0.071,0.79],[0.404, 0.404, 0.580, 0.580]),
-            modelname="095_dustpan",
+            modelname="028_dustpan",
             scale=(0.167,0.167,0.167),
         )
         
@@ -110,4 +110,4 @@ class block_sweep(Base_task):
     def check_success(self):
         block_pose = self.block.get_pose().p
         dustpan_pose = self.dustpan.get_pose().p
-        return abs(block_pose[0] - dustpan_pose[0] - 0.035)<0.035 and abs(block_pose[1] - dustpan_pose[1]) < 0.047 and block_pose[2] > 0.76
+        return abs(block_pose[0] - dustpan_pose[0] - 0.03)<0.04 and abs(block_pose[1] - dustpan_pose[1]) < 0.047 and block_pose[2] > 0.76

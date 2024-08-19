@@ -22,9 +22,9 @@ class apple_cabinet_storage(Base_task):
         self.render_freq = render_freq
     
     def load_actors(self, **kwargs):
-        self.cabinet = rand_create_urdf_obj(
+        self.cabinet, _ = rand_create_urdf_obj(
             self.scene,
-            modelname="46653",
+            modelname="036_cabine",
             xlim=[-0.01,0],
             ylim=[0.18,0.19],
             zlim=[0.985],
@@ -39,12 +39,12 @@ class apple_cabinet_storage(Base_task):
             joint.set_drive_property(stiffness=20, damping=5, force_limit=1000, mode="force")
         self.cabinet_all_joints = self.cabinet.get_joints()
 
-        self.apple = rand_create_obj(
+        self.apple,_ = rand_create_obj(
             self.scene,
             xlim=[0.18,0.3],
             ylim=[-0.2,-0.05],
             zlim=[0.78],
-            modelname="013_apple",
+            modelname="035_apple",
             rotate_rand=False,
             convex=True
         )

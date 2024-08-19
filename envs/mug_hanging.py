@@ -5,15 +5,18 @@ import numpy as np
 import sapien
 
 class mug_hanging(Base_task):
-    def setup_demo(self,**kwags):
+    def setup_demo(self,is_test=False,**kwags):
         super()._init(**kwags)
         self.create_table_and_wall()
         self.load_robot()
         self.setup_planner()
         self.load_camera(kwags.get('camera_w', 336),kwags.get('camera_h',224))
         self.pre_move()
-        self.train_id_list = [0,2,3,4,5]
-        self.test_id_list = [1,6,7,8,9]
+        if is_test:
+            self.id_list = [1,6,7,8,9]
+        else:
+            self.id_list = [0,2,3,4,5]
+
         self.load_actors()
     
     def pre_move(self):
@@ -34,7 +37,7 @@ class mug_hanging(Base_task):
             rotate_lim=[0,1.57,0],
             qpos=[0.707,0.707,0,0],
             convex=False,
-            model_id = np.random.choice(self.train_id_list)
+            model_id = np.random.choice(self.id_list)
             # model_id = self.ep_num
         )
 

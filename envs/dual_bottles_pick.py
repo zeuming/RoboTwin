@@ -25,28 +25,29 @@ class dual_bottles_pick(Base_task):
 
     def load_actors(self, **kwargs):
         # super().setup_scene()
-        self.red_bottle = rand_create_obj(
+        self.red_bottle,_ = rand_create_glb(
             self.scene,
             xlim=[-0.25,-0.05],
-            ylim=[0.,0.2],
+            ylim=[0.03,0.23],
             zlim=[0.865],
-            modelname="089_red_bottle_3",
+            modelname="001_bottles",
             rotate_rand=False,
-            # qpos=[0.717,0.693,0.079,0.081],
             qpos=[0.707,0.707,0,0],
-            scale=(0.132,0.132,0.132)
+            scale=(0.132,0.132,0.132),
+            model_id=13
         )
 
-        self.green_bottle=rand_create_obj(
+        self.green_bottle, _=rand_create_glb(
             self.scene,
             xlim=[0.05,0.25],
-            ylim=[0.,0.2],
+            ylim=[0.03,0.23],
             zlim=[0.865],
-            modelname="090_green_bottle_2",
+            modelname="001_bottles",
             rotate_rand=False,
             # qpos=[0.709,0.705,0.015,0.015],
             qpos=[0.707,0.707,0,0],
-            scale=(0.161,0.161,0.161)
+            scale=(0.161,0.161,0.161),
+            model_id=16
         )
 
         self.red_bottle.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.01
@@ -58,8 +59,7 @@ class dual_bottles_pick(Base_task):
             self.together_open_gripper(save_freq=None)
         self.render_freq = render_freq
 
-    def play_once(self,save_freq=None):
-
+    def play_once(self):
         if self.pose_type == 'gt':
             left_pose0 = list(self.red_bottle.get_pose().p+[-0.14,-0.18,0])+[-0.906,0,0,-0.424]
             right_pose0 = list(self.green_bottle.get_pose().p+[0.14,-0.18,0])+[-0.415,0,0,-0.910]

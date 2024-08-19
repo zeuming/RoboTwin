@@ -3,7 +3,7 @@ from .base_task import Base_task
 from .utils import *
 import sapien
 
-class empty_cup_place(Base_task):
+class empty_cup_place_hard(Base_task):
     def setup_demo(self,**kwags):
         super()._init(**kwags)
         self.create_table_and_wall()
@@ -61,6 +61,9 @@ class empty_cup_place(Base_task):
         self.coaster.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.01
 
     def play_once(self):
+
+        while 1:
+            self.close_left_gripper()
         pose0 = list(self.cup.get_pose().p+[0.048,0,0.245])+[-0.557,0.473,-0.473,-0.489]
         self.right_move_to_pose_with_screw(pose0,save_freq=15)
 
