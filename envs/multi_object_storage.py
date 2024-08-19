@@ -5,7 +5,7 @@ import numpy as np
 
 import transforms3d as t3d
 
-class put_multiobj_into_box(Base_task):
+class multi_object_storage(Base_task):
 
     def setup_demo(self,**kwags):
         super()._init(**kwags)

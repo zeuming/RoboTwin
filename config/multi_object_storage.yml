@@ -1,4 +1,4 @@
-task_name: put_multiobj_into_box
+task_name: multi_object_storage
 render_freq: 0       # render frequence (0: render off)
 use_seed: True          # use seed ,if value is True, the seed file has existed in ./seeds/{task_name}.txt  
 collect_data: True  # collect data
