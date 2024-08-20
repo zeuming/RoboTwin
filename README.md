@@ -1,5 +1,6 @@
 # HELP
-环境安装大概20min。
+环境安装大概20min，见[Installation.md](./Installation.md)
+
 环境安装完毕后，看到根目录下的文件夹，共有6个：
 1. config，存放了每个任务的配置，比如相机参数，是否采集数据，数据采集内容等等
 2. envs，存放了所有任务的运行逻辑，下一部分会重点说
@@ -17,7 +18,19 @@
 main.py调用每个任务的类并完成数据采集
 
 部署实现不重要，先跳过。
+
+# 跑任务
 跑任务可以用`echo "block_hammer_beat" | python main.py`之类的
+
+数据采集的配置在`config`文件夹下，对应每一个任务，以下为重要参数的解释：
+1. render_freq，为0就是不渲染，如果想看的话，可以设置为10
+2. collect_data，设置为True才会开启采集
+3. camera_w,h就是相机参数，一共4个相机，腕部两个，top和front两个
+4. pcd_crop，获取的点云是否裁剪，去除桌子、墙壁等
+5. pcd_down_sample_num，点云用fps降采样
+6. data_type/endpose，末端关节的6元数，仍有点小问题
+7. data_type/qpos，joint action
+8. observer，是否要存一个方便观察的视角照片，不影响学习
 
 # Installation
 See [Installation.md](./Installation.md) for installation instructions. 
