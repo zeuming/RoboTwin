@@ -13,10 +13,10 @@ class container_place(Base_task):
         self.pre_move()
         if is_test:
             # self.id_list = [2*i+1 for i in range(5)]
-            self.id_list = [0,2,4,6,7,8,9]
+            self.id_list = [0,1,2,3,4,6,7]
         else:
             # self.id_list = [2*i  for i in range(5)]
-            self.id_list = [1,3]
+            self.id_list = [8,9]
         self.load_actors()
         self.step_lim = 350
     

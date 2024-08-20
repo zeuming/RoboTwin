@@ -1,1 +1,1 @@
-bash eval_dp3.sh robot_dp3 container_place_50 container_place_50 0 0
+bash eval_dp3.sh robot_dp3 mug_hanging_20 mug_hanging_20 0 0

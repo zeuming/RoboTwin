@@ -13,11 +13,12 @@ class mug_hanging(Base_task):
         self.load_camera(kwags.get('camera_w', 336),kwags.get('camera_h',224))
         self.pre_move()
         if is_test:
-            self.id_list = [1,6,7,8,9]
+            self.id_list = [0,1,2,3,4,6,7]
         else:
-            self.id_list = [0,2,3,4,5]
+            self.id_list = [8,9]
 
         self.load_actors()
+        self.step_lim = 750
     
     def pre_move(self):
         render_freq = self.render_freq
