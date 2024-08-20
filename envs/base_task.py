@@ -1080,10 +1080,13 @@ class Base_task(gym.Env):
             # 合并点云
             if self.data_type.get("conbine", False):
                 conbine_pcd = np.vstack((top_pcd , left_pcd , right_pcd, front_pcd))
-                pcd_array,index = conbine_pcd[:,:3], np.array(range(len(conbine_pcd)))
-                if self.pcd_down_sample_num > 0:
-                    pcd_array,index = fps(conbine_pcd[:,:3],self.pcd_down_sample_num)
-                    index = index.detach().cpu().numpy()[0]
+            else:
+                conbine_pcd = top_pcd
+            
+            pcd_array,index = conbine_pcd[:,:3], np.array(range(len(conbine_pcd)))
+            if self.pcd_down_sample_num > 0:
+                pcd_array,index = fps(conbine_pcd[:,:3],self.pcd_down_sample_num)
+                index = index.detach().cpu().numpy()[0]
 
             if self.save_type.get('raw_data', True):
                 ensure_dir(self.file_path["f_pcd"] + f"{self.PCD_INDEX}.pcd")

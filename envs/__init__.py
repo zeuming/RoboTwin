@@ -18,4 +18,25 @@ from .multi_object_storage import *
 from .block_hammer_beat_hard import *
 from .blocks_stack import *
 from .shoes_place_hard import *
+from .container_place import *
+from .mug_fliping import *
 # from .empty_cup_place_hard import *
+
+
+# from importlib import import_module
+# import os
+
+# # 获取当前目录下的所有 .py 文件（除了 __init__.py）
+# package_dir = os.path.dirname(os.path.abspath(__file__))
+# all_modules = [f[:-3] for f in os.listdir(package_dir) if f.endswith('.py') and f != '__init__.py']
+
+# # 动态导入所有模块
+# for module_name in all_modules:
+#     import_module('.' + module_name, package=__name__)
+#     try:
+#         from . import module_name
+#     except:
+#         pass
+
+# # 定义 __all__ 列表，以控制哪些名称会被 * 导入
+# __all__ = all_modules

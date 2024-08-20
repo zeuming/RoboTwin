@@ -1,0 +1,109 @@
+
+from .base_task import Base_task
+from .utils import *
+import sapien
+
+class container_place(Base_task):
+    def setup_demo(self,is_test = False,**kwags):
+        super()._init(**kwags)
+        self.create_table_and_wall()
+        self.load_robot()
+        self.setup_planner()
+        self.load_camera(kwags.get('camera_w', 336),kwags.get('camera_h',224))
+        self.pre_move()
+        if is_test:
+            self.id_list = [2*i+1 for i in range(5)]
+        else:
+            self.id_list = [2*i  for i in range(5)]
+        self.load_actors()
+        self.step_lim = 500
+    
+    def pre_move(self):
+        render_freq = self.render_freq
+        self.render_freq=0
+        self.together_open_gripper()
+        self.render_freq = render_freq
+
+    def load_actors(self):
+
+        self.plate, _ = create_glb(
+            self.scene,
+            pose = sapien.Pose([0, -0.05, 0.753], [0.5,0.5,0.5,0.5]),
+            modelname="003_plate",
+            scale=[0.025,0.025,0.025],
+            is_static=True,
+            convex=False
+        )
+
+        container_pose = rand_pose(
+            xlim=[-0.3,0.3],
+            ylim=[-0.1,0.05],
+            zlim=[0.8],
+            rotate_rand=False,
+            qpos=[0.707,0.707,0,0]
+        )
+
+        while abs(container_pose.p[0]) < 0.15:
+            container_pose = rand_pose(
+                xlim=[-0.3,0.3],
+                ylim=[-0.1,0.05],
+                zlim=[0.8],
+                rotate_rand=False,
+                qpos=[0.707,0.707,0,0]
+            )
+
+        self.container,self.container_data = create_glb(
+            self.scene,
+            pose=container_pose,
+            modelname="002_container",
+            model_id=np.random.choice(self.id_list),
+            # model_id=self.ep_num,
+            model_z_val=True
+        )
+        
+        self.container.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.0007
+
+    def play_once(self):
+
+        container_pose = self.container.get_pose().p
+        container_edge_dis = np.array(self.container_data['extents']) * np.array(self.container_data['scale'])
+        container_edge_dis = [container_edge_dis[0]/2, 0, container_edge_dis[1]/2 + 0.12]
+        if container_pose[0] < 0:
+            # use left arm
+            container_edge_dis[0] *= -1
+            pose1 = (container_pose + container_edge_dis).tolist() + [-0.5,0.5,-0.5,-0.5]
+            pose1[2] += 0.08
+            self.left_move_to_pose_with_screw(pose = pose1, save_freq = 15)
+            pose1[2] -= 0.08
+            self.left_move_to_pose_with_screw(pose = pose1, save_freq = 15)
+            self.close_left_gripper(pos = -0.01,save_freq = 15)
+            pose1[2] += 0.08
+            self.left_move_to_pose_with_screw(pose = pose1, save_freq = 15)
+            target_pose = self.get_grasp_pose_from_target_point_and_qpose(self.container,self.container_data,self.left_endpose,[0,-0.05,0.83],[-0.5,0.5,-0.5,-0.5])
+            self.left_move_to_pose_with_screw(pose = target_pose, save_freq = 15)
+            target_pose[2] -= 0.08
+            self.left_move_to_pose_with_screw(pose = target_pose, save_freq = 15)
+            self.open_left_gripper(save_freq = 15)
+        else:
+            # use right arm
+            pose1 = (container_pose + container_edge_dis).tolist() + [-0.5,0.5,-0.5,-0.5]
+            pose1[2] += 0.08
+            self.right_move_to_pose_with_screw(pose = pose1, save_freq = 15)
+            pose1[2] -= 0.08
+            self.right_move_to_pose_with_screw(pose = pose1, save_freq = 15)
+            self.close_right_gripper(pos = -0.01,save_freq = 15)
+            pose1[2] += 0.08
+            self.right_move_to_pose_with_screw(pose = pose1, save_freq = 15)
+            target_pose = self.get_grasp_pose_from_target_point_and_qpose(self.container,self.container_data,self.right_endpose,[0,-0.05,0.83],[-0.5,0.5,-0.5,-0.5])
+            self.right_move_to_pose_with_screw(pose = target_pose, save_freq = 15)
+            target_pose[2] -= 0.08
+            self.right_move_to_pose_with_screw(pose = target_pose, save_freq = 15)
+            self.open_right_gripper(save_freq = 15)
+    
+
+    def check_success(self):
+        container_pose = self.container.get_pose().p
+        container_pose[2] -= self.container_data['extents'][1] * self.container_data['scale'][1]/2
+        target_pose = np.array([0,-0.05, 0.74])
+        eps = np.array([0.03,0.03, 0.01])
+        return np.all(abs(container_pose - target_pose) < eps)
