@@ -1151,7 +1151,10 @@ class Base_task(gym.Env):
         front_pcd = self._get_camera_pcd(self.front_camera, point_num=0)
 
         # 合并点云
-        conbine_pcd = np.vstack((top_pcd , left_pcd , right_pcd , front_pcd))
+        if self.data_type.get("conbine", False):
+            conbine_pcd = np.vstack((top_pcd , left_pcd , right_pcd, front_pcd))
+        else:
+            conbine_pcd = top_pcd
         pcd_array,index = fps(conbine_pcd[:,:3],self.pcd_down_sample_num)
 
         # pdb.set_trace()

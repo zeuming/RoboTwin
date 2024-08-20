@@ -1,1 +1,1 @@
-bash eval_dp3.sh robot_dp3 shoes_place_hard_50 shoes_place_hard_50 0 0
+bash eval_dp3.sh robot_dp3 container_place_50 container_place_50 0 0

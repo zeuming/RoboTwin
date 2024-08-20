@@ -28,8 +28,8 @@ class mug_hanging(Base_task):
     def load_actors(self):
         self.mug, self.mug_data = rand_create_glb(
             self.scene,
-            xlim=[-0.1,-0.25],
-            ylim=[-0.05,0.15],
+            xlim=[-0.25,-0.1],
+            ylim=[-0.05,0.1],
             zlim=[0.79],
             ylim_prop = True,
             modelname="039_mug",
