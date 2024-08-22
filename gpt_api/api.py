@@ -50,7 +50,6 @@ def get_grasp_pose_from_point(actor,actor_data,grasp_qpos: list = None, pre_dis 
     res_pose = list(global_grasp_pose_p) + grasp_qpos
     return res_pose
 
-
 def get_grasp_pose_from_target_point_and_qpose(actor, actor_data, endpose, target_pose: list, target_grasp_qpose: list):
     '''
     According to the current relative attitude of the gripper and the object, 
