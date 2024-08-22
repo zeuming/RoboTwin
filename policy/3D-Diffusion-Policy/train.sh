@@ -1,1 +1,1 @@
-bash scripts/train_policy.sh robot_dp3 container_place_50 0820 0 0
+bash scripts/train_policy.sh robot_dp3 mug_hanging_50 0821 0 0

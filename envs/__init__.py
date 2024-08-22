@@ -19,8 +19,9 @@ from .block_hammer_beat_hard import *
 from .blocks_stack import *
 from .shoes_place_hard import *
 from .container_place import *
-from .mug_fliping import *
-# from .empty_cup_place_hard import *
+from .open_pot_cover import *
+from .bottle_pick import *
+from .pick_cuboid_cylinder import *
 
 
 # from importlib import import_module

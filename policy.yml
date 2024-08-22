@@ -8,7 +8,7 @@ camera_w: 336       #
 camera_h: 224       # camera args
 pcd_crop: True      #...  
 pcd_down_sample_num: 1024    # pcd down sample num 
-checkpoint_num: 1500 
+checkpoint_num: 600 
 episode_num: 1    # episode num
 save_type:
   raw_data: True

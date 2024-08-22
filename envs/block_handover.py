@@ -22,7 +22,7 @@ class block_handover(Base_task):
 
         self.render_freq = render_freq
 
-    def load_actors(self, **kwargs):
+    def load_actors(self):
         rand_pos = rand_pose(
             xlim=[-0.25,-0.05],
             ylim=[0.,0.25],
@@ -83,6 +83,10 @@ class block_handover(Base_task):
         self.right_move_to_pose_with_screw(right_target_pose, save_freq=15)
 
         self.open_right_gripper(save_freq=15)
+        right_target_pose[1] -= 0.1
+        right_target_pose[2] += 0.1
+        self.right_move_to_pose_with_screw(right_target_pose, save_freq=15)
+
         # right_target_pose[1]-=0.12
         # self.right_move_to_pose_with_screw(right_target_pose)
 
@@ -92,4 +96,7 @@ class block_handover(Base_task):
         if box_pos[2] < 0.78:
             self.actor_pose = False
         eps = 0.0201
-        return abs(box_pos[0] - target_pose[0]) < eps and abs(box_pos[1] - target_pose[1]) < eps and abs(box_pos[2] - 0.85) < 0.0015
+        right_endpose = self.get_right_endpose_pose()
+        endpose_target_pose = [0.241,-0.129,0.889,0,-0.7,-0.71,0]
+        return abs(box_pos[0] - target_pose[0]) < eps and abs(box_pos[1] - target_pose[1]) < eps and abs(box_pos[2] - 0.85) < 0.0015 and\
+               np.all(abs(np.array(right_endpose.p.tolist() + right_endpose.q.tolist()) - endpose_target_pose ) < 0.2 * np.ones(7)) and self.is_right_gripper_open()

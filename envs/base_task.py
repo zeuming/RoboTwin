@@ -152,6 +152,7 @@ class Base_task(gym.Env):
             height=0.74,
             thickness=0.05,
         )
+        self.table.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 100
 
     # load 传感器
     # def load_sensor(self, **kwargs):
@@ -825,6 +826,23 @@ class Base_task(gym.Env):
                 }
         return config
     
+    def is_left_gripper_open(self):
+        return self.active_joints[34].get_drive_target()[0] > 0.04
+    def is_right_gripper_open(self):
+        return self.active_joints[36].get_drive_target()[0] > 0.04
+    def is_left_gripper_open_half(self):
+        return self.active_joints[34].get_drive_target()[0] > 0.02
+    def is_right_gripper_open_half(self):
+        return self.active_joints[36].get_drive_target()[0] > 0.02
+    def is_left_gripper_close(self):
+        return self.active_joints[34].get_drive_target()[0] < 0.01
+    def is_right_gripper_close(self):
+        return self.active_joints[34].get_drive_target()[0] < 0.01
+    
+    def get_left_endpose_pose(self):
+        return self.left_endpose.global_pose
+    def get_right_endpose_pose(self):
+        return self.right_endpose.global_pose
     # 保存数据
     def _take_picture(self):
         if not self.is_save:
@@ -1302,7 +1320,7 @@ class Base_task(gym.Env):
                         assert obs['agent_pos'].shape[0] == 14, 'agent_pose shape, error'
                     else:
                         obs['agent_pos'] = np.array(observation['right_joint_action'])
-                        obs['real_joint_action'] = np.array(observation['left_real_joint_action'])
+                        obs['real_joint_action'] = np.is_staticarray(observation['left_real_joint_action'])
                         assert obs['agent_pos'].shape[0] == 7, 'agent_pose shape, error'
                     
                     model.update_obs(obs)

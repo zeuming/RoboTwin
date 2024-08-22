@@ -189,5 +189,5 @@ class blocks_stack(Base_task):
         eps = [0.025,0.025,0.01]
         # return 1
         return np.all(abs(block1_pose - np.array(target_pose + [0.765])) < eps) and \
-               np.all(abs(block2_pose - np.array(target_pose + [0.815])) < eps) and\
-               np.all(abs(block3_pose - np.array(target_pose + [0.865])) < eps)
+               np.all(abs(block2_pose - np.array(target_pose + [0.815])) < eps) and \
+               np.all(abs(block3_pose - np.array(target_pose + [0.865])) < eps) and self.is_left_gripper_open() and self.is_right_gripper_open()

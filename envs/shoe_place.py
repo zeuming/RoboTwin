@@ -64,6 +64,7 @@ class shoe_place(Base_task):
             modelname="041_shoes",
             convex=True,
             model_id = np.random.choice(self.id_list),
+            # model_id = self.ep_num,
             model_z_val = True
         )
 
@@ -94,6 +95,8 @@ class shoe_place(Base_task):
             target_pose[2] -=0.06
             self.right_move_to_pose_with_screw(pose = target_pose,save_freq = 15)
             self.open_right_gripper(save_freq = 15)
+            target_pose[2] +=0.06
+            self.right_move_to_pose_with_screw(pose = target_pose,save_freq = 15)
         else:
             # use left arm move
             left_pose1 = self.get_grasp_pose(self.shoe,self.shoe_data, grasp_matrix = grasp_matrix, pre_dis=0.1)
@@ -108,6 +111,8 @@ class shoe_place(Base_task):
             target_pose[2] -=0.06
             self.left_move_to_pose_with_screw(pose = target_pose,save_freq = 15)
             self.open_left_gripper(save_freq = 15)
+            target_pose[2] +=0.06
+            self.left_move_to_pose_with_screw(pose = target_pose,save_freq = 15)
         # while 1:
         #     self.close_right_gripper()
 
@@ -122,4 +127,5 @@ class shoe_place(Base_task):
         target_pose_p = np.array([0,-0.08])
         target_pose_q = np.array([0.5,0.5,-0.5,-0.5])
         eps = np.array([0.05,0.02,0.05,0.05,0.05,0.05])
-        return np.all(abs(shoe_pose_p[:2] - target_pose_p) < eps[:2]) and np.all(abs(shoe_pose_q - target_pose_q) < eps[-4:])
+        endpose_z = max(self.get_right_endpose_pose().p[2], self.get_left_endpose_pose().p[2])
+        return np.all(abs(shoe_pose_p[:2] - target_pose_p) < eps[:2]) and np.all(abs(shoe_pose_q - target_pose_q) < eps[-4:] )and endpose_z > 0.97 and self.is_left_gripper_open() and self.is_right_gripper_open()

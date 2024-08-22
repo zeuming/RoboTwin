@@ -40,6 +40,47 @@ def create_box(
 
     # in general, entity should only be added to scene after it is fully built
     scene.add_entity(entity)
+
+    return entity
+
+
+# create cylinder
+def create_cylinder(
+    scene: sapien.Scene,
+    pose: sapien.Pose,
+    radius: float,
+    half_length: float,
+    color=None,
+    name="",
+) -> sapien.Entity:
+    entity = sapien.Entity()
+    entity.set_name(name)
+    entity.set_pose(pose)
+
+    # create PhysX dynamic rigid body
+    rigid_component = sapien.physx.PhysxRigidDynamicComponent()
+    rigid_component.attach(
+        sapien.physx.PhysxCollisionShapeCylinder(
+            # half_size=half_size, material=sapien.physx.get_default_material()
+            radius=radius, half_length = half_length, material=scene.default_physical_material
+        )
+    )
+
+    # create render body for visualization
+    render_component = sapien.render.RenderBodyComponent()
+    render_component.attach(
+        # add a box visual shape with given size and rendering material
+        sapien.render.RenderShapeCylinder(
+            radius=radius, half_length = half_length, material = sapien.render.RenderMaterial(base_color=[*color[:3], 1])
+        )
+    )
+
+    entity.add_component(rigid_component)
+    entity.add_component(render_component)
+    entity.set_pose(pose)
+
+    # in general, entity should only be added to scene after it is fully built
+    scene.add_entity(entity)
     return entity
 
 # create box
@@ -87,7 +128,7 @@ def create_table(
     # Tabletop
     tabletop_pose = sapien.Pose([0.0, 0.0, -thickness / 2])  # Center the tabletop at z=0
     tabletop_half_size = [length / 2, width / 2, thickness / 2]
-    builder.add_box_collision(pose=tabletop_pose, half_size=tabletop_half_size, material=scene.default_physical_material)
+    builder.add_box_collision(pose=tabletop_pose, half_size=tabletop_half_size, material=sapien.physx.PhysxMaterial(static_friction = 0.5,dynamic_friction=0.5,restitution=0))
     builder.add_box_visual(
         pose=tabletop_pose, half_size=tabletop_half_size, material=color
     )

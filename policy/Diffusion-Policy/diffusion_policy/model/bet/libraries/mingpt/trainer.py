@@ -12,7 +12,7 @@ import numpy as np
 import torch
 import torch.optim as optim
 from torch.optim.lr_scheduler import LambdaLR
-from torchutils.data.dataloader import DataLoader
+from torch.utils.data.dataloader import DataLoader
 
 logger = logging.getLogger(__name__)
 

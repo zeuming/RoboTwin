@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from torchutils.data import DataLoader
+from torch.utils.data import DataLoader
 import abc
 
 from typing import Optional, Union

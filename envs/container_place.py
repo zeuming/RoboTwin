@@ -63,7 +63,7 @@ class container_place(Base_task):
             model_z_val=True
         )
         
-        self.container.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.0007
+        self.container.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.001
 
     def play_once(self):
 
@@ -86,6 +86,8 @@ class container_place(Base_task):
             target_pose[2] -= 0.08
             self.left_move_to_pose_with_screw(pose = target_pose, save_freq = 15)
             self.open_left_gripper(save_freq = 15)
+            target_pose[2] += 0.08
+            self.left_move_to_pose_with_screw(pose = target_pose, save_freq = 15)
         else:
             # use right arm
             pose1 = (container_pose + container_edge_dis).tolist() + [-0.5,0.5,-0.5,-0.5]
@@ -101,11 +103,15 @@ class container_place(Base_task):
             target_pose[2] -= 0.08
             self.right_move_to_pose_with_screw(pose = target_pose, save_freq = 15)
             self.open_right_gripper(save_freq = 15)
+            target_pose[2] += 0.08
+            self.right_move_to_pose_with_screw(pose = target_pose, save_freq = 15)
     
 
     def check_success(self):
-        container_pose = self.container.get_pose().p
-        container_pose[2] -= self.container_data['extents'][1] * self.container_data['scale'][1]/2
+        container_pose = self.get_actor_target_pose(self.container,self.container_data)
         target_pose = np.array([0,-0.05, 0.74])
-        eps = np.array([0.03,0.03, 0.01])
-        return np.all(abs(container_pose - target_pose) < eps)
+        eps = np.array([0.02,0.02, 0.01])
+        left_gripper = self.active_joints[34].get_drive_target()[0]
+        right_gripper = self.active_joints[36].get_drive_target()[0]
+        endpose_z = max(self.get_right_endpose_pose().p[2], self.get_left_endpose_pose().p[2])
+        return np.all(abs(container_pose - target_pose) < eps) and left_gripper > 0.04 and right_gripper > 0.04 and endpose_z > 0.98 and self.is_left_gripper_open() and self.is_right_gripper_open()

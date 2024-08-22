@@ -13,9 +13,9 @@ class mug_hanging(Base_task):
         self.load_camera(kwags.get('camera_w', 336),kwags.get('camera_h',224))
         self.pre_move()
         if is_test:
-            self.id_list = [0,1,2,3,4,6,7]
+            self.id_list = [1,3,4,6,7,8,9]
         else:
-            self.id_list = [8,9]
+            self.id_list = [0,2]
 
         self.load_actors()
         self.step_lim = 750
@@ -42,9 +42,16 @@ class mug_hanging(Base_task):
             # model_id = self.ep_num
         )
 
-        self.rack = create_obj(
+        rack_pose = rand_pose(
+            xlim=[0.1,0.3], 
+            ylim = [0.05,0.2],
+            zlim=[0.745],
+            rotate_rand=False,
+            qpos=[-0.22, -0.22, 0.67, 0.67]
+        )
+        self.rack, self.rack_data = create_obj(
             self.scene,
-            pose = sapien.Pose([0.25, 0.165, 0.745], [-0.22, -0.22, 0.67, 0.67]),
+            pose = rack_pose,
             modelname="040_rack",
             is_static=True,
             convex=True
@@ -79,7 +86,8 @@ class mug_hanging(Base_task):
         right_pose1[2] += 0.05
         self.right_move_to_pose_with_screw(pose=right_pose1,save_freq=15)
 
-        target_pose_p = [0.191, 0.123, 0.93]
+        # target_pose_p = [0.191, 0.123, 0.93]
+        target_pose_p = self.get_actor_target_pose(self.rack,self.rack_data)
         target_pose_q = [-0.371601, -0.176777, -0.391124, -0.823216]
         right_target_pose = self.get_grasp_pose_from_target_point_and_qpose(self.mug,self.mug_data,self.right_endpose,target_pose_p,target_pose_q)
         # right_target_pose = list(target_pose_p - t3d.quaternions.quat2mat(target_pose_q) @ target_pose_trans_endpose_matrix[:3,3]) + target_pose_q
@@ -91,6 +99,6 @@ class mug_hanging(Base_task):
         self.right_move_to_pose_with_screw(pose=self.right_original_pose,save_freq=15)
 
     def check_success(self):
-        mug_pose_matrix = self.mug.get_pose().to_transformation_matrix()
-        target_pose = (mug_pose_matrix @ np.asarray(self.mug_data['target_pose']))[:3,3]
-        return target_pose[2] > 1.26 and abs(target_pose[0] - 0.43) < 0.1 and np.all(abs(self.right_endpose.global_pose.p - [0.3,-0.32,0.935]) < 0.05)
+        mug_target_pose = self.get_actor_target_pose(self.mug,self.mug_data)
+        eps = np.array([0.01,0.01,0.01])
+        return np.all(abs(mug_target_pose - self.rack.get_pose().p + [0.02,0.02,-0.1]) < eps) and np.all(abs(self.right_endpose.global_pose.p - [0.3,-0.32,0.935]) < 0.05)

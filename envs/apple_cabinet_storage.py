@@ -28,8 +28,7 @@ class apple_cabinet_storage(Base_task):
             xlim=[-0.01,0],
             ylim=[0.18,0.19],
             zlim=[0.985],
-            rotate_rand=True,
-            rotate_lim=[0,0,0.1],
+            rotate_rand=False,
             qpos=[1,0,0,1],
             scale=0.3
         )
@@ -90,4 +89,7 @@ class apple_cabinet_storage(Base_task):
         cabinet_pos = self.cabinet.get_pose().p
         eps = 0.03
         apple_pose = self.apple.get_pose().p
-        return abs(apple_pose[0]-cabinet_pos[0])<eps and abs(apple_pose[1]+0.06-cabinet_pos[1])<eps and apple_pose[2] > 0.79
+        left_endpose = self.get_left_endpose_pose()
+        target_pose = [-0.05,-0.1,0.89,-0.505,-0.493,-0.512,-0.488]
+        eps1 = np.array([0.01,0.01,0.01,0.01,0.01,0.01,0.01])
+        return abs(apple_pose[0]-cabinet_pos[0])<eps and abs(apple_pose[1]+0.06-cabinet_pos[1])<eps and apple_pose[2] > 0.79 and np.all(abs(np.array(left_endpose.p.tolist() + left_endpose.q.tolist()) - target_pose) < eps1)

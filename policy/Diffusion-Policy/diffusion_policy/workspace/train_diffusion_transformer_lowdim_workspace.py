@@ -12,7 +12,7 @@ import hydra
 import torch
 from omegaconf import OmegaConf
 import pathlib
-from torchutils.data import DataLoader
+from torch.utils.data import DataLoader
 import copy
 import random
 import wandb

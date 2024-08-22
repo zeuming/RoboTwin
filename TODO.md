@@ -15,6 +15,11 @@
 
 ## 0819
 
-- [ ] add code comments, and move some func to `gpt-api` model
+- [x] add code comments, and move some func to `gpt-api` model
 - [ ] add `cluttered_tabel` task
 - [ ] change tasks from single_arm to dual_arm, `...`
+
+## 0821
+
+- [ ] some tasks about mani-pot (pick, open, ...)
+- [ ] 

@@ -32,7 +32,8 @@ def create_video(image_folder, output_video_file, save_dir='./task_video/', fps=
 #     create_video('./policy_data/test/episode0/camera/color/front/0.png', 'pick_cup_with_liquid_top.mp4')
 
 if __name__ == '__main__':
-    task_list = ['block_hammer_beat', 'block_handover', 'apple_cabinet_storage', 'dual_bottles_pick', 'empty_cup_place', 'block_sweep']
+    # task_list = ['block_hammer_beat', 'block_handover', 'apple_cabinet_storage', 'dual_bottles_pick', 'empty_cup_place', 'block_sweep']
+    task_list = ['mug_hanging']
     load_dir = './data'
     for task in task_list:
         # create_video(f'{load_dir}/{task}/episode0/camera/color/front/',f'{task}_top.mp4', save_dir=f'./task_video/success/')
@@ -40,7 +41,7 @@ if __name__ == '__main__':
         # create_video(f'{load_dir}/{task}/episode1/camera/color/front/',f'{task}_top.mp4', save_dir=f'./task_video/fail/')
         # create_video(f'{load_dir}/{task}/episode1/camera/color/observer/',f'{task}_expert.mp4', save_dir='./task_video/fail/')
 
-        create_video(f'{load_dir}/{task}/episode0/camera/color/front/',f'{task}_top.mp4', save_dir=f'./task_video_benchmark/')
-        create_video(f'{load_dir}/{task}/episode0/camera/color/observer/',f'{task}_expert.mp4', save_dir='./task_video_benchmark/')
-        create_video(f'{load_dir}/{task}/episode0/camera/color/left/',f'{task}_left.mp4', save_dir='./task_video_benchmark/')
-        create_video(f'{load_dir}/{task}/episode0/camera/color/right/',f'{task}_right.mp4', save_dir='./task_video_benchmark/')
+        create_video(f'{load_dir}/{task}/episode0/camera/color/top/',f'{task}_top.mp4', save_dir=f'./task_video/')
+        # create_video(f'{load_dir}/{task}/episode0/camera/color/observer/',f'{task}_expert.mp4', save_dir='./task_video/')
+        create_video(f'{load_dir}/{task}/episode0/camera/color/left/',f'{task}_left.mp4', save_dir='./task_video/')
+        create_video(f'{load_dir}/{task}/episode0/camera/color/right/',f'{task}_right.mp4', save_dir='./task_video/')
