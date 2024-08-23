@@ -41,7 +41,7 @@ def main(cfg):
     global TASK
     TASK = cfg.task.name
     # task_name = 'block_hammer_beat'
-    with open(f'./policy.yml', 'r', encoding='utf-8') as f:
+    with open(f'./policy_real_robot.yml', 'r', encoding='utf-8') as f:
         args = yaml.load(f.read(), Loader=yaml.FullLoader)
     checkpoint_num = args['checkpoint_num']
     expert_check = args['expert_check']
