@@ -1,4 +1,5 @@
-from openai import OpenAI
+from gpt_api.api import *
+from gpt_api.gpt_agent import *
 
 # ====================== PROMPT =============================
 
@@ -29,7 +30,9 @@ AVAILABLE_API = {
     "get_grasp_pose": "get gripper pose from obj contact point", 
     "get_grasp_pose_from_point": "get gripper pose from given gripper qpose and obj contact point", 
     "get_grasp_pose_from_target_point_and_qpose": "According to the current relative attitude of the gripper and the object, obtain the target gripper attitude, so that the target point of the object reaches the desired target point.",
-    "get_actor_target_pose": "get actor target pose point xyz in world axis"
+    "get_actor_target_pose": "get actor target pose point xyz in world axis",
+    "check_grammar": "",
+    "run_generation": ""
 }
 AVAILABLE_CODE_API = {
     "together_move_to_pose_with_screw": "",
@@ -40,27 +43,15 @@ AVAILABLE_CODE_API = {
     "close_left_gripper": "", 
     "close_right_gripper": "",
 }
+
 # ========================================================
+def robotwin():
+    # input TASK_DESCRIPTION
+    print('Please input your TASK_DESCRIPTION, using natural language:')
 
-def generate(message, gpt="deepseek"):
+    # Start Generation Process
 
-    if gpt == "deepseek":
-        OPENAI_API_BASE="https://api.deepseek.com"
-        OPENAI_API_KEY="sk-0bc806156bb04622817a392d809b92e9"
-
-    client = OpenAI(api_key=OPENAI_API_KEY, base_url="https://api.deepseek.com")
-
-    response = client.chat.completions.create(
-        model="deepseek-chat",
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant"},
-            {"role": "user", "content": message},
-        ],
-        stream=False
-    )
-
-    return response.choices[0].message.content 
-
+    # Corr
 
 if __name__ == "__main__":
     generate('what\'s your name')

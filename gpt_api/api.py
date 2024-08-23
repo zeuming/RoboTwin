@@ -79,3 +79,8 @@ def get_actor_target_pose(actor,actor_data):
     local_target_matrix[:3,3] *= actor_data['scale']
     return (actor_matrix @ local_target_matrix)[:3,3]
 
+def check_grammar():
+    pass
+
+def run_generation():
+    pass

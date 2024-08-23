@@ -1,7 +1,7 @@
 task_name: block_hammer_beat_hard
-render_freq: 10       # render frequence (0: render off)
-use_seed: True          # use seed ,if value is True, the seed file has existed in ./seeds/{task_name}.txt  
-collect_data: True  # collect data
+render_freq: 0       # render frequence (0: render off)
+use_seed: False          # use seed ,if value is True, the seed file has existed in ./seeds/{task_name}.txt  
+collect_data: False  # collect data
 save_path: './data'
 dual_arm: True
 st_episode: 0    # begin_episode 

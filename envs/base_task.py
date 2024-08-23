@@ -24,7 +24,6 @@ from collections import deque
 import cv2
 import torch
 
-
 # 基本环境类
 class Base_task(gym.Env):
     '''基础环境
@@ -67,6 +66,13 @@ class Base_task(gym.Env):
         self.step_lim = None
         self.fix_gripper = False
         self.setup_scene()
+
+        # Shijia Peng
+        self.left_js = None
+        self.right_js = None
+        self.raw_top_pcl = None
+        self.real_top_pcl = None
+        self.real_top_pcl_color = None
 
     def setup_scene(self,**kwargs):
         '''设置场景
@@ -1194,7 +1200,6 @@ class Base_task(gym.Env):
 
         return obs
     
-        
     def apply_policy(self, model):
         cnt = 0
         self.test_num += 1
@@ -1404,3 +1409,247 @@ class Base_task(gym.Env):
 
     def pre_move(self):
         pass
+
+    # =============== Real Robot ===============
+    # Shijia Peng
+    def ros_init(self):
+        import rospy
+        from sensor_msgs.msg import JointState
+        from sensor_msgs.msg import PointCloud2
+        import sensor_msgs.point_cloud2 as pc2
+        import struct
+        import ctypes
+        # self._get_camera_pcd(self.top_camera, point_num=0)
+        rospy.init_node('joint_state_publisher', anonymous=True)
+        self.right_pub = rospy.Publisher("/master/joint_right",JointState,queue_size=10)
+        self.left_pub = rospy.Publisher("/master/joint_left",JointState,queue_size=10)
+        jointState_right_sub = rospy.Subscriber("/puppet/joint_right",JointState,self.get_right_js,queue_size=10)
+        jointState_right_sub = rospy.Subscriber("/puppet/joint_left",JointState,self.get_left_js,queue_size=10)
+        top_cam_sub = rospy.Subscriber("/camera_f/depth/color/points",PointCloud2,self.get_top_pcl,queue_size=10)
+
+    def get_right_js(self,msg):
+        self.right_js = msg.position
+
+    def get_left_js(self,msg):
+        self.left_js = msg.position
+    # 获取真机点云
+    def get_top_pcl(self,cloud_msg):
+        self.raw_top_pcl = cloud_msg
+
+    def real_robot_get_obs(self):
+        if self.right_js != None and self.left_js != None:
+            right_js = np.asarray(self.right_js)
+            left_js = np.asarray(self.left_js)
+            right_js[6] = (right_js[6]-1) /100
+            left_js[6] = (left_js[6]-1) /100
+
+        else:
+            right_js = None
+            left_js = None
+
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        # 读取ros pcl2格式点云
+        points = pc2.read_points(self.raw_top_pcl, skip_nans=True)
+
+        int_data = list(points)
+        xyz = []
+        rgb = []
+        for x in int_data:
+            test = x[3] 
+            s = struct.pack('>f' ,test)
+            i = struct.unpack('>l',s)[0]
+            pack = ctypes.c_uint32(i).value
+            r = (pack & 0x00FF0000)>> 16
+            g = (pack & 0x0000FF00)>> 8 
+            b = (pack & 0x000000FF) 
+            xyz.append((x[0],x[1],x[2]))
+            rgb.append((r,g,b))
+            
+        # 将点云转换为NumPy数组
+        points_array = np.array(xyz)
+        points_color = np.array(rgb)
+        # 计算每个点颜色与(150, 150, 150)的差值
+        color_difference = abs(points_color - 150)
+        # 计算差值的均值
+        mean_difference = color_difference.mean(axis=1)
+        # 过滤出均值差值小于或等于50的点
+        filtered_indices = mean_difference >=50
+        # 使用过滤后的索引来选择点云数据和颜色数据
+        points_array = points_array[filtered_indices]
+        points_color = points_color[filtered_indices]
+
+        
+
+        # 坐标转换
+        real2sim_cam_mat = t3d.euler.euler2mat(0, 0 ,(1.57+1.00)*-1, axes='rzyx')
+        real2sim_cam_xyz = np.array([0,-0.27,1.315])
+        points_world = points_array @ real2sim_cam_mat[:3, :3].T  + real2sim_cam_xyz  # 转换到世界坐标系
+        # pdb.set_trace()
+        points_color = points_color /255
+        # 点存为tensor
+        points_world = torch.tensor(points_world, dtype=torch.float32).to(device)
+        points_color = torch.tensor(points_color, dtype=torch.float32).to(device)
+        # if True:   #TODO：是否crop
+        #     # crop范围
+        #     min_bound = torch.tensor([-0.6, -0.35, 0.741], dtype=torch.float32).to(device)
+        #     max_bound = torch.tensor([0.6, 0.35, 2], dtype=torch.float32).to(device)
+        #     inside_bounds_mask = (points_world.squeeze(0) >= min_bound).all(dim=1) & (points_world.squeeze(0)  <= max_bound).all(dim=1)
+        #     points_world = points_world[inside_bounds_mask]
+        #     points_color = points_color[inside_bounds_mask]
+
+        # 将张量转换回NumPy数组以用于Open3D
+        points_world_np = points_world.cpu().numpy()
+        points_color_np = points_color.cpu().numpy()
+        point_num = 1024
+        if point_num > 0:
+            real_top_pcl,index = fps(points_world_np,point_num)
+            index = index.detach().cpu().numpy()[0]
+            real_top_pcl_color = points_color_np[index,:]
+        
+
+        
+        observation = dict()
+        observation["pcd"] = real_top_pcl
+        observation["color"] = real_top_pcl_color
+        observation["right_jointState"] = right_js
+        observation["left_jointState"] = left_js
+
+        pcd = o3d.geometry.PointCloud()
+        pcd.points = o3d.utility.Vector3dVector(observation["pcd"])
+        pcd.colors = o3d.utility.Vector3dVector(observation["color"])
+        # 保存点云到PCD文件
+        o3d.io.write_point_cloud("output_t3d2.pcd", pcd)
+        pdb.set_trace()
+        return observation
+        
+    def apply_policy_real_robot(self, model): # Shijia Peng
+        cnt = 0
+        self.test_num += 1
+
+        success_flag = False
+        self._update_render()
+        if self.render_freq:
+            self.viewer.render()
+        
+        self.actor_pose = True
+
+        # Shijia Peng
+        self.ros_init()
+        
+        while cnt < self.step_lim:
+            observation = self.real_robot_get_obs()
+            ######## ShijiaPeng add
+            obs = dict()
+            obs['point_cloud'] = observation['pcd']
+            if self.dual_arm:
+                obs['agent_pos'] = np.concatenate((observation['left_joint_action'], observation['right_joint_action']))
+                obs['real_joint_action'] = np.concatenate((observation['left_real_joint_action'], observation['left_real_joint_action']))
+                assert obs['agent_pos'].shape[0] == 14, 'agent_pose shape, error'
+            else:
+                obs['agent_pos'] = np.array(observation['right_joint_action'])
+                obs['real_joint_action'] = np.array(observation['left_real_joint_action'])
+                assert obs['agent_pos'].shape[0] == 7, 'agent_pose shape, error'
+            
+            actions = model.get_action(obs)
+            left_arm_actions , left_gripper , left_current_qpos, left_path = [], [], [], []
+            right_arm_actions , right_gripper , right_current_qpos, right_path = [], [], [], []
+            if self.dual_arm:
+                left_arm_actions, left_gripper = actions[:, :6],actions[:, 6]
+                right_arm_actions, right_gripper = actions[:, 7:13],actions[:, 13]
+                left_current_qpos, right_current_qpos = obs['agent_pos'][:6], obs['agent_pos'][7:13]
+            else:
+                right_arm_actions,right_gripper = actions[:, :6],actions[:, 6]
+                right_current_qpos = obs['agent_pos'][:6]
+            
+            if self.dual_arm:
+                left_path = np.vstack((left_current_qpos, left_arm_actions))
+            right_path = np.vstack((right_current_qpos, right_arm_actions))
+
+
+            topp_left_flag, topp_right_flag = True, True
+            try:
+                times, left_pos, left_vel, acc, duration = self.left_planner.TOPP(left_path, 1/250, verbose=True)
+                left_result = dict()
+                left_result['position'], left_result['velocity'] = left_pos, left_vel
+                left_n_step = left_result["position"].shape[0]
+                left_gripper = np.linspace(left_gripper[0], left_gripper[-1], left_n_step)
+            except:
+                topp_left_flag = False
+                left_n_step = 1
+            
+            if left_n_step == 0 or (not self.dual_arm):
+                topp_left_flag = False
+                left_n_step = 1
+
+            try:
+                times, right_pos, right_vel, acc, duration = self.right_planner.TOPP(right_path, 1/250, verbose=True)            
+                right_result = dict()
+                right_result['position'], right_result['velocity'] = right_pos, right_vel
+                right_n_step = right_result["position"].shape[0]
+                right_gripper = np.linspace(right_gripper[0], right_gripper[-1], right_n_step)
+            except:
+                topp_right_flag = False
+                right_n_step = 1
+            
+            if right_n_step == 0:
+                topp_right_flag = False
+                right_n_step = 1
+            
+            cnt += actions.shape[0]
+            
+            n_step = max(left_n_step, right_n_step)
+
+            obs_update_freq = n_step // actions.shape[0]
+
+            now_left_id = 0 if topp_left_flag else 1e9
+            now_right_id = 0 if topp_right_flag else 1e9
+            i = 0
+            
+            while now_left_id < left_n_step or now_right_id < right_n_step:
+
+                if topp_left_flag and now_left_id < left_n_step and now_left_id / left_n_step <= now_right_id / right_n_step:
+                    for j in range(len(self.left_arm_joint_id)):
+                        left_j = self.left_arm_joint_id[j]
+                        self.active_joints[left_j].set_drive_target(left_result["position"][now_left_id][j])
+                        self.active_joints[left_j].set_drive_velocity_target(left_result["velocity"][now_left_id][j])
+                    if not self.fix_gripper:
+                        for joint in self.active_joints[34:36]:
+                            joint.set_drive_target(left_gripper[now_left_id])
+                            joint.set_drive_velocity_target(0.05)
+                            self.left_gripper_val = left_gripper[now_left_id]
+
+                    now_left_id +=1
+                    
+                if topp_right_flag and now_right_id < right_n_step and now_right_id / right_n_step <= now_left_id / left_n_step:
+                    for j in range(len(self.right_arm_joint_id)):
+                        right_j = self.right_arm_joint_id[j]
+                        self.active_joints[right_j].set_drive_target(right_result["position"][now_right_id][j])
+                        self.active_joints[right_j].set_drive_velocity_target(right_result["velocity"][now_right_id][j])
+                    if not self.fix_gripper:
+                        for joint in self.active_joints[36:38]:
+                            joint.set_drive_target(right_gripper[now_right_id])
+                            joint.set_drive_velocity_target(0.05)
+                            self.right_gripper_val = right_gripper[now_right_id]
+
+                    now_right_id +=1
+
+                if i != 0 and i % obs_update_freq == 0:
+                    
+                    observation = self.real_robot_get_obs()
+                    obs=dict()
+                    obs['point_cloud'] = observation['pcd']
+                    if self.dual_arm:
+                        obs['agent_pos'] = np.concatenate((observation['left_joint_action'], observation['right_joint_action']))
+                        obs['real_joint_action'] = np.concatenate((observation['left_real_joint_action'], observation['left_real_joint_action']))
+                        assert obs['agent_pos'].shape[0] == 14, 'agent_pose shape, error'
+                    else:
+                        obs['agent_pos'] = np.array(observation['right_joint_action'])
+                        obs['real_joint_action'] = np.array(observation['left_real_joint_action'])
+                        assert obs['agent_pos'].shape[0] == 7, 'agent_pose shape, error'
+                    
+                    model.update_obs(obs)
+
+            continue
+        
+    # ==========================================
+    
