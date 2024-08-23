@@ -9,6 +9,7 @@ import pathlib
 import sys
 sys.path.append('./policy/3D-Diffusion-Policy/3D-Diffusion-Policy')
 from dp3_policy import *
+import mplib
 
 import yaml
 import importlib

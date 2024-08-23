@@ -28,6 +28,9 @@ Software:
 * Denoising (OIDN): NVIDIA Driver >= 520
 
 0. Install Vulkan
+```
+sudo apt install libvulkan1 mesa-vulkan-drivers vulkan-utility
+```
 
 1. Assert download
 ```
@@ -35,7 +38,33 @@ wget https://robotwin-1312128486.cos.ap-guangzhou.myqcloud.com/assert.zip
 unzip assert.zip
 ```
 
-2. remove ...
+2. remove 
+```
+# mplib.planner (mplib/planner.py) line 72
+# remove `convex=True`
+
+self.robot = ArticulatedModel(
+            urdf,
+            srdf,
+            [0, 0, -9.81],
+            user_link_names,
+            user_joint_names,
+            convex=True,
+            convex=False,
+            verbose=False,
+        )
+=> 
+self.robot = ArticulatedModel(
+            urdf,
+            srdf,
+            [0, 0, -9.81],
+            user_link_names,
+            user_joint_names,
+            # convex=True,
+            convex=False,
+            verbose=False,
+        )
+```
 
 3. Basic env
 First, prepare a conda environment.
