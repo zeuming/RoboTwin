@@ -1507,7 +1507,6 @@ class Base_task(gym.Env):
             real_top_pcl_color = points_color_np[index,:]
         
 
-        
         observation = dict()
         observation["pcd"] = real_top_pcl
         observation["color"] = real_top_pcl_color

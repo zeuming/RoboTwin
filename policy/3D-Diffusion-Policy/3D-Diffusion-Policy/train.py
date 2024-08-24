@@ -121,6 +121,8 @@ class TrainDP3Workspace:
         val_dataloader = DataLoader(val_dataset, **cfg.val_dataloader)
 
         self.model.set_normalizer(normalizer)
+        import pdb
+        pdb.set_trace()
         if cfg.training.use_ema:
             self.ema_model.set_normalizer(normalizer)
 
