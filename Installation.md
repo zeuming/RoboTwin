@@ -73,7 +73,7 @@ conda create -n RoboTwin python=3.8
 ```
 
 ```
-pip install torch==2.3.1 sapien==3.0.0b1 scipy==1.10.1 mplib gymnasium==0.29.1 trimesh==4.4.3 open3d==0.18.0 imageio==2.34.2 pydantic openai
+pip install torch==2.3.1 sapien==3.0.0b1 scipy==1.10.1 mplib==0.1.1 gymnasium==0.29.1 trimesh==4.4.3 open3d==0.18.0 imageio==2.34.2 pydantic openai
 ```
 4. Install pytorch3d
 ```
