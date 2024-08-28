@@ -59,10 +59,10 @@ class mug_hanging(Base_task):
         self.mug.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.001
 
     def play_once(self):
-        left_pose1 = self.get_grasp_pose(self.mug,self.mug_data,pre_dis=0.05)
+        left_pose1 = self.get_grasp_pose_w_labeled_direction(self.mug,self.mug_data,pre_dis=0.05)
         self.left_move_to_pose_with_screw(pose=left_pose1,save_freq=15)
         self.close_left_gripper(pos = 0.02,save_freq = 15)
-        left_pose1 = self.get_grasp_pose(self.mug,self.mug_data,pre_dis=0)
+        left_pose1 = self.get_grasp_pose_w_labeled_direction(self.mug,self.mug_data,pre_dis=0)
         self.left_move_to_pose_with_screw(pose=left_pose1,save_freq=15)
         self.close_left_gripper(pos = -0.01,save_freq = 15)
         left_pose1[2] += 0.05
@@ -76,20 +76,20 @@ class mug_hanging(Base_task):
         left_pose2[2] += 0.05
         self.left_move_to_pose_with_screw(pose=left_pose2,save_freq=15)
 
-        right_pose1 = self.get_grasp_pose(self.mug,self.mug_data, grasp_matrix = np.array([[0,-1,0,0],[-1,0,0,0],[0,0,-1,0],[0,0,0,1]]), pre_dis=0.05, id = 1)
+        right_pose1 = self.get_grasp_pose_w_labeled_direction(self.mug,self.mug_data, grasp_matrix = np.array([[0,0,1,0],[0,1,0,0],[-1,0,0,0],[0,0,0,1]]), pre_dis=0.05, id = 1)
         self.together_move_to_pose_with_screw(left_target_pose=self.left_original_pose,right_target_pose=right_pose1,save_freq = 15)
 
         self.close_right_gripper(pos = 0.02,save_freq = 15)
-        right_pose1 = self.get_grasp_pose(self.mug,self.mug_data, grasp_matrix = np.array([[0,-1,0,0],[-1,0,0,0],[0,0,-1,0],[0,0,0,1]]), pre_dis=0, id = 1)
+        right_pose1 = self.get_grasp_pose_w_labeled_direction(self.mug,self.mug_data, grasp_matrix = np.array([[0,0,1,0],[0,1,0,0],[-1,0,0,0],[0,0,0,1]]), pre_dis=0, id = 1)
         self.right_move_to_pose_with_screw(pose=right_pose1,save_freq=15)
         self.close_right_gripper(pos = -0.01,save_freq = 15)
         right_pose1[2] += 0.05
         self.right_move_to_pose_with_screw(pose=right_pose1,save_freq=15)
 
         # target_pose_p = [0.191, 0.123, 0.93]
-        target_pose_p = self.get_actor_target_pose(self.rack,self.rack_data)
+        target_pose_p = self.get_actor_goal_pose(self.rack,self.rack_data)
         target_pose_q = [-0.371601, -0.176777, -0.391124, -0.823216]
-        right_target_pose = self.get_grasp_pose_from_target_point_and_qpose(self.mug,self.mug_data,self.right_endpose,target_pose_p,target_pose_q)
+        right_target_pose = self.get_target_pose_from_goal_point_and_direction(self.mug,self.mug_data,self.right_endpose,target_pose_p,target_pose_q)
         # right_target_pose = list(target_pose_p - t3d.quaternions.quat2mat(target_pose_q) @ target_pose_trans_endpose_matrix[:3,3]) + target_pose_q
         self.right_move_to_pose_with_screw(pose=right_target_pose,save_freq=15)
         right_target_pose[0] += 0.04
@@ -99,6 +99,6 @@ class mug_hanging(Base_task):
         self.right_move_to_pose_with_screw(pose=self.right_original_pose,save_freq=15)
 
     def check_success(self):
-        mug_target_pose = self.get_actor_target_pose(self.mug,self.mug_data)
+        mug_target_pose = self.get_actor_goal_pose(self.mug,self.mug_data)
         eps = np.array([0.01,0.01,0.01])
         return np.all(abs(mug_target_pose - self.rack.get_pose().p + [0.02,0.02,-0.1]) < eps) and np.all(abs(self.right_endpose.global_pose.p - [0.3,-0.32,0.935]) < 0.05)

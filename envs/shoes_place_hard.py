@@ -107,11 +107,11 @@ class shoes_place_hard(Base_task):
 
     def get_target_grap_pose(self,shoe_rpy):
         if math.fmod(math.fmod(shoe_rpy[2] + shoe_rpy[0], 2 * math.pi) + 2 * math.pi, 2*math.pi) < math.pi:
-            grasp_matrix = np.array([[0,0,-1,0],[-1,0,0,0],[0,1,0,0],[0,0,0,1]])
+            grasp_matrix = np.array([[-1,0,0,0],[0,1,0,0],[0,0,-1,0],[0,0,0,1]])
             target_quat = [-0.707,0,-0.707,0]
             # target_quat = [-0.5,-0.5,-0.5,0.5]
         else:
-            grasp_matrix = np.array([[0,0,1,0],[-1,0,0,0],[0,-1,0,0],[0,0,0,1]])
+            grasp_matrix = np.eye(4)
             target_quat = [0,0.707,0,-0.707]
             # target_quat = [-0.5,0.5,-0.5,-0.5]
         return grasp_matrix, target_quat
@@ -126,11 +126,11 @@ class shoes_place_hard(Base_task):
         right_grasp_matrix, right_target_quat = self.get_target_grap_pose(right_shoe_rpy)
         
         # use right arm move
-        left_pose1 = self.get_grasp_pose(self.left_shoe,self.shoe_data, grasp_matrix = left_grasp_matrix, pre_dis=0.1)
-        right_pose1 = self.get_grasp_pose(self.right_shoe,self.shoe_data, grasp_matrix = right_grasp_matrix, pre_dis=0.1)
+        left_pose1 = self.get_grasp_pose_w_labeled_direction(self.left_shoe,self.shoe_data, grasp_matrix = left_grasp_matrix, pre_dis=0.1)
+        right_pose1 = self.get_grasp_pose_w_labeled_direction(self.right_shoe,self.shoe_data, grasp_matrix = right_grasp_matrix, pre_dis=0.1)
         self.together_move_to_pose_with_screw(left_target_pose=left_pose1, right_target_pose = right_pose1, save_freq = 15)
-        left_pose1 = self.get_grasp_pose(self.left_shoe,self.shoe_data, grasp_matrix = left_grasp_matrix, pre_dis=0)
-        right_pose1 = self.get_grasp_pose(self.right_shoe,self.shoe_data, grasp_matrix = right_grasp_matrix, pre_dis=0)
+        left_pose1 = self.get_grasp_pose_w_labeled_direction(self.left_shoe,self.shoe_data, grasp_matrix = left_grasp_matrix, pre_dis=0)
+        right_pose1 = self.get_grasp_pose_w_labeled_direction(self.right_shoe,self.shoe_data, grasp_matrix = right_grasp_matrix, pre_dis=0)
         self.together_move_to_pose_with_screw(left_target_pose=left_pose1, right_target_pose = right_pose1, save_freq = 15)
         self.together_close_gripper(save_freq = 15)
         left_pose1[2] += 0.07

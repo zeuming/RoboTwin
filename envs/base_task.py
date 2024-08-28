@@ -206,7 +206,6 @@ class Base_task(gym.Env):
         self.left_endpose = self.robot.find_joint_by_name('fl_joint6')
         self.right_endpose = self.robot.find_joint_by_name('fr_joint6')
 
-
         self.left_gripper_val = 0.
         self.right_gripper_val = 0.
         self.left_original_pose = [-0.3,-0.32,0.935,1,0,0,1]
@@ -237,8 +236,8 @@ class Base_task(gym.Env):
         front_mat44[:3, 3] = front_cam_pos
         
         # top camera
-        top_cam_pos = np.array([-0.032, -0.4, 1.4])
-        top_cam_forward = np.array([0,0.1,-0.6]) 
+        top_cam_pos = np.array([-0.032, -0.45, 1.35])
+        top_cam_forward = np.array([0,0.1,-0.55]) 
         top_cam_left = np.cross([0, 0, 1], top_cam_forward)
         top_cam_left = top_cam_left / np.linalg.norm(top_cam_left)
         top_up = np.cross(top_cam_forward, top_cam_left)
@@ -260,7 +259,7 @@ class Base_task(gym.Env):
             width=width,
             height=height,
             # fovx=np.deg2rad(69),
-            fovy=np.deg2rad(42),
+            fovy=np.deg2rad(37),
             near=near,
             far=far,
         )
@@ -272,7 +271,7 @@ class Base_task(gym.Env):
             width=width,
             height=height,
             # fovx=np.deg2rad(69),
-            fovy=np.deg2rad(42),
+            fovy=np.deg2rad(37),
             near=near,
             far=far,
         )
@@ -282,7 +281,7 @@ class Base_task(gym.Env):
             width=width,
             height=height,
             # fovx=np.deg2rad(69),
-            fovy=np.deg2rad(42),
+            fovy=np.deg2rad(37),
             near=near,
             far=far,
         )
@@ -292,7 +291,7 @@ class Base_task(gym.Env):
             width=width,
             height=height,
             # fovx=np.deg2rad(69),
-            fovy=np.deg2rad(42),
+            fovy=np.deg2rad(37),
             near=near,
             far=far,
         )
@@ -346,7 +345,7 @@ class Base_task(gym.Env):
         self.scene.update_render()
         self.scene.update_render()
 
-    def left_follow_path(self, result, save_freq=None):
+    def left_follow_path(self, result, save_freq=15):
         '''
         左臂运动
         result: 运动轨迹
@@ -386,7 +385,7 @@ class Base_task(gym.Env):
             self._take_picture()
     
     # 右臂运动，同左臂运动
-    def right_follow_path(self, result, save_freq=None):
+    def right_follow_path(self, result, save_freq=15):
         '''
         右臂运动
         result: 运动轨迹
@@ -425,7 +424,7 @@ class Base_task(gym.Env):
             self._take_picture()
 
     
-    def together_follow_path(self, left_result,right_result, save_freq=None):
+    def together_follow_path(self, left_result,right_result, save_freq=15):
         '''
         双臂同时运动，保证同时开始和结束
         left_result:    左臂轨迹
@@ -482,7 +481,7 @@ class Base_task(gym.Env):
             self._take_picture()
             
 
-    def set_gripper(self, left_pos = 0.045, right_pos = 0.045, set_tag = 'together', save_freq=None):
+    def set_gripper(self, left_pos = 0.045, right_pos = 0.045, set_tag = 'together', save_freq=15):
         '''
         设置夹爪姿态
         left_pos:   左爪 pose
@@ -545,22 +544,22 @@ class Base_task(gym.Env):
         if set_tag == 'right' or set_tag == 'together':   # not left arm
             self.right_gripper_val = right_pos
 
-    def open_left_gripper(self, save_freq=None,pos = 0.045):
+    def open_left_gripper(self, save_freq=15, pos = 0.045):
         self.set_gripper(left_pos = pos, set_tag='left', save_freq=save_freq)
 
-    def close_left_gripper(self, save_freq=None,pos = 0):
+    def close_left_gripper(self, save_freq=15, pos = 0):
         self.set_gripper(left_pos = pos, set_tag='left',save_freq=save_freq)
 
-    def open_right_gripper(self, save_freq=None,pos = 0.045):
+    def open_right_gripper(self, save_freq=15,pos = 0.045):
         self.set_gripper(right_pos=pos, set_tag='right', save_freq=save_freq)
 
-    def close_right_gripper(self, save_freq=None,pos = 0):
+    def close_right_gripper(self, save_freq=15,pos = 0):
         self.set_gripper(right_pos=pos, set_tag='right', save_freq=save_freq)
 
-    def together_open_gripper(self, save_freq=None,left_pos = 0.045, right_pos = 0.045):
+    def together_open_gripper(self, save_freq=15, left_pos = 0.045, right_pos = 0.045):
         self.set_gripper(left_pos=left_pos, right_pos=right_pos, set_tag='together', save_freq=save_freq)
 
-    def together_close_gripper(self, save_freq=None,left_pos = 0, right_pos = 0):
+    def together_close_gripper(self, save_freq=15,left_pos = 0, right_pos = 0):
         self.set_gripper(left_pos=left_pos, right_pos=right_pos, set_tag='together', save_freq=save_freq)
         
     def move_to_pose_with_RRTConnect( # TODO
@@ -598,7 +597,7 @@ class Base_task(gym.Env):
         self.left_follow_path(result,freq)
         return 0
 
-    def left_move_to_pose_with_screw(self, pose, use_point_cloud=False, use_attach=False,save_freq=None):
+    def left_move_to_pose_with_screw(self, pose, use_point_cloud=False, use_attach=False,save_freq=15):
         """
         Interpolative planning with screw motion.
         Will not avoid collision and will fail if the path contains collision.
@@ -626,7 +625,7 @@ class Base_task(gym.Env):
         #     # fall back to RRTConnect if the screw motion fails (say contains collision)            
         #     return self.move_to_pose_with_RRTConnect(pose, use_point_cloud, use_attach)
 
-    def right_move_to_pose_with_screw(self, pose, use_point_cloud=False, use_attach=False,save_freq=None):
+    def right_move_to_pose_with_screw(self, pose, use_point_cloud=False, use_attach=False,save_freq=15):
         """
         Interpolative planning with screw motion.
         Will not avoid collision and will fail if the path contains collision.
@@ -655,7 +654,7 @@ class Base_task(gym.Env):
         #     return self.move_to_pose_with_RRTConnect(pose, use_point_cloud, use_attach)
         
 
-    def together_move_to_pose_with_screw(self, left_target_pose,right_target_pose, use_point_cloud=False, use_attach=False,save_freq=None):
+    def together_move_to_pose_with_screw(self, left_target_pose,right_target_pose, use_point_cloud=False, use_attach=False,save_freq=15):
         """
         Interpolative planning with screw motion.
         Will not avoid collision and will fail if the path contains collision.
@@ -1200,7 +1199,7 @@ class Base_task(gym.Env):
 
         return obs
     
-    def apply_policy(self, model):
+    def apply_dp3(self, model):
         cnt = 0
         self.test_num += 1
 
@@ -1217,11 +1216,11 @@ class Base_task(gym.Env):
             obs['point_cloud'] = observation['pcd']
             if self.dual_arm:
                 obs['agent_pos'] = np.concatenate((observation['left_joint_action'], observation['right_joint_action']))
-                obs['real_joint_action'] = np.concatenate((observation['left_real_joint_action'], observation['left_real_joint_action']))
+                obs['real_joint_action'] = np.concatenate((observation['left_real_joint_action'], observation['right_real_joint_action']))
                 assert obs['agent_pos'].shape[0] == 14, 'agent_pose shape, error'
             else:
                 obs['agent_pos'] = np.array(observation['right_joint_action'])
-                obs['real_joint_action'] = np.array(observation['left_real_joint_action'])
+                obs['real_joint_action'] = np.array(observation['right_real_joint_action'])
                 assert obs['agent_pos'].shape[0] == 7, 'agent_pose shape, error'
             
             actions = model.get_action(obs)
@@ -1321,11 +1320,11 @@ class Base_task(gym.Env):
                     obs['point_cloud'] = observation['pcd']
                     if self.dual_arm:
                         obs['agent_pos'] = np.concatenate((observation['left_joint_action'], observation['right_joint_action']))
-                        obs['real_joint_action'] = np.concatenate((observation['left_real_joint_action'], observation['left_real_joint_action']))
+                        obs['real_joint_action'] = np.concatenate((observation['left_real_joint_action'], observation['right_real_joint_action']))
                         assert obs['agent_pos'].shape[0] == 14, 'agent_pose shape, error'
                     else:
                         obs['agent_pos'] = np.array(observation['right_joint_action'])
-                        obs['real_joint_action'] = np.is_staticarray(observation['left_real_joint_action'])
+                        obs['real_joint_action'] = np.is_staticarray(observation['right_real_joint_action'])
                         assert obs['agent_pos'].shape[0] == 7, 'agent_pose shape, error'
                     
                     model.update_obs(obs)
@@ -1362,19 +1361,19 @@ class Base_task(gym.Env):
             continue
         print("\nfail!")
     
-    def get_grasp_pose(self, actor, actor_data, grasp_matrix = np.array([[0,0,1,0],[-1,0,0,0],[0,-1,0,0],[0,0,0,1]]),pre_dis = 0, id = 0):
+    def get_grasp_pose_w_labeled_direction(self, actor, actor_data, grasp_matrix = np.eye(4), pre_dis = 0, id = 0):
         actor_matrix = actor.get_pose().to_transformation_matrix()
         local_contact_matrix = np.asarray(actor_data['contact_pose'][id])
         trans_matrix = np.asarray(actor_data['trans_matrix'])
         local_contact_matrix[:3,3] *= actor_data['scale']
-        global_contact_pose_matrix = actor_matrix  @ local_contact_matrix @ trans_matrix @ grasp_matrix
+        global_contact_pose_matrix = actor_matrix  @ local_contact_matrix @ trans_matrix @ grasp_matrix @ np.array([[0,0,1,0],[-1,0,0,0],[0,-1,0,0],[0,0,0,1]])
         global_contact_pose_matrix_q = global_contact_pose_matrix[:3,:3]
         global_grasp_pose_p = global_contact_pose_matrix[:3,3] + global_contact_pose_matrix_q @ np.array([-0.12-pre_dis,0,0]).T
         global_grasp_pose_q = t3d.quaternions.mat2quat(global_contact_pose_matrix_q)
         res_pose = list(global_grasp_pose_p)+list(global_grasp_pose_q)
         return res_pose
 
-    def get_grasp_pose_from_point(self,actor,actor_data,grasp_qpos: list = None, pre_dis = 0, id = 0):
+    def get_grasp_pose_w_given_direction(self,actor,actor_data,grasp_qpos: list = None, pre_dis = 0, id = 0):
         actor_matrix = actor.get_pose().to_transformation_matrix()
         local_contact_matrix = np.asarray(actor_data['contact_pose'][id])
         local_contact_matrix[:3,3] *= actor_data['scale']
@@ -1384,7 +1383,7 @@ class Base_task(gym.Env):
         res_pose = list(global_grasp_pose_p) + grasp_qpos
         return res_pose
 
-    def get_grasp_pose_from_target_point_and_qpose(self, actor, actor_data, endpose, target_pose: list, target_grasp_qpose: list):
+    def get_target_pose_from_goal_point_and_direction(self, actor, actor_data, endpose, target_pose: list, target_grasp_qpose: list):
         actor_matrix = actor.get_pose().to_transformation_matrix()
         local_target_matrix = np.asarray(actor_data['target_pose'])
         local_target_matrix[:3,3] *= actor_data['scale']
@@ -1394,7 +1393,7 @@ class Base_task(gym.Env):
         res_pose = list(target_pose - t3d.quaternions.quat2mat(target_grasp_qpose) @ res_matrix[:3,3]) + target_grasp_qpose
         return res_pose
     
-    def get_actor_target_pose(self,actor,actor_data):
+    def get_actor_goal_pose(self,actor,actor_data):
         actor_matrix = actor.get_pose().to_transformation_matrix()
         local_target_matrix = np.asarray(actor_data['target_pose'])
         local_target_matrix[:3,3] *= actor_data['scale']

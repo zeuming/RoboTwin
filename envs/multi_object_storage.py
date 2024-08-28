@@ -205,10 +205,10 @@ class multi_object_storage(Base_task):
         self.together_open_gripper(save_freq=15)
 
         # move bottles
-        left_pose0 = self.get_grasp_pose_from_point(self.left_bottle, self.left_bottle_data,grasp_qpos=[-0.906,0,0,-0.424], pre_dis=0.1)
-        right_pose0 = self.get_grasp_pose_from_point(self.right_bottle, self.right_bottle_data,grasp_qpos=[-0.415,0,0,-0.910], pre_dis=0.11)
-        left_pose1 = self.get_grasp_pose_from_point(self.left_bottle, self.left_bottle_data,grasp_qpos=[-0.906,0,0,-0.424], pre_dis=0)
-        right_pose1 = self.get_grasp_pose_from_point(self.right_bottle, self.right_bottle_data,grasp_qpos=[-0.415,0,0,-0.910], pre_dis=0.01)
+        left_pose0 = self.get_grasp_pose_w_given_direction(self.left_bottle, self.left_bottle_data,grasp_qpos=[-0.906,0,0,-0.424], pre_dis=0.1)
+        right_pose0 = self.get_grasp_pose_w_given_direction(self.right_bottle, self.right_bottle_data,grasp_qpos=[-0.415,0,0,-0.910], pre_dis=0.11)
+        left_pose1 = self.get_grasp_pose_w_given_direction(self.left_bottle, self.left_bottle_data,grasp_qpos=[-0.906,0,0,-0.424], pre_dis=0)
+        right_pose1 = self.get_grasp_pose_w_given_direction(self.right_bottle, self.right_bottle_data,grasp_qpos=[-0.415,0,0,-0.910], pre_dis=0.01)
 
         self.together_move_to_pose_with_screw(left_pose0,right_pose0,save_freq=15)
 

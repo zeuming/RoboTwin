@@ -25,8 +25,8 @@ class block_hammer_beat(Base_task):
             modelname="020_hammer_2",
         )
         self.hammer.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.001
-        pose1 = self.get_grasp_pose(self.hammer,self.hammer_data,pre_dis=0.1)
-        pose2 = self.get_grasp_pose(self.hammer,self.hammer_data,pre_dis=0.01)
+        pose1 = self.get_grasp_pose_w_labeled_direction(self.hammer,self.hammer_data,pre_dis=0.1)
+        pose2 = self.get_grasp_pose_w_labeled_direction(self.hammer,self.hammer_data,pre_dis=0.01)
         self.open_right_gripper(save_freq=15)
         self.right_move_to_pose_with_screw(pose1,save_freq = 15)
         self.right_move_to_pose_with_screw(pose2,save_freq = 15)
@@ -57,7 +57,7 @@ class block_hammer_beat(Base_task):
         self.block.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.001
 
     def play_once(self):
-        pose3 = self.get_grasp_pose_from_target_point_and_qpose(self.hammer,self.hammer_data,self.right_endpose,self.block.get_pose().p+[0,0,0.08],[-0.55,0.45,-0.45,-0.55])
+        pose3 = self.get_target_pose_from_goal_point_and_direction(self.hammer,self.hammer_data,self.right_endpose,self.block.get_pose().p+[0,0,0.08],[-0.55,0.45,-0.45,-0.55])
         self.right_move_to_pose_with_screw(pose3,save_freq = 15)
         pose3[2] -= 0.06
         self.right_move_to_pose_with_screw(pose3,save_freq = 15)
@@ -66,7 +66,7 @@ class block_hammer_beat(Base_task):
         
 
     def check_success(self):
-        hammer_target_pose = self.get_actor_target_pose(self.hammer,self.hammer_data)
+        hammer_target_pose = self.get_actor_goal_pose(self.hammer,self.hammer_data)
         block_pose = self.block.get_pose().p
         eps = np.array([0.02,0.02])
         return np.all(abs(hammer_target_pose[:2] - block_pose[:2])<eps) and hammer_target_pose[2] < 0.81 and hammer_target_pose[2] > 0.78

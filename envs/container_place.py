@@ -81,7 +81,7 @@ class container_place(Base_task):
             self.close_left_gripper(pos = -0.01,save_freq = 15)
             pose1[2] += 0.08
             self.left_move_to_pose_with_screw(pose = pose1, save_freq = 15)
-            target_pose = self.get_grasp_pose_from_target_point_and_qpose(self.container,self.container_data,self.left_endpose,[0,-0.05,0.83],[-0.5,0.5,-0.5,-0.5])
+            target_pose = self.get_target_pose_from_goal_point_and_direction(self.container,self.container_data,self.left_endpose,[0,-0.05,0.83],[-0.5,0.5,-0.5,-0.5])
             self.left_move_to_pose_with_screw(pose = target_pose, save_freq = 15)
             target_pose[2] -= 0.08
             self.left_move_to_pose_with_screw(pose = target_pose, save_freq = 15)
@@ -98,7 +98,7 @@ class container_place(Base_task):
             self.close_right_gripper(pos = -0.01,save_freq = 15)
             pose1[2] += 0.08
             self.right_move_to_pose_with_screw(pose = pose1, save_freq = 15)
-            target_pose = self.get_grasp_pose_from_target_point_and_qpose(self.container,self.container_data,self.right_endpose,[0,-0.05,0.83],[-0.5,0.5,-0.5,-0.5])
+            target_pose = self.get_target_pose_from_goal_point_and_direction(self.container,self.container_data,self.right_endpose,[0,-0.05,0.83],[-0.5,0.5,-0.5,-0.5])
             self.right_move_to_pose_with_screw(pose = target_pose, save_freq = 15)
             target_pose[2] -= 0.08
             self.right_move_to_pose_with_screw(pose = target_pose, save_freq = 15)
@@ -108,7 +108,7 @@ class container_place(Base_task):
     
 
     def check_success(self):
-        container_pose = self.get_actor_target_pose(self.container,self.container_data)
+        container_pose = self.get_actor_goal_pose(self.container,self.container_data)
         target_pose = np.array([0,-0.05, 0.74])
         eps = np.array([0.02,0.02, 0.01])
         left_gripper = self.active_joints[34].get_drive_target()[0]

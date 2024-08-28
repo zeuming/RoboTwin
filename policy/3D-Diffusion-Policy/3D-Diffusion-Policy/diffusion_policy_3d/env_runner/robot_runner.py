@@ -90,7 +90,7 @@ class RobotRunner(BaseRunner):
             print('==== Get empty observation ===')
             return False
         device, dtype = policy.device, policy.dtype
-        self.obs.append(observaton)
+        self.obs.append(observaton) # update
         obs = self.get_n_steps_obs()
 
         # create obs dict

@@ -18,26 +18,19 @@ grasp_matrx:    control grasp pose, 默认规定夹爪方向朝物体规定的y�
 pre_dis:        the distence between gripper and obj 
 '''
 
-def get_grasp_pose(actor, actor_data, grasp_matrix = np.array([[0,0,1,0],[-1,0,0,0],[0,-1,0,0],[0,0,0,1]]),pre_dis = 0, id = 0):
-    '''
-    get gripper pose from obj contact point
-
-    grasp_matrix:   trans matrix of the gripper with respect to the specified axes of the object,
-                    default is [[0,0,1,0],[-1,0,0,0],[0,-1,0,0],[0,0,0,1]]
-    id:     contact point id
-    '''
+def get_grasp_pose_w_labeled_direction(actor, actor_data, grasp_matrix = np.eye(4), pre_dis = 0, id = 0):
     actor_matrix = actor.get_pose().to_transformation_matrix()
     local_contact_matrix = np.asarray(actor_data['contact_pose'][id])
     trans_matrix = np.asarray(actor_data['trans_matrix'])
     local_contact_matrix[:3,3] *= actor_data['scale']
-    global_contact_pose_matrix = actor_matrix  @ local_contact_matrix @ trans_matrix @ grasp_matrix
+    global_contact_pose_matrix = actor_matrix  @ local_contact_matrix @ trans_matrix @ grasp_matrix @ np.array([[0,0,1,0],[-1,0,0,0],[0,-1,0,0],[0,0,0,1]])
     global_contact_pose_matrix_q = global_contact_pose_matrix[:3,:3]
     global_grasp_pose_p = global_contact_pose_matrix[:3,3] + global_contact_pose_matrix_q @ np.array([-0.12-pre_dis,0,0]).T
     global_grasp_pose_q = t3d.quaternions.mat2quat(global_contact_pose_matrix_q)
     res_pose = list(global_grasp_pose_p)+list(global_grasp_pose_q)
     return res_pose
 
-def get_grasp_pose_from_point(actor,actor_data,grasp_qpos: list = None, pre_dis = 0, id = 0):
+def get_grasp_pose_w_given_direction(actor,actor_data,grasp_qpos: list = None, pre_dis = 0, id = 0):
     '''
     get gripper pose from given gripper qpose and obj contact point
     '''
@@ -50,7 +43,7 @@ def get_grasp_pose_from_point(actor,actor_data,grasp_qpos: list = None, pre_dis 
     res_pose = list(global_grasp_pose_p) + grasp_qpos
     return res_pose
 
-def get_grasp_pose_from_target_point_and_qpose(actor, actor_data, endpose, target_pose: list, target_grasp_qpose: list):
+def get_target_pose_from_goal_point_and_direction(actor, actor_data, endpose, target_pose: list, target_grasp_qpose: list):
     '''
     According to the current relative attitude of the gripper and the object, 
     obtain the target gripper attitude, so that the target point of the object 
@@ -69,7 +62,7 @@ def get_grasp_pose_from_target_point_and_qpose(actor, actor_data, endpose, targe
     res_pose = list(target_pose - t3d.quaternions.quat2mat(target_grasp_qpose) @ res_matrix[:3,3]) + target_grasp_qpose
     return res_pose
 
-def get_actor_target_pose(actor,actor_data):
+def get_actor_goal_pose(actor,actor_data):
     '''
     get actor target pose point xyz in world axis
     Used for check_success() of certain tasks

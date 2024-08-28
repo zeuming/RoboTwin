@@ -1,4 +1,5 @@
 from openai import OpenAI
+import pdb
 
 def generate(message, gpt="deepseek"):
 
@@ -20,3 +21,6 @@ def generate(message, gpt="deepseek"):
 
     return response.choices[0].message.content 
 
+if __name__ == "__main__":
+    res = generate('1+1=?, directly show me the result and dont\'t return anything else.')
+    pdb.set_trace()

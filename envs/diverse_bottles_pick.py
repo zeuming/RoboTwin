@@ -81,10 +81,10 @@ class diverse_bottles_pick(Base_task):
         #     pass # TODO
         # pre_grasp
         
-        left_pose0 = self.get_grasp_pose_from_point(self.bottle1, self.bottle1_data,grasp_qpos=[-0.906,0,0,-0.424], pre_dis=0.1)
-        right_pose0 = self.get_grasp_pose_from_point(self.bottle2, self.bottle2_data,grasp_qpos=[-0.415,0,0,-0.910], pre_dis=0.11)
-        left_pose1 = self.get_grasp_pose_from_point(self.bottle1, self.bottle1_data,grasp_qpos=[-0.906,0,0,-0.424], pre_dis=0)
-        right_pose1 = self.get_grasp_pose_from_point(self.bottle2, self.bottle2_data,grasp_qpos=[-0.415,0,0,-0.910], pre_dis=0.01)
+        left_pose0 = self.get_grasp_pose_w_given_direction(self.bottle1, self.bottle1_data,grasp_qpos=[-0.906,0,0,-0.424], pre_dis=0.1)
+        right_pose0 = self.get_grasp_pose_w_given_direction(self.bottle2, self.bottle2_data,grasp_qpos=[-0.415,0,0,-0.910], pre_dis=0.11)
+        left_pose1 = self.get_grasp_pose_w_given_direction(self.bottle1, self.bottle1_data,grasp_qpos=[-0.906,0,0,-0.424], pre_dis=0)
+        right_pose1 = self.get_grasp_pose_w_given_direction(self.bottle2, self.bottle2_data,grasp_qpos=[-0.415,0,0,-0.910], pre_dis=0.01)
         left_target_pose = [-0.19,-0.12,0.92,1,0,0,0]
         right_target_pose = [0.19,-0.12,0.92,-0.01,0.01,0.03,-1]
 

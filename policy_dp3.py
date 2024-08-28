@@ -141,7 +141,7 @@ def test_policy(Demo_class, args, dp3, st_seed, test_num=20):
         args['render_freq'] = render_freq
 
         Demo_class.setup_demo(now_ep_num=now_id, seed = now_seed, is_test = True, ** args)
-        Demo_class.apply_policy(dp3)
+        Demo_class.apply_dp3(dp3)
 
         # 关闭当前任务和渲染
         now_id += 1
