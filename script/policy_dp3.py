@@ -1,3 +1,7 @@
+import sys
+sys.path.append('./policy/3D-Diffusion-Policy/3D-Diffusion-Policy')
+sys.path.append('./')
+
 import torch  
 import sapien.core as sapien
 import os
@@ -6,8 +10,6 @@ from envs import *
 import hydra
 import pathlib
 
-import sys
-sys.path.append('./policy/3D-Diffusion-Policy/3D-Diffusion-Policy')
 from dp3_policy import *
 
 import yaml
@@ -35,16 +37,18 @@ TASK = None
 @hydra.main(
     version_base=None,
     config_path=str(pathlib.Path(__file__).parent.joinpath(
-        './policy/3D-Diffusion-Policy/3D-Diffusion-Policy/diffusion_policy_3d', 'config'))
+        '../../policy/3D-Diffusion-Policy/3D-Diffusion-Policy/diffusion_policy_3d', 'config'))
 )
 def main(cfg):
     global TASK
     TASK = cfg.task.name
-    # task_name = 'block_hammer_beat'
-    with open(f'./policy.yml', 'r', encoding='utf-8') as f:
+    print('!!', TASK)
+    checkpoint_num = cfg.checkpoint_num
+    expert_check = cfg.expert_data_num
+
+    with open(f'./config/{cfg.raw_task_name}.yml', 'r', encoding='utf-8') as f:
         args = yaml.load(f.read(), Loader=yaml.FullLoader)
-    checkpoint_num = args['checkpoint_num']
-    expert_check = args['expert_check']
+    
     # task 为任务类
     task = None
 
@@ -106,9 +110,8 @@ def test_policy(Demo_class, args, dp3, st_seed, test_num=20):
     epid = 0        # 当前种子
     seed_list=[]    # 成功 seed 列表
     suc_num = 0     # 成功任务数量
-    expert_check = args['expert_check']
+    expert_check = True
     print("Task name: ",args["task_name"])
-    # args['task_name'] = f"{TASK}_" + str(args['checkpoint_num']) 
 
 
     Demo_class.suc = 0

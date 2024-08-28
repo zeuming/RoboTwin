@@ -1,1 +1,0 @@
-bash eval_dp3.sh robot_dp3 mug_hanging_50 mug_hanging_50 0 0

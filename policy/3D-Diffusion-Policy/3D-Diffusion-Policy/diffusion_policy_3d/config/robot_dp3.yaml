@@ -146,3 +146,6 @@ multi_run:
   run_dir: data/outputs/${now:%Y.%m.%d}/${now:%H.%M.%S}_${name}_${task_name}
   wandb_name_base: ${now:%Y.%m.%d-%H.%M.%S}_${name}_${task_name}
 
+checkpoint_num: 3000
+expert_data_num: 50
+raw_task_name: none

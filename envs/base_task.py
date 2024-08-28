@@ -80,6 +80,8 @@ class Base_task(gym.Env):
         '''
         self.engine = sapien.Engine()
         # declare sapien renderer
+        from sapien.render import set_global_config
+        set_global_config(max_num_materials = 50000, max_num_textures = 50000)
         self.renderer = sapien.SapienRenderer()
         # give renderer to sapien sim
         self.engine.set_renderer(self.renderer)

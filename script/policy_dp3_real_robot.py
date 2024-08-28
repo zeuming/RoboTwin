@@ -1,3 +1,7 @@
+import sys
+sys.path.append('./policy/3D-Diffusion-Policy/3D-Diffusion-Policy')
+sys.path.append('./')
+
 import torch  
 import sapien.core as sapien
 import os
@@ -5,9 +9,6 @@ import numpy as np
 from envs import *
 import hydra
 import pathlib
-
-import sys
-sys.path.append('./policy/3D-Diffusion-Policy/3D-Diffusion-Policy')
 from dp3_policy import *
 import mplib
 
@@ -36,7 +37,7 @@ TASK = None
 @hydra.main(
     version_base=None,
     config_path=str(pathlib.Path(__file__).parent.joinpath(
-        './policy/3D-Diffusion-Policy/3D-Diffusion-Policy/diffusion_policy_3d', 'config'))
+        '../../policy/3D-Diffusion-Policy/3D-Diffusion-Policy/diffusion_policy_3d', 'config'))
 )
 def main(cfg):
     global TASK
