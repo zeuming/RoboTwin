@@ -124,11 +124,12 @@ def create_table(
 ) -> sapien.Entity:
     """Create a table with specified dimensions."""
     builder = scene.create_actor_builder()
+    builder.set_physx_body_type("static")
 
     # Tabletop
     tabletop_pose = sapien.Pose([0.0, 0.0, -thickness / 2])  # Center the tabletop at z=0
     tabletop_half_size = [length / 2, width / 2, thickness / 2]
-    builder.add_box_collision(pose=tabletop_pose, half_size=tabletop_half_size, material=sapien.physx.PhysxMaterial(static_friction = 0.5,dynamic_friction=0.5,restitution=0))
+    builder.add_box_collision(pose=tabletop_pose, half_size=tabletop_half_size, material=scene.default_physical_material)
     builder.add_box_visual(
         pose=tabletop_pose, half_size=tabletop_half_size, material=color
     )
@@ -260,6 +261,45 @@ def create_glb(
     mesh.set_pose(pose)
 
     return mesh, model_data
+
+
+def create_actor(
+    scene: sapien.Scene,
+    pose: sapien.Pose,
+    modelname: str,
+    scale = (1,1,1),
+    convex = False,
+    is_static = False,
+    model_id = None,
+    model_z_val = False
+) -> sapien.Entity:
+    try:
+        return create_glb(
+            scene = scene,
+            pose = pose,
+            modelname = modelname,
+            scale = scale,
+            convex = convex,
+            is_static = is_static,
+            model_id = model_id,
+            model_z_val = model_z_val
+        )
+    except:
+        try:
+            return create_obj(
+                scene = scene,
+                pose = pose,
+                modelname = modelname,
+                scale = scale,
+                convex = convex,
+                is_static = is_static,
+                model_id = model_id,
+                model_z_val = model_z_val
+            )
+        except:
+            print(modelname, 'is not exsist model file!')
+            return None, None
+
 
 
 # create urdf model

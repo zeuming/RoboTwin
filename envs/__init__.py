@@ -23,6 +23,7 @@ from .open_pot_cover import *
 from .bottle_pick import *
 from .pick_cuboid_cylinder import *
 from .pick_apple import *
+from .pick_place_mussy import *
 
 # from importlib import import_module
 # import os

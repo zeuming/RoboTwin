@@ -16,10 +16,13 @@
 ## 0819
 
 - [x] add code comments, and move some func to `gpt-api` model
-- [ ] add `cluttered_tabel` task
-- [ ] change tasks from single_arm to dual_arm, `...`
+- [x] change tasks from single_arm to dual_arm, `...`
 
 ## 0821
 
 - [ ] some tasks about mani-pot (pick, open, ...)
-- [ ] 
+
+## 0828
+
+- [x] `pick_place_mussy` task
+- [ ] `pick_cuboid_cylinder` task

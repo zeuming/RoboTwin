@@ -29,6 +29,28 @@ class Base_task(gym.Env):
     '''基础环境
     用于生成基础场景，以及存放 Aloha 各个 planner
     '''
+
+    DEFAULT_ACTOR_DATA = {
+        "scale": [1,1,1],
+        "target_pose": [
+            [1,0,0,0],
+            [0,1,0,0],
+            [0,0,1,0],
+            [0,0,0,1]
+        ],
+        "contact_pose": [[
+            [1,0,0,0],
+            [0,1,0,0],
+            [0,0,1,0],
+            [0,0,0,1]]
+        ],
+        "trans_matrix": [
+            [1,0,0,0],
+            [0,1,0,0],
+            [0,0,1,0],
+            [0,0,0,1]
+        ]
+    }
     def __init__(self):
         pass
 
@@ -160,7 +182,6 @@ class Base_task(gym.Env):
             height=0.74,
             thickness=0.05,
         )
-        self.table.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 100
 
     # load 传感器
     # def load_sensor(self, **kwargs):
@@ -1363,7 +1384,7 @@ class Base_task(gym.Env):
             continue
         print("\nfail!")
     
-    def get_grasp_pose_w_labeled_direction(self, actor, actor_data, grasp_matrix = np.eye(4), pre_dis = 0, id = 0):
+    def get_grasp_pose_w_labeled_direction(self, actor, actor_data = DEFAULT_ACTOR_DATA, grasp_matrix = np.eye(4), pre_dis = 0, id = 0):
         actor_matrix = actor.get_pose().to_transformation_matrix()
         local_contact_matrix = np.asarray(actor_data['contact_pose'][id])
         trans_matrix = np.asarray(actor_data['trans_matrix'])
@@ -1375,7 +1396,7 @@ class Base_task(gym.Env):
         res_pose = list(global_grasp_pose_p)+list(global_grasp_pose_q)
         return res_pose
 
-    def get_grasp_pose_w_given_direction(self,actor,actor_data,grasp_qpos: list = None, pre_dis = 0, id = 0):
+    def get_grasp_pose_w_given_direction(self,actor,actor_data = DEFAULT_ACTOR_DATA,grasp_qpos: list = None, pre_dis = 0, id = 0):
         actor_matrix = actor.get_pose().to_transformation_matrix()
         local_contact_matrix = np.asarray(actor_data['contact_pose'][id])
         local_contact_matrix[:3,3] *= actor_data['scale']
@@ -1385,7 +1406,7 @@ class Base_task(gym.Env):
         res_pose = list(global_grasp_pose_p) + grasp_qpos
         return res_pose
 
-    def get_target_pose_from_goal_point_and_direction(self, actor, actor_data, endpose, target_pose: list, target_grasp_qpose: list):
+    def get_target_pose_from_goal_point_and_direction(self, actor, actor_data = DEFAULT_ACTOR_DATA, endpose = None, target_pose = None, target_grasp_qpose = None):
         actor_matrix = actor.get_pose().to_transformation_matrix()
         local_target_matrix = np.asarray(actor_data['target_pose'])
         local_target_matrix[:3,3] *= actor_data['scale']
@@ -1395,12 +1416,11 @@ class Base_task(gym.Env):
         res_pose = list(target_pose - t3d.quaternions.quat2mat(target_grasp_qpose) @ res_matrix[:3,3]) + target_grasp_qpose
         return res_pose
     
-    def get_actor_goal_pose(self,actor,actor_data):
+    def get_actor_goal_pose(self,actor,actor_data = DEFAULT_ACTOR_DATA):
         actor_matrix = actor.get_pose().to_transformation_matrix()
         local_target_matrix = np.asarray(actor_data['target_pose'])
         local_target_matrix[:3,3] *= actor_data['scale']
         return (actor_matrix @ local_target_matrix)[:3,3]
-
 
     def play_once(self):
         pass

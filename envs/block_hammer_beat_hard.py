@@ -22,10 +22,7 @@ class block_hammer_beat_hard(Base_task):
         self.hammer, self.hammer_data = create_glb(
             self.scene,
             pose=sapien.Pose([0, -0.06, 0.783],[0, 0, 0.995, 0.105]),
-            # pose=sapien.Pose([0, -0.03, 0.8],[0,0,1,0]),
             modelname="020_hammer_2",
-            # is_static=True
-            # model_z_val=True
         )
         block_pose = rand_pose(
             xlim=[-0.25,0.25],
