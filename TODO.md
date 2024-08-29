@@ -25,4 +25,4 @@
 ## 0828
 
 - [x] `pick_place_mussy` task
-- [ ] `pick_cuboid_cylinder` task
+- [x] `pick_cuboid_cylinder` task

@@ -67,9 +67,6 @@ class move_brush(Base_task):
         self.left_move_to_pose_with_screw(pose0,save_freq=15)
 
         self.close_left_gripper(pos = -0.005,save_freq=15)
-        
-        for i in range(2):
-            self._take_picture()
 
         pose0[2]+=0.09
         self.left_move_to_pose_with_screw(pose0,save_freq=15)

@@ -80,8 +80,6 @@ class pick_cup_with_liquids(Base_task):
         pose2[2]-=0.05
         self.right_move_to_pose_with_screw(pose2,save_freq=20)
         self.open_right_gripper(save_freq=20)
-        for i in range(2):
-            self._take_picture()
         # pose2[2]+=0.09
         # pose2[0]+=0.01
         # pose2[1]-=0.01

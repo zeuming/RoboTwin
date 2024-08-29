@@ -75,20 +75,11 @@ class dual_bottles_pick(Base_task):
         self.together_move_to_pose_with_screw(left_pose0,right_pose0,save_freq=15)
 
         self.together_move_to_pose_with_screw(left_pose1,right_pose1,save_freq=15)
-        for i in range(2):
-            self._take_picture()
         self.together_close_gripper(save_freq=15)
-
-        for i in range(2):
-            self._take_picture()
         left_pose1[2]+=0.08
         right_pose1[2]+=0.08
         self.together_move_to_pose_with_screw(left_pose1,right_pose1,save_freq=15)
-        for i in range(2):
-            self._take_picture()
         self.together_move_to_pose_with_screw(left_target_pose,right_target_pose,save_freq=15)
-        for i in range(2):
-            self._take_picture()
 
     def check_success(self):
         red_target = [-0.046,-0.105]
