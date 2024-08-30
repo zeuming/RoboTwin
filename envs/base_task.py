@@ -82,9 +82,9 @@ class Base_task(gym.Env):
         self.is_save = kwags.get('is_save', False)
         self.pcd_crop_bbox = kwags.get('bbox', [[-0.6, -0.35, 0.7401],[0.6, 0.35, 2]])
         self.dual_arm = kwags.get('dual_arm', True)
+        self.table_static = kwags.get('table_static', True)
         self.file_path = []
         self.plan_success = True
-        self.pose_type = kwags.get('pose_type', "gt")
         self.step_lim = None
         self.fix_gripper = False
         self.setup_scene()
@@ -176,11 +176,12 @@ class Base_task(gym.Env):
         # creat table
         self.table = create_table(
             self.scene,
-            sapien.Pose(p=[0, 0, 0.75]),
+            sapien.Pose(p=[0, 0, 0.74]),
             length=1.2,
             width=0.7,
             height=0.74,
             thickness=0.05,
+            is_static=self.table_static
         )
 
     # load 传感器

@@ -6,7 +6,7 @@ import sapien
 
 class block_sweep(Base_task):
     def setup_demo(self,**kwags):
-        super()._init(**kwags)
+        super()._init(**kwags, table_static = False)
         self.create_table_and_wall()
         self.load_robot()
         self.setup_planner()
@@ -93,7 +93,7 @@ class block_sweep(Base_task):
             color=(1,0,0),
             name="box"
         )
-        self.block.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.001
+        self.block.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.0005
         
     def play_once(self):
         left_pose0 = list(self.block.get_pose().p+[-0.3,-0.1,0])[:2] + [0.955, -0.665,0.092, -0.733, -0.114]
@@ -104,8 +104,6 @@ class block_sweep(Base_task):
         right_pose1[1] -=0.05
         right_pose1[2] -=0.01
         self.right_move_to_pose_with_screw(pose=right_pose1,save_freq=15)
-        for _ in range(2):
-            self._take_picture()
 
     def check_success(self):
         block_pose = self.block.get_pose().p

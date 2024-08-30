@@ -60,17 +60,12 @@ class dual_bottles_pick(Base_task):
         self.render_freq = render_freq
 
     def play_once(self):
-        if self.pose_type == 'gt':
-            left_pose0 = list(self.red_bottle.get_pose().p+[-0.14,-0.18,0])+[-0.906,0,0,-0.424]
-            right_pose0 = list(self.green_bottle.get_pose().p+[0.14,-0.18,0])+[-0.415,0,0,-0.910]
-            left_pose1 = list(self.red_bottle.get_pose().p+[-0.08,-0.11,0])+[-0.906,0,0,-0.424]
-            right_pose1 = list(self.green_bottle.get_pose().p+[0.1,-0.11,0])+[-0.415,0,0,-0.910]
-            left_target_pose = [-0.19,-0.12,0.92,1,0,0,0]
-            right_target_pose = [0.19,-0.12,0.92,-0.01,0.01,0.03,-1]
-        else :
-            print("TODO")
-            pass # TODO
-        # pre_grasp
+        left_pose0 = list(self.red_bottle.get_pose().p+[-0.14,-0.18,0])+[-0.906,0,0,-0.424]
+        right_pose0 = list(self.green_bottle.get_pose().p+[0.14,-0.18,0])+[-0.415,0,0,-0.910]
+        left_pose1 = list(self.red_bottle.get_pose().p+[-0.08,-0.11,0])+[-0.906,0,0,-0.424]
+        right_pose1 = list(self.green_bottle.get_pose().p+[0.1,-0.11,0])+[-0.415,0,0,-0.910]
+        left_target_pose = [-0.19,-0.12,0.92,1,0,0,0]
+        right_target_pose = [0.19,-0.12,0.92,-0.01,0.01,0.03,-1]
         
         self.together_move_to_pose_with_screw(left_pose0,right_pose0,save_freq=15)
 

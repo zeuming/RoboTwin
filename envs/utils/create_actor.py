@@ -121,10 +121,14 @@ def create_table(
     thickness=0.1,
     color=(1, 1, 1),    # 白色
     name="table",
+    is_static = True
 ) -> sapien.Entity:
     """Create a table with specified dimensions."""
     builder = scene.create_actor_builder()
-    builder.set_physx_body_type("static")
+    if is_static:
+        builder.set_physx_body_type("static")
+    else:
+        builder.set_physx_body_type("dynamic")
 
     # Tabletop
     tabletop_pose = sapien.Pose([0.0, 0.0, -thickness / 2])  # Center the tabletop at z=0
@@ -183,6 +187,8 @@ def create_obj(
     builder = scene.create_actor_builder()
     if is_static:
         builder.set_physx_body_type("static")
+    else:
+        builder.set_physx_body_type("dynamic")
 
     if model_z_val:
         pose.set_p(pose.get_p()[:2].tolist() + [0.74 + (t3d.quaternions.quat2mat(pose.get_q()) @ (np.array(model_data["extents"]) * scale))[2]/2])
@@ -238,6 +244,8 @@ def create_glb(
     builder = scene.create_actor_builder()
     if is_static:
         builder.set_physx_body_type("static")
+    else:
+        builder.set_physx_body_type("dynamic")
 
     if model_z_val:
         pose.set_p(pose.get_p()[:2].tolist() + [0.74 + (t3d.quaternions.quat2mat(pose.get_q()) @ (np.array(model_data["extents"]) * scale))[2]/2])

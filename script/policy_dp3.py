@@ -15,11 +15,10 @@ from dp3_policy import *
 import yaml
 import importlib
 
-def class_decorator(class_name):
-    envs_module = importlib.import_module('envs')
-    
+def class_decorator(task_name):
+    envs_module = importlib.import_module(f'envs.{task_name}')
     try:
-        env_class = getattr(envs_module, class_name)
+        env_class = getattr(envs_module, task_name)
         env_instance = env_class()
     except:
         raise SystemExit("No Task")

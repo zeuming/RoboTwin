@@ -41,7 +41,7 @@ from .base_task import Base_task
 from .utils import *
 import sapien
 
-class block_hammer_beat_hard(Base_task):
+class block_hammer_beat(Base_task):
 
     def setup_demo(self,**kwags): # load table and wall, setup robot and robot planner
         super()._init(**kwags)
@@ -103,7 +103,7 @@ from .base_task import Base_task
 from .utils import *
 import sapien
 
-class block_hammer_beat_hard(Base_task):
+class block_hammer_beat(Base_task):
 
     def setup_demo(self,**kwags): # load table and wall, setup robot and robot planner
         super()._init(**kwags)

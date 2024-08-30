@@ -4,7 +4,7 @@ from .utils import *
 import math
 import sapien
 
-class shoes_place_hard(Base_task):
+class shoes_place(Base_task):
     def setup_demo(self,is_test = False, **kwags):
         super()._init(**kwags)
         self.create_table_and_wall()

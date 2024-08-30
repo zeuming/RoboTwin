@@ -102,7 +102,7 @@ class pick_cuboid_cylinder(Base_task):
         )
 
         cnt = 0
-        while np.sum(pow(pose.p - pose1.p,2)) < 0.0144 and cnt < 10:
+        while np.sum(pow(pose.p - pose1.p,2)) < 0.0169 and cnt < 10:
             pose1 = rand_pose(
                 xlim=[-0.25,-0.1],
                 ylim=ylim2[tag],
@@ -154,7 +154,7 @@ class pick_cuboid_cylinder(Base_task):
         )
 
         cnt = 0
-        while np.sum(pow(pose.p - pose1.p,2)) < 0.0144 and cnt < 10:
+        while np.sum(pow(pose.p - pose1.p,2)) < 0.0169 and cnt < 10:
             pose1 = rand_pose(
                 xlim=[0.1,0.25],
                 ylim=ylim2[tag],

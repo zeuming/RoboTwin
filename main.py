@@ -1,14 +1,14 @@
 import sapien.core as sapien
-from envs import *
+from collections import OrderedDict
 import pdb
+from envs import *
 import yaml
 import importlib
 
-def class_decorator(class_name):
-    envs_module = importlib.import_module('envs')
-    
+def class_decorator(task_name):
+    envs_module = importlib.import_module(f'envs.{task_name}')
     try:
-        env_class = getattr(envs_module, class_name)
+        env_class = getattr(envs_module, task_name)
         env_instance = env_class()
     except:
         raise SystemExit("No Task")
@@ -19,7 +19,41 @@ def main():
     
     # task 为任务类
     task = class_decorator(task_name)
-    with open(f'./config/{task_name}.yml', 'r', encoding='utf-8') as f:
+    task_config_path = f'./config/{task_name}.yml'
+    if not os.path.isfile(task_config_path):
+        data = {
+            'task_name': task_name,
+            'render_freq': 0,
+            'use_seed': False,
+            'collect_data': True,
+            'save_path': './data',
+            'dual_arm': True,
+            'st_episode': 0 ,
+            'camera_w': 336,
+            'camera_h': 224,
+            'pcd_crop': True ,
+            'pcd_down_sample_num': 1024,
+            'pose_type': "gt",
+            'episode_num': 50,
+            'save_type':{
+                'raw_data': False,
+                'pkl': True
+            },
+            'data_type':{
+                'rgb': True,
+                'observer': False,
+                'depth': False,
+                'pointcloud': False,
+                'conbine': False,
+                'endpose': True,
+                'qpos': True,
+                'mesh_segmentation': False,
+                'actor_segmentation': False,
+            }
+        }
+        with open(task_config_path, 'w') as f:
+            yaml.dump(data,f,default_flow_style = False,sort_keys=False)
+    with open(task_config_path, 'r', encoding='utf-8') as f:
         args = yaml.load(f.read(), Loader=yaml.FullLoader)
 
     # 执行任务，采集数据
@@ -100,23 +134,6 @@ def run(Demo_class, args):
 
             Demo_class.close()
             print('\nsuccess!')
-
-    # 转化为mp4视频文件
-    # for id in range(args['st_episode'], args['episode_num']):
-    #     dir = f"{Demo_class.save_dir}episode{id}/camera/color/front"
-    #     script.create_video(dir, f"{args['task_name']}_top.mp4", f"./task_video/{args['task_name']}/episode{id}/")
-    #     dir = f"{Demo_class.save_dir}episode{id}/camera/color/observer"
-    #     script.create_video(dir, f"{args['task_name']}_expert.mp4", f"./task_video/{args['task_name']}/episode{id}/")
-    #     dir = f"{Demo_class.save_dir}episode{id}/camera/segmentation/front/actor"
-    #     script.create_video(dir, f"{args['task_name']}_top_seg.mp4", f"./task_video/{args['task_name']}/episode{id}/")
-
-        # dir = f"{Demo_class.save_dir}episode{id}/camera/color/left"
-        # script.create_video(dir, f"{args['task_name']}_left.mp4", f"./task_video/{args['task_name']}/episode{id}/")
-        # dir = f"{Demo_class.save_dir}episode{id}/camera/color/right"
-        # script.create_video(dir, f"{args['task_name']}_right.mp4", f"./task_video/{args['task_name']}/episode{id}/")
-        # dir = f"{Demo_class.save_dir}ep{id}/front/color"
-        # script.create_video(dir, f"{args['task_name']}_front.mp4", f"./task_video/{args['task_name']}/")
-
 if __name__ == "__main__":
     main()
 

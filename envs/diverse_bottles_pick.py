@@ -68,19 +68,6 @@ class diverse_bottles_pick(Base_task):
         self.render_freq = render_freq
 
     def play_once(self,save_freq=None):
-
-        # if self.pose_type == 'gt':
-        #     left_pose0 = list(self.bottle1.get_pose().p+[-0.14,-0.18,0])+[-0.906,0,0,-0.424]
-        #     right_pose0 = list(self.bottle2.get_pose().p+[0.14,-0.18,0])+[-0.415,0,0,-0.910]
-        #     left_pose1 = list(self.bottle1.get_pose().p+[-0.08,-0.11,0])+[-0.906,0,0,-0.424]
-        #     right_pose1 = list(self.bottle2.get_pose().p+[0.1,-0.11,0])+[-0.415,0,0,-0.910]
-        #     left_target_pose = [-0.19,-0.12,0.92,1,0,0,0]
-        #     right_target_pose = [0.19,-0.12,0.92,-0.01,0.01,0.03,-1]
-        # else :
-        #     print("TODO")
-        #     pass # TODO
-        # pre_grasp
-        
         left_pose0 = self.get_grasp_pose_w_given_direction(self.bottle1, self.bottle1_data,grasp_qpos=[-0.906,0,0,-0.424], pre_dis=0.1)
         right_pose0 = self.get_grasp_pose_w_given_direction(self.bottle2, self.bottle2_data,grasp_qpos=[-0.415,0,0,-0.910], pre_dis=0.11)
         left_pose1 = self.get_grasp_pose_w_given_direction(self.bottle1, self.bottle1_data,grasp_qpos=[-0.906,0,0,-0.424], pre_dis=0)

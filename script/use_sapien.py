@@ -161,6 +161,62 @@ def create_obj(
     
     return mesh, model_data
 
+# create glb model
+def create_glb(
+    scene: sapien.Scene,
+    pose: sapien.Pose,
+    modelname: str,
+    scale = (1,1,1),
+    convex = False,
+    is_static = False,
+    model_id = None,
+    model_z_val = False
+) -> sapien.Entity:
+    modeldir = "./models/"+modelname+"/"
+    if model_id is None:
+        file_name = modeldir + "base.glb"
+        json_file_path = modeldir + 'model_data.json'
+    else:
+        file_name = modeldir + f"base{model_id}.glb"
+        json_file_path = modeldir + f'model_data{model_id}.json'
+    
+    # 读取并解析JSON文件
+    try:
+        with open(json_file_path, 'r') as file:
+            model_data = json.load(file)
+        scale = model_data["scale"]
+    except:
+        model_data = None
+    
+    builder = scene.create_actor_builder()
+    if is_static:
+        builder.set_physx_body_type("static")
+    else:
+        builder.set_physx_body_type("dynamic")
+
+    if model_z_val:
+        pose.set_p(pose.get_p()[:2].tolist() + [0.74 + (t3d.quaternions.quat2mat(pose.get_q()) @ (np.array(model_data["extents"]) * scale))[2]/2])
+
+    # 创建凸包或非凸包碰撞对象
+    if convex==True:
+        builder.add_multiple_convex_collisions_from_file(
+            filename = file_name,
+            scale= scale
+        )
+    else:
+        builder.add_nonconvex_collision_from_file(
+            filename = file_name,
+            scale = scale,
+        )
+    
+    builder.add_visual_from_file(
+        filename=file_name,
+        scale= scale)
+    mesh = builder.build(name=modelname)
+    mesh.set_pose(pose)
+
+    return mesh, model_data
+
 def main():
     engine = sapien.Engine()
     renderer = sapien.SapienRenderer()
@@ -196,8 +252,13 @@ def main():
         is_static=True,
         convex=True
     )
+    brush,_ = create_glb(
+        scene,
+        pose=sapien.Pose([-0.1,-0.05,0.755],[-0.588,0.391,0.476,0.413]),
+        modelname="024_brush",
+        scale=(0.167,0.167,0.167),
+    )
     
-    print(t3d.quaternions.quat2mat([-0.22, -0.22, 0.67, 0.67]))
     loader = scene.create_urdf_loader()
     loader.fix_root_link = True
     robot = loader.load("./aloha_maniskill_sim/urdf/arx5_description_isaac.urdf")

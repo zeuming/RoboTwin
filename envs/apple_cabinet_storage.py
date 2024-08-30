@@ -5,7 +5,7 @@ import sapien
 
 class apple_cabinet_storage(Base_task):
     def setup_demo(self,**kwags):
-        super()._init(**kwags)
+        super()._init(**kwags,table_static=False)
         self.create_table_and_wall()
         self.load_robot()
         self.setup_planner()
@@ -81,8 +81,6 @@ class apple_cabinet_storage(Base_task):
         pose0[1]+=0.195
 
         self.together_move_to_pose_with_screw(left_target_pose=pose0,right_target_pose=self.right_original_pose,save_freq=15)
-        for _ in range(2):
-            self._take_picture()
         
     def check_success(self):
         cabinet_pos = self.cabinet.get_pose().p

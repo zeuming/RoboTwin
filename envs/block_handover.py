@@ -95,7 +95,7 @@ class block_handover(Base_task):
         target_pose = self.target.get_pose().p
         if box_pos[2] < 0.78:
             self.actor_pose = False
-        eps = 0.0201
+        eps = 0.02
         right_endpose = self.get_right_endpose_pose()
         endpose_target_pose = [0.241,-0.129,0.889,0,-0.7,-0.71,0]
         return abs(box_pos[0] - target_pose[0]) < eps and abs(box_pos[1] - target_pose[1]) < eps and abs(box_pos[2] - 0.85) < 0.0015 and\
