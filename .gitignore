@@ -4,6 +4,7 @@ models/
 hammer_beat_pkl/
 data/
 __pycache__/
+config/
 tmp_/
 policy/3D-Diffusion-Policy/3D-Diffusion-Policy/data/
 policy/3D-Diffusion-Policy/3D-Diffusion-Policy/checkpoints/

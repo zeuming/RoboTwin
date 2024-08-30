@@ -1,3 +1,6 @@
+# 
+echo "shoe_place" | python main.py
+
 echo "apple_cabinet_storage" | python main.py
 echo "block_hammer_beat" | python main.py
 echo "block_handover" | python main.py
