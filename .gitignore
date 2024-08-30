@@ -8,7 +8,7 @@ tmp_/
 policy/3D-Diffusion-Policy/3D-Diffusion-Policy/data/
 policy/3D-Diffusion-Policy/3D-Diffusion-Policy/checkpoints/
 result/
-assert.zip
+asset.zip
 aloha_maniskill_sim_modify/
 aloha_maniskill_sim_bac/
 task_video_benchmark/
