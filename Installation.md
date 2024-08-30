@@ -35,11 +35,11 @@ sudo apt install libvulkan1 mesa-vulkan-drivers vulkan-utility
 1. Assert download
 ```
 gdown 'https://drive.google.com/uc?id=16rej25MdbWIqo1UC9Ph4xQ4irLXutdYb'
-# wget https://robotwin-1312128486.cos.ap-guangzhou.myqcloud.com/assert.zip
 unzip assert.zip
 ```
 
-2. remove 
+2. REMOVE !!!!!!!!!
+You can use `pip show mplib` to find where the `mplib` installed.
 ```
 # mplib.planner (mplib/planner.py) line 72
 # remove `convex=True`
