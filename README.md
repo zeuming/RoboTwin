@@ -20,7 +20,7 @@ main.py调用每个任务的类并完成数据采集
 部署实现不重要，先跳过。
 
 # 跑任务
-跑任务可以用`echo "block_hammer_beat" | python main.py`之类的
+跑任务可以用`bash run_task.sh mug_hanging 0`之类的
 
 数据采集的配置在`config`文件夹下，对应每一个任务，以下为重要参数的解释：
 1. render_freq，为0就是不渲染，如果想看的话，可以设置为10

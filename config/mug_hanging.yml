@@ -1,24 +1,24 @@
 task_name: mug_hanging
 render_freq: 0
-use_seed: false
+use_seed: true
 collect_data: true
 save_path: ./data
 dual_arm: true
 st_episode: 0
-camera_w: 336
-camera_h: 224
+camera_w: 640
+camera_h: 480
 pcd_crop: true
 pcd_down_sample_num: 1024
 pose_type: gt
-episode_num: 50
+episode_num: 100
 save_type:
   raw_data: false
   pkl: true
 data_type:
-  rgb: true
+  rgb: false
   observer: false
   depth: false
-  pointcloud: false
+  pointcloud: true
   conbine: false
   endpose: true
   qpos: true

@@ -1,4 +1,4 @@
-task_name: shoes_place
+task_name: dual_bottles_pick_hard
 render_freq: 0
 use_seed: true
 collect_data: true
