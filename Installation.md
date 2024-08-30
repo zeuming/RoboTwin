@@ -51,7 +51,6 @@ self.robot = ArticulatedModel(
             user_link_names,
             user_joint_names,
             convex=True,
-            convex=False,
             verbose=False,
         )
 => 
@@ -62,9 +61,18 @@ self.robot = ArticulatedModel(
             user_link_names,
             user_joint_names,
             # convex=True,
-            convex=False,
             verbose=False,
         )
+```
+
+# mplib.planner (mplib/planner.py) line 848
+# remove `or collide`
+```
+if np.linalg.norm(delta_twist) < 1e-4 or collide or not within_joint_limit:
+                return {"status": "screw plan failed"}
+=>
+if np.linalg.norm(delta_twist) < 1e-4 or not within_joint_limit:
+                return {"status": "screw plan failed"}
 ```
 
 3. Basic env
