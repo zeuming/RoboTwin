@@ -121,8 +121,6 @@ class TrainDP3Workspace:
         val_dataloader = DataLoader(val_dataset, **cfg.val_dataloader)
 
         self.model.set_normalizer(normalizer)
-        import pdb
-        pdb.set_trace()
         if cfg.training.use_ema:
             self.ema_model.set_normalizer(normalizer)
 
@@ -339,7 +337,7 @@ class TrainDP3Workspace:
             exclude_keys = tuple(self.exclude_keys)
         if include_keys is None:
             include_keys = tuple(self.include_keys) + ('_output_dir',)
-
+            
         path.parent.mkdir(parents=False, exist_ok=True)
         payload = {
             'cfg': self.cfg,

@@ -40,7 +40,7 @@ def main():
                 data = pickle.load(file)
             
 
-            pcd = data['pointcloud'][:,:3]
+            pcd = data['pointcloud'][:,:]
             action = data['endpose']
             
 

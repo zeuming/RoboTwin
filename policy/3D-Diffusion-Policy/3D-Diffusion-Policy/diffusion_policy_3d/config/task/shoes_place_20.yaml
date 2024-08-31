@@ -1,10 +1,10 @@
-name: shoes_place_hard_50
+name: shoes_place_20
 
 shape_meta: &shape_meta
   # acceptable types: rgb, low_dim
   obs:
     point_cloud:
-      shape: [1024, 3]
+      shape: [1024, 6]
       type: point_cloud
     agent_pos:
       shape: [14]
@@ -21,7 +21,7 @@ env_runner:
 
 dataset:
   _target_: diffusion_policy_3d.dataset.robot_dataset.RobotDataset
-  zarr_path: data/shoes_place_hard_50.zarr
+  zarr_path: data/shoes_place_20.zarr
   horizon: ${horizon}
   pad_before: ${eval:'${n_obs_steps}-1'}
   pad_after: ${eval:'${n_action_steps}-1'}
