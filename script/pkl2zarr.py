@@ -3,8 +3,6 @@ import numpy as np
 import open3d as o3d
 from copy import deepcopy
 import zarr, shutil
-import transforms3d as t3d
-
 
 def main():
     visualize_pcd = False

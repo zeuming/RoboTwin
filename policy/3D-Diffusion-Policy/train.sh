@@ -1,1 +1,1 @@
-bash scripts/train_policy.sh robot_dp3 shoes_place_10 shoes_place_10 0 3
+bash scripts/train_policy.sh robot_dp3 mug_hanging_20 mug_hanging_20 0 1
