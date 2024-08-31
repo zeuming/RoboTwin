@@ -54,7 +54,7 @@ def main(cfg):
     task = class_decorator(args['task_name'])
 
     if checkpoint_num == -1:
-        st_seed = 100
+        st_seed = 100000
         suc_nums = []
         test_num = 20
         topk = 3
@@ -66,9 +66,9 @@ def main(cfg):
             st_seed, suc_num = test_policy(task, args, dp3, st_seed, test_num=test_num)
             suc_nums.append(suc_num)
     else:
-        st_seed = 100
+        st_seed = 100000
         suc_nums = []
-        test_num = 50
+        test_num = 100
         topk = 1
         dp3 = DP3(cfg, checkpoint_num)
         st_seed, suc_num = test_policy(task, args, dp3, st_seed, test_num=test_num)
