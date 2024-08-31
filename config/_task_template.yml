@@ -5,8 +5,8 @@ collect_data: True  # collect data
 save_path: './data'
 dual_arm: True
 st_episode: 0    # begin_episode 
-camera_w: 640       #
-camera_h: 480       # camera args
+camera_w: 320       #
+camera_h: 240       # camera args
 pcd_crop: True      #...  
 pcd_down_sample_num: 1024    # pcd down sample num
 episode_num: 100    # episode num
