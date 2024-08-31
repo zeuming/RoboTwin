@@ -9,7 +9,7 @@ class apple_cabinet_storage(Base_task):
         self.create_table_and_wall()
         self.load_robot()
         self.setup_planner()
-        self.load_camera(kwags.get('camera_w', 336),kwags.get('camera_h',224))
+        self.load_camera(kwags.get('camera_w', 640),kwags.get('camera_h', 480))
         self.pre_move()
         self.load_actors()
         self.step_lim = 600
