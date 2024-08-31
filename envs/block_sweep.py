@@ -20,8 +20,8 @@ class block_sweep(Base_task):
         render_freq = self.render_freq
         self.render_freq=0
 
-        self.together_open_gripper()
-        self.together_close_gripper(left_pos=-0.01,right_pos=-0.01)
+        self.together_open_gripper(save_freq=None)
+        self.together_close_gripper(left_pos=-0.01, right_pos=-0.01, save_freq=None)
         
         self.brush,_ = create_glb(
             self.scene,
@@ -38,15 +38,15 @@ class block_sweep(Base_task):
         
         self.brush.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.001
         self.dustpan.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.001
-        self.close_left_gripper()
-        self.open_left_gripper()
+        self.close_left_gripper(save_freq=None)
+        self.open_left_gripper(save_freq=None)
         pose0 = list(self.brush.get_pose().p+[0.005,-0.01,0.18])+[-0.601,0.267,-0.708,-0.257]
         self.left_move_to_pose_with_screw(pose0,save_freq=None)
 
         pose0[2]-=0.04
         self.left_move_to_pose_with_screw(pose0,save_freq=None)
         
-        self.close_left_gripper( save_freq=None)
+        self.close_left_gripper(save_freq=None)
         
         pose0[2]+=0.09
         self.left_move_to_pose_with_screw(pose0,save_freq=None)
@@ -63,12 +63,12 @@ class block_sweep(Base_task):
         self.close_right_gripper(pos=-0.002,save_freq=None)
         self.open_left_gripper(pos=0.02,save_freq=None)
         self.left_move_to_pose_with_screw(pose=self.left_original_pose,save_freq=None)
-        self.open_left_gripper()
+        self.open_left_gripper(save_freq=None)
 
 
         pose3 = [-0.29, 0.04, 0.94, -0.752,0.087, -0.642, -0.126]
         self.left_move_to_pose_with_screw(pose=pose3,save_freq=None)
-        self.close_left_gripper(pos=0.008)
+        self.close_left_gripper(pos=0.008, save_freq=None)
         pose3[2] +=0.1
         self.left_move_to_pose_with_screw(pose=pose3,save_freq=None)
 

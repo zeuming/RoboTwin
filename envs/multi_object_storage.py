@@ -20,7 +20,7 @@ class multi_object_storage(Base_task):
         render_freq = self.render_freq
         self.render_freq=0
 
-        self.together_open_gripper()
+        self.together_open_gripper(save_freq=None)
 
         self.render_freq = render_freq
     

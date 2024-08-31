@@ -23,7 +23,7 @@ class mug_hanging(Base_task):
     def pre_move(self):
         render_freq = self.render_freq
         self.render_freq=0
-        self.together_open_gripper()
+        self.together_open_gripper(save_freq=None)
         self.render_freq = render_freq
 
     def load_actors(self):
