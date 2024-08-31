@@ -1202,10 +1202,9 @@ class Base_task(gym.Env):
             conbine_pcd = np.vstack((top_pcd , left_pcd , right_pcd, front_pcd))
         else:
             conbine_pcd = top_pcd
-        pcd_array,index = fps(conbine_pcd[:,:3],self.pcd_down_sample_num)
+        pcd_array, index = fps(conbine_pcd[:,:3],self.pcd_down_sample_num)
 
-        # pdb.set_trace()
-        obs["pcd"] = pcd_array
+        obs["pcd"]= conbine_pcd[index.detach().cpu().numpy()[0]]
         obs["left_endpose"] = left_endpose_array
         obs["right_endpose"] = right_endpose_array
         obs["left_joint_action"] = left_jointState_array
