@@ -128,10 +128,15 @@ def test_policy(Demo_class, args, dp3, st_seed, test_num=20):
         args['render_freq'] = 0
         
         if expert_check:
-            Demo_class.setup_demo(now_ep_num=now_id, seed = now_seed, ** args)
-            Demo_class.play_once()
-            Demo_class.close()
-            
+            try:
+                Demo_class.setup_demo(now_ep_num=now_id, seed = now_seed, ** args)
+                Demo_class.play_once()
+                Demo_class.close()
+            except:
+                Demo_class.close()
+                now_seed += 1
+                continue
+
         if (not expert_check) or ( Demo_class.plan_success and Demo_class.check_success() ):
             # print(f"test seed = {now_seed} can work!")
             succ_seed +=1

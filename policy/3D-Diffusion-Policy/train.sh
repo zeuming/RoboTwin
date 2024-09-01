@@ -1,1 +1,1 @@
-bash scripts/train_policy.sh robot_dp3 mug_hanging_50 mug_hanging_50 0 3
+bash scripts/train_policy.sh robot_dp3 block_handover_20 block_handover_20 0 0

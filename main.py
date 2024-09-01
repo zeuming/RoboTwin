@@ -76,23 +76,33 @@ def run(Demo_class, args):
     if not args['use_seed']:
         # 模拟任务，不同 seed 生成的物体位置不同，将成功的 seed 存入 seed_list[] 中用于后续采集
         while suc_num < args['episode_num']:
-            Demo_class.setup_demo(now_ep_num=suc_num, seed = epid, **args)
-            Demo_class.play_once()
+            try:
+                Demo_class.setup_demo(now_ep_num=suc_num, seed = epid, **args)
+                Demo_class.play_once()
 
-            # 任务成功/失败 判定
-            if Demo_class.plan_success and Demo_class.check_success():
-                print(f"simulate data episode {suc_num} success! (seed = {epid})")
-                seed_list.append(epid)
-                suc_num+=1
-            else:
+                # 任务成功/失败 判定
+                if Demo_class.plan_success and Demo_class.check_success():
+                    print(f"simulate data episode {suc_num} success! (seed = {epid})")
+                    seed_list.append(epid)
+                    suc_num+=1
+                else:
+                    print(f"simulate data episode {suc_num} fail! (seed = {epid})   ")
+                    fail_num +=1
+                
+                # 关闭当前任务和渲染
+                Demo_class.close()
+                if (args['render_freq']):
+                    Demo_class.viewer.close()
+                epid +=1
+            except:
                 print(f"simulate data episode {suc_num} fail! (seed = {epid})   ")
                 fail_num +=1
-            
-            # 关闭当前任务和渲染
-            Demo_class.close()
-            if (args['render_freq']):
-                Demo_class.viewer.close()
-            epid +=1
+                # 关闭当前任务和渲染
+                Demo_class.close()
+                if (args['render_freq']):
+                    Demo_class.viewer.close()
+                epid +=1
+
         
         with open('./config/seeds/'+args['task_name']+'.txt', 'w') as file:
             # 写入每一行
