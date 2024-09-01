@@ -15,6 +15,7 @@ class multi_object_storage(Base_task):
         self.load_camera(kwags.get('camera_w', 640),kwags.get('camera_h', 480))
         self.pre_move()
         self.load_actors()
+        self.step_lim = 650
     
     def pre_move(self):
         render_freq = self.render_freq

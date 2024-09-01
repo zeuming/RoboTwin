@@ -14,7 +14,7 @@ class pick_cuboid_cylinder(Base_task):
         self.load_camera(kwags.get('camera_w', 640),kwags.get('camera_h', 480))
         self.pre_move()
         self.load_actors()
-        self.step_lim = 280
+        self.step_lim = 750
     
     def pre_move(self):
         render_freq = self.render_freq
