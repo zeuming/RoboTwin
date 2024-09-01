@@ -24,5 +24,5 @@
 
 ## 0828
 
-- [x] `pick_place_mussy` task
+- [x] `pick_apple_messy` task
 - [x] `pick_cuboid_cylinder` task

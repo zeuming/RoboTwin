@@ -1,1 +1,1 @@
-bash scripts/train_policy.sh robot_dp3 pick_cuboid_cylinder_50 pick_cuboid_cylinder_50 0 1
+bash scripts/train_policy.sh robot_dp3 block_sweep_50 block_sweep_50 0 1

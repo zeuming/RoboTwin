@@ -2,7 +2,7 @@ echo "shoes_place" | python main.py
 echo "dual_bottles_pick_hard" | python main.py
 echo "mug_hanging" | python main.py
 
-echo "pick_place_mussy" | python main.py
+echo "pick_apple_messy" | python main.py
 
 echo "apple_cabinet_storage" | python main.py
 echo "block_hammer_beat" | python main.py

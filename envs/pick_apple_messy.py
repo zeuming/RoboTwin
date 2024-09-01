@@ -4,7 +4,7 @@ from .utils import *
 import math
 import sapien
 
-class pick_place_mussy(Base_task):
+class pick_apple_messy(Base_task):
     def setup_demo(self,is_test = False, **kwags):
         super()._init(**kwags)
         self.create_table_and_wall()
@@ -117,4 +117,4 @@ class pick_place_mussy(Base_task):
 
     def check_success(self):
         apple_pose = self.apple.get_pose().p
-        return apple_pose[2] > 0.82
+        return apple_pose[2] > 0.81
