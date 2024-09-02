@@ -34,16 +34,16 @@ def main():
             'pcd_crop': True ,
             'pcd_down_sample_num': 1024,
             'pose_type': "gt",
-            'episode_num': 100,
+            'episode_num': 20,
             'save_type':{
-                'raw_data': False,
-                'pkl': True
+                'raw_data': True,
+                'pkl': False
             },
             'data_type':{
                 'rgb': False,
                 'observer': False,
                 'depth': False,
-                'pointcloud': True,
+                'pointcloud': False,
                 'conbine': False,
                 'endpose': True,
                 'qpos': True,

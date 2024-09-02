@@ -1,5 +1,5 @@
-task_name: block_sweep
-render_freq: 10
+task_name: dual_bottles_pick_hard
+render_freq: 0
 use_seed: false
 collect_data: true
 save_path: ./data
@@ -10,17 +10,17 @@ camera_h: 240
 pcd_crop: true
 pcd_down_sample_num: 1024
 pose_type: gt
-episode_num: 3
+episode_num: 20
 save_type:
-  raw_data: True
+  raw_data: true
   pkl: false
 data_type:
   rgb: false
   observer: false
   depth: false
-  pointcloud: False
+  pointcloud: false
   conbine: false
-  endpose: false
+  endpose: true
   qpos: true
   mesh_segmentation: false
   actor_segmentation: false

@@ -57,8 +57,8 @@ class block_handover(Base_task):
         left_pose0 = list(self.box.get_pose().p+[-0.14,-0.18,0.07])+[-0.906,0,0,-0.424]
         left_pose1 = list(self.box.get_pose().p+[-0.08,-0.11,0.07])+[-0.906,0,0,-0.424]
         left_target_pose = [-0.19,-0.12,0.96,1,0,0,0]
-        right_pick_pre_pose = [0.191,-0.11,0.87,0,0,0,1]
-        right_pick_pose = [0.09,-0.11,0.85,0,0,0,1]
+        right_pick_pre_pose = [0.191,-0.12,0.87,0,0,0,1]
+        right_pick_pose = [0.09,-0.12,0.85,0,0,0,1]
         self.left_move_to_pose_with_screw(left_pose0, save_freq=15)
         self.left_move_to_pose_with_screw(left_pose1, save_freq=15)
         self.close_left_gripper(save_freq=15)
@@ -79,7 +79,7 @@ class block_handover(Base_task):
         right_target_pose = list(self.target.get_pose().p + [0.02,-0.13,0.11]) + [0.707,0,0,0.707]
 
         self.right_move_to_pose_with_screw(right_target_pose, save_freq=15)
-        right_target_pose[2] -= 0.06
+        right_target_pose[2] -= 0.04
         self.right_move_to_pose_with_screw(right_target_pose, save_freq=15)
 
         self.open_right_gripper(save_freq=15)

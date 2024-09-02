@@ -24,6 +24,20 @@ from collections import deque
 import cv2
 import torch
 
+import rospy
+from sensor_msgs.msg import JointState
+from sensor_msgs.msg import PointCloud2
+import sensor_msgs.point_cloud2 as pc2
+import struct
+import ctypes
+
+import ros
+
+import std_msgs.msg 
+
+
+from scipy.interpolate import PchipInterpolator
+
 # 基本环境类
 class Base_task(gym.Env):
     '''基础环境
@@ -95,6 +109,10 @@ class Base_task(gym.Env):
         self.raw_top_pcl = None
         self.real_top_pcl = None
         self.real_top_pcl_color = None
+        global left_pub_data
+        left_pub_data = [0,0,0,0,0,0,0]
+        global right_pub_data
+        right_pub_data = [0,0,0,0,0,0,0]
 
     def setup_scene(self,**kwargs):
         '''设置场景
@@ -1552,30 +1570,45 @@ class Base_task(gym.Env):
             self.viewer.render()
         
         self.actor_pose = True
-
-        # Shijia Peng
+        ############################
         self.ros_init()
-        
+        while self.raw_top_pcl == None or self.right_js == None or self.left_js == None:
+            # print("no data")
+            if self.raw_top_pcl == None:
+                print("raw_top_pcl = None")
+            if self.right_js == None:
+                print("right_js = None")
+            if self.left_js == None:
+                print("left_js = None")
+
+        # while True:
+        #     self.real_robot_get_obs()
+            # print(11)
+        ############################
         while cnt < self.step_lim:
+            # observation = self.get_obs()  
+            ############################
             observation = self.real_robot_get_obs()
-            ######## ShijiaPeng add
+            ############################
             obs = dict()
-            obs['point_cloud'] = observation['pcd']
+            # pdb.set_trace()
+            obs['point_cloud'] = observation['pcd'][:,:3]
             if self.dual_arm:
                 obs['agent_pos'] = np.concatenate((observation['left_joint_action'], observation['right_joint_action']))
-                obs['real_joint_action'] = np.concatenate((observation['left_real_joint_action'], observation['left_real_joint_action']))
+                # obs['real_joint_action'] = np.concatenate((observation['left_real_joint_action'], observation['left_real_joint_action']))
                 assert obs['agent_pos'].shape[0] == 14, 'agent_pose shape, error'
             else:
                 obs['agent_pos'] = np.array(observation['right_joint_action'])
-                obs['real_joint_action'] = np.array(observation['left_real_joint_action'])
+                # obs['real_joint_action'] = np.array(observation['left_real_joint_action'])
                 assert obs['agent_pos'].shape[0] == 7, 'agent_pose shape, error'
-            
+            # pdb.set_trace()
             actions = model.get_action(obs)
+            # pdb.set_trace()
             left_arm_actions , left_gripper , left_current_qpos, left_path = [], [], [], []
             right_arm_actions , right_gripper , right_current_qpos, right_path = [], [], [], []
             if self.dual_arm:
-                left_arm_actions, left_gripper = actions[:, :6],actions[:, 6]
-                right_arm_actions, right_gripper = actions[:, 7:13],actions[:, 13]
+                left_arm_actions,left_gripper = actions[:, :6],actions[:, 6]
+                right_arm_actions,right_gripper = actions[:, 7:13],actions[:, 13]
                 left_current_qpos, right_current_qpos = obs['agent_pos'][:6], obs['agent_pos'][7:13]
             else:
                 right_arm_actions,right_gripper = actions[:, :6],actions[:, 6]
@@ -1615,7 +1648,7 @@ class Base_task(gym.Env):
                 topp_right_flag = False
                 right_n_step = 1
             
-            cnt += actions.shape[0]
+            cnt += (actions.shape[0]-4)
             
             n_step = max(left_n_step, right_n_step)
 
@@ -1626,7 +1659,10 @@ class Base_task(gym.Env):
             i = 0
             
             while now_left_id < left_n_step or now_right_id < right_n_step:
-
+                qf = self.robot.compute_passive_force(
+                    gravity=True, coriolis_and_centrifugal=True
+                )
+                self.robot.set_qf(qf)
                 if topp_left_flag and now_left_id < left_n_step and now_left_id / left_n_step <= now_right_id / right_n_step:
                     for j in range(len(self.left_arm_joint_id)):
                         left_j = self.left_arm_joint_id[j]
@@ -1634,9 +1670,22 @@ class Base_task(gym.Env):
                         self.active_joints[left_j].set_drive_velocity_target(left_result["velocity"][now_left_id][j])
                     if not self.fix_gripper:
                         for joint in self.active_joints[34:36]:
+                            # joint.set_drive_target(left_result["position"][i][6])
                             joint.set_drive_target(left_gripper[now_left_id])
                             joint.set_drive_velocity_target(0.05)
                             self.left_gripper_val = left_gripper[now_left_id]
+                    
+                    # print(self.red)
+                    # ShijiaPeng
+                    self.left_joint_state = JointState()
+                    self.left_joint_state.header.stamp = rospy.Time.now()  # 设置时间戳
+                    global left_pub_data
+                    left_pub_data[0:6]=left_result["position"][now_left_id]
+                    left_pub_data[6] = left_gripper[now_left_id] *100+ 1
+                    self.left_joint_state.position = left_pub_data       # 设置位置数据
+                    # pdb.set_trace()
+                    self.left_pub.publish(self.left_joint_state)
+                    # ShijiaPeng
 
                     now_left_id +=1
                     
@@ -1647,29 +1696,81 @@ class Base_task(gym.Env):
                         self.active_joints[right_j].set_drive_velocity_target(right_result["velocity"][now_right_id][j])
                     if not self.fix_gripper:
                         for joint in self.active_joints[36:38]:
+                            # joint.set_drive_target(right_result["position"][i][6])
                             joint.set_drive_target(right_gripper[now_right_id])
                             joint.set_drive_velocity_target(0.05)
                             self.right_gripper_val = right_gripper[now_right_id]
 
+                    # ShijiaPeng
+                    self.right_joint_state = JointState()
+                    self.right_joint_state.header.stamp = rospy.Time.now()  # 设置时间戳
+                    global right_pub_data
+                    right_pub_data[0:6]=right_result["position"][now_right_id]
+                    right_pub_data[6] = right_gripper[now_right_id] *100+ 1
+                    self.right_joint_state.position = right_pub_data       # 设置位置数据
+                    # pdb.set_trace()
+                    self.right_pub.publish(self.right_joint_state)
+                    # ShijiaPeng
+
                     now_right_id +=1
+                
+                self.scene.step()
+                self._update_render()
 
                 if i != 0 and i % obs_update_freq == 0:
-                    
                     observation = self.real_robot_get_obs()
                     obs=dict()
-                    obs['point_cloud'] = observation['pcd']
+                    obs['point_cloud'] = observation['pcd'][:,:3]
                     if self.dual_arm:
                         obs['agent_pos'] = np.concatenate((observation['left_joint_action'], observation['right_joint_action']))
-                        obs['real_joint_action'] = np.concatenate((observation['left_real_joint_action'], observation['left_real_joint_action']))
+                        # obs['real_joint_action'] = np.concatenate((observation['left_real_joint_action'], observation['left_real_joint_action']))
                         assert obs['agent_pos'].shape[0] == 14, 'agent_pose shape, error'
                     else:
                         obs['agent_pos'] = np.array(observation['right_joint_action'])
-                        obs['real_joint_action'] = np.array(observation['left_real_joint_action'])
+                        # obs['real_joint_action'] = np.is_staticarray(observation['left_real_joint_action'])
                         assert obs['agent_pos'].shape[0] == 7, 'agent_pose shape, error'
                     
                     model.update_obs(obs)
+                    self._take_picture()
 
+
+                print("left   :",self.left_gripper_val)
+                print("right  :",self.right_gripper_val,"\n")
+                if i % 5==0:
+                    self._update_render()
+                    if self.render_freq and i % self.render_freq == 0:
+                        self.viewer.render()
+                
+                i+=1
+                # if self.check_success():
+                #     success_flag = True
+                #     break
+
+                # if self.actor_pose == False:
+                #     break
+            
+            self. _update_render()
+            if self.render_freq:
+                self.viewer.render()
+            
+            self._take_picture()
+
+            print(f'step: {cnt} / {self.step_lim}', end='\r')
+
+            # if success_flag:
+            #     print("\nsuccess!")
+            #     self.suc +=1
+            #     return
+            
+            # if self.actor_pose == False:
+            #     break
             continue
-        
+        print("\nfail!")
     # ==========================================
     
+
+    def reset_arms(self):
+        self.together_move_to_pose_with_screw
+
+
+        
