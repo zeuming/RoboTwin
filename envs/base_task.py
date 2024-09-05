@@ -24,19 +24,19 @@ from collections import deque
 import cv2
 import torch
 
-import rospy
-from sensor_msgs.msg import JointState
-from sensor_msgs.msg import PointCloud2
-import sensor_msgs.point_cloud2 as pc2
-import struct
-import ctypes
+# import rospy
+# from sensor_msgs.msg import JointState
+# from sensor_msgs.msg import PointCloud2
+# import sensor_msgs.point_cloud2 as pc2
+# import struct
+# import ctypes
 
-import ros
+# import ros
 
-import std_msgs.msg 
+# import std_msgs.msg 
 
 
-from scipy.interpolate import PchipInterpolator
+# from scipy.interpolate import PchipInterpolator
 
 # 基本环境类
 class Base_task(gym.Env):
