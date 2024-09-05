@@ -41,7 +41,7 @@ class DP3:
 
     def get_policy_and_runner(self, cfg, checkpoint_num):
         workspace = TrainDP3Workspace(cfg)
-        policy, env_runner = workspace.get_policy_and_runner(checkpoint_num)
+        policy, env_runner = workspace.get_policy_and_runner(cfg, checkpoint_num)
         return policy, env_runner
 
 if __name__ == "__main__":

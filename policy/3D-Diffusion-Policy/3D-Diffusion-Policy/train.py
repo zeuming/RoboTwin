@@ -302,7 +302,7 @@ class TrainDP3Workspace:
             self.epoch += 1
             del step_log
 
-    def get_policy_and_runner(self, checkpoint_num=3000):
+    def get_policy_and_runner(self, cfg, checkpoint_num=3000):
         # load the latest checkpoint
         
         cfg = copy.deepcopy(self.cfg)
@@ -312,7 +312,10 @@ class TrainDP3Workspace:
             output_dir=self.output_dir)
         assert isinstance(env_runner, BaseRunner)
         
-        ckpt_file = pathlib.Path(f'./policy/3D-Diffusion-Policy/3D-Diffusion-Policy/checkpoints/{self.cfg.task.name}/{checkpoint_num}.ckpt')
+        if not cfg.policy.use_pc_color:
+            ckpt_file = pathlib.Path(f'./policy/3D-Diffusion-Policy/3D-Diffusion-Policy/checkpoints/{self.cfg.task.name}/{checkpoint_num}.ckpt')
+        else:
+            ckpt_file = pathlib.Path(f'./policy/3D-Diffusion-Policy/3D-Diffusion-Policy/checkpoints/{self.cfg.task.name}_w_rgb/{checkpoint_num}.ckpt')
         print('ckpt file exist:', ckpt_file.is_file())
         
         if ckpt_file.is_file():
