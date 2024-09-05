@@ -5,8 +5,8 @@ hammer_beat_pkl/
 data/
 __pycache__/
 tmp_/
-# policy/3D-Diffusion-Policy/3D-Diffusion-Policy/data/
-# policy/3D-Diffusion-Policy/3D-Diffusion-Policy/checkpoints/
+policy/3D-Diffusion-Policy/3D-Diffusion-Policy/data/
+policy/3D-Diffusion-Policy/3D-Diffusion-Policy/checkpoints/
 result/
 asset.zip
 aloha_maniskill_sim_modify/
