@@ -300,19 +300,15 @@ class Base_task(gym.Env):
             name="left_camera",
             width=width,
             height=height,
-            # fovx=np.deg2rad(69),
             fovy=np.deg2rad(37),
             near=near,
             far=far,
         )
-        
-        # print(np.rad2deg(self.left_camera.fovx))
 
         self.right_camera = self.scene.add_camera(
             name="right_camera",
             width=width,
             height=height,
-            # fovx=np.deg2rad(69),
             fovy=np.deg2rad(37),
             near=near,
             far=far,
@@ -322,7 +318,6 @@ class Base_task(gym.Env):
             name="front_camera",
             width=width,
             height=height,
-            # fovx=np.deg2rad(69),
             fovy=np.deg2rad(37),
             near=near,
             far=far,
@@ -332,7 +327,6 @@ class Base_task(gym.Env):
             name="top_camera",
             width=width,
             height=height,
-            # fovx=np.deg2rad(69),
             fovy=np.deg2rad(37),
             near=near,
             far=far,
@@ -342,17 +336,14 @@ class Base_task(gym.Env):
             name = "expert_camera",
             width=width,
             height=height,
-            # fovx=np.deg2rad(69),
             fovy=np.deg2rad(93),
             near=near,
             far=far,
         )
 
         self.front_camera.entity.set_pose(sapien.Pose(front_mat44))
-        # self.top_camera.entity.set_pose(self.all_links[29].get_pose())
         self.top_camera.entity.set_pose(sapien.Pose(top_mat44))
         self.expert_camera.entity.set_pose(sapien.Pose(expert_mat44))
-        # print(self.all_links[49].get_pose())
         self.left_camera.entity.set_pose(self.all_links[46].get_pose())
         self.right_camera.entity.set_pose(self.all_links[49].get_pose())
 
@@ -948,12 +939,12 @@ class Base_task(gym.Env):
                 "conbine_pcd" : f"{self.save_dir}/episode{self.ep_num}/camera/pointCloud/conbine/",
             }
 
-                
-            # for directory in self.file_path.values():
-            #     if os.path.exists(directory):
-            #         file_list = os.listdir(directory)
-            #         for file in file_list:
-            #             os.remove(directory + file)
+            # clear old data
+            for directory in self.file_path.values():
+                if os.path.exists(directory):
+                    file_list = os.listdir(directory)
+                    for file in file_list:
+                        os.remove(directory + file)
 
         pkl_dic = {
             "observations":{
@@ -1768,7 +1759,6 @@ class Base_task(gym.Env):
         print("\nfail!")
     # ==========================================
     
-
     def reset_arms(self):
         self.together_move_to_pose_with_screw
 

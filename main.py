@@ -34,16 +34,16 @@ def main():
             'pcd_crop': True ,
             'pcd_down_sample_num': 1024,
             'pose_type': "gt",
-            'episode_num': 20,
+            'episode_num': 100,
             'save_type':{
-                'raw_data': True,
-                'pkl': False
+                'raw_data': False,
+                'pkl': True
             },
             'data_type':{
                 'rgb': False,
                 'observer': False,
                 'depth': False,
-                'pointcloud': False,
+                'pointcloud': True,
                 'conbine': False,
                 'endpose': True,
                 'qpos': True,
@@ -146,61 +146,3 @@ def run(Demo_class, args):
             print('\nsuccess!')
 if __name__ == "__main__":
     main()
-
-
-'''
- 0
-box_joint 1
-box1 2
-fl_base_joint 3
-fr_base_joint 4
-lr_base_joint 5
-rr_base_joint 6
-inertial_joint 7
-right_wheel 8
-left_wheel 9
-fl_castor_wheel 10
-fr_castor_wheel 11
-rr_castor_wheel 12
-rl_castor_wheel 13
-box2 14
-camera_to_box1 15
-fl_joint1 16
-fr_joint1 17
-lr_joint1 18
-rr_joint1 19
-fl_wheel 20
-fr_wheel 21
-rr_wheel 22
-rl_wheel 23
-camera_joint1 24
-fl_joint2 25
-fr_joint2 26
-lr_joint2 27
-rr_joint2 28
-camera_joint2 29
-fl_joint3 30
-fr_joint3 31
-lr_joint3 32
-rr_joint3 33
-fl_joint4 34
-fr_joint4 35
-lr_joint4 36
-rr_joint4 37
-fl_joint5 38
-fr_joint5 39
-lr_joint5 40
-rr_joint5 41
-fl_joint6 42
-fr_joint6 43
-lr_joint6 44
-rr_joint6 45
-left_camera_joint 46
-fl_joint7 47
-fl_joint8 48
-right_camera_joint 49
-fr_joint7 50
-fr_joint8 51
-lr_joint7 52
-rr_joint7 53
-'''

@@ -86,7 +86,4 @@ class block_hammer_beat(Base_task):
         hammer_target_pose = self.get_actor_goal_pose(self.hammer,self.hammer_data)
         block_pose = self.block.get_pose().p
         eps = np.array([0.02,0.02])
-        # print('hammer pose: ',hammer_target_pose)
-        # print('block pose: ',self.block.get_pose().p)
-        # return 1
         return np.all(abs(hammer_target_pose[:2] - block_pose[:2])<eps) and hammer_target_pose[2] < 0.81 and hammer_target_pose[2] > 0.78
