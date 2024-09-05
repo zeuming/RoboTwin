@@ -278,11 +278,18 @@ class TrainDP3Workspace:
                 
             # checkpoint
             if ((self.epoch + 1) % cfg.training.checkpoint_every) == 0 and cfg.checkpoint.save_ckpt:
-                # checkpointing
+                
                 if not cfg.policy.use_pc_color:
-                    self.save_checkpoint(f'checkpoints/{self.cfg.task.name}/{self.epoch + 1}.ckpt')
+                    if not os.path.exists(f'checkpoints/{self.cfg.task.name}'):
+                        os.makedirs(f'checkpoints/{self.cfg.task.name}')
+                    save_path = f'checkpoints/{self.cfg.task.name}/{self.epoch + 1}.ckpt'
                 else:
-                    self.save_checkpoint(f'checkpoints/{self.cfg.task.name}_w_rgb/{self.epoch + 1}.ckpt')
+                    if not os.path.exists(f'checkpoints/{self.cfg.task.name}_w_rgb'):
+                        os.makedirs(f'checkpoints/{self.cfg.task.name}_w_rgb')
+                    save_path = f'checkpoints/{self.cfg.task.name}_w_rgb/{self.epoch + 1}.ckpt'
+
+                self.save_checkpoint(save_path)
+                
 
             # ========= eval end for this epoch ==========
             policy.train()

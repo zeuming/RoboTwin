@@ -42,7 +42,7 @@ TASK = None
 def main(cfg):
     global TASK
     TASK = cfg.task.name
-    print('!!', TASK)
+    print('Task name:', TASK)
     checkpoint_num = cfg.checkpoint_num
     expert_check = cfg.expert_data_num
 
@@ -77,7 +77,7 @@ def main(cfg):
 
     topk_success_rate = sorted(suc_nums, reverse=True)[:topk]
     # save_dir  = args.get('save_path', 'dp3_result') +'/' + str(TASK)
-    save_dir  = f'data_dp3/{TASK}'
+    save_dir  = f'result_dp3/{TASK}'
     file_path = os.path.join(save_dir, f'result.txt')
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
