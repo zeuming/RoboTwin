@@ -99,7 +99,7 @@ pip3 install torch torchvision torchaudio --index-url https://download.pytorch.o
 ```
 5.2 Install dp3
 ```
-cd 3D-Diffusion-Policy && pip install -e . && cd ..
+cd policy/3D-Diffusion-Policy && pip install -e . && cd ..
 ```
 5.3 Install some necessary package
 ```
