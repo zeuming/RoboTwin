@@ -35,7 +35,7 @@ sudo apt install libvulkan1 mesa-vulkan-drivers vulkan-utility
 1. Assert download
 ```
 gdown 'https://drive.google.com/uc?id=16rej25MdbWIqo1UC9Ph4xQ4irLXutdYb'
-unzip assert.zip
+unzip asset.zip
 ```
 
 2. REMOVE !!!!!!!!!
