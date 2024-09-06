@@ -14,7 +14,6 @@ class shoe_place(Base_task):
         self.pre_move()
         if is_test:
             self.id_list = [2*i+1 for i in range(5)]
-            # self.id_list = [i for i in range(10)]
         else:
             self.id_list = [2*i for i in range(5)]
         self.load_actors()

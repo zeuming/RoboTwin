@@ -77,7 +77,10 @@ def main(cfg):
 
     topk_success_rate = sorted(suc_nums, reverse=True)[:topk]
     # save_dir  = args.get('save_path', 'dp3_result') +'/' + str(TASK)
-    save_dir  = f'result_dp3/{TASK}'
+    if not cfg.policy.use_pc_color:
+        save_dir  = f'result_dp3/{TASK}'
+    else:
+        save_dir = f'result_dp3/{TASK}_w_rgb'
     file_path = os.path.join(save_dir, f'result.txt')
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
