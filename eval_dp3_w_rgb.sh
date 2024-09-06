@@ -6,4 +6,4 @@ seed=0
 gpu_id=${3}
 checkpoint_num=3000
 
-bash script/eval_dp3.sh robot_dp3_w_rgb $task_name $expert_data_num eval $seed $checkpoint_num $gpu_id
+bash script/eval_dp3.sh robot_dp3_w_rgb $task_name $expert_data_num eval_w_rgb $seed $checkpoint_num $gpu_id

@@ -1,0 +1,11 @@
+Timestamp: 2024-09-06 12:36:40
+
+Successful Rate of Diffenent checkpoints:
+0.16
+
+TopK 1 Success Rate (every):
+0.16
+
+TopK {topk} Success Rate:
+0.16
+
