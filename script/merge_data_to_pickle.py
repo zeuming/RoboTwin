@@ -22,7 +22,7 @@ def read_json(json_path):
         return json.load(f)
 
 
-pkl_task_name = 'dual_bottles_pick'
+pkl_task_name = 'dual_bottles_pick_easy'
 folder_name = 'pick_bottles_dual'
 pkl_save_name = 'pick_bottles_0806_pkl'
 

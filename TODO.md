@@ -10,7 +10,7 @@
 ## 0818
 
 - [x] `block_hammer_beat_hard` task
-- [x] `blocks_stack` task
+- [x] `blocks_stack_hard` task
 - [x] `shoes_place` task (a pair of shoes place)
 
 ## 0819

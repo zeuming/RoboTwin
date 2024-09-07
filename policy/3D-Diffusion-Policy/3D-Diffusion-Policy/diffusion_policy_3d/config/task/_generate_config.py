@@ -48,9 +48,9 @@ names = names = [
     "diverse_bottles_pick",
     "mug_hanging",
     "shoe_place",
-    "blocks_stack",
-    "dual_bottles_pick",
-    "multi_object_storage",
+    "blocks_stack_hard",
+    "dual_bottles_pick_easy",
+    "multi_objects_storage",
     "shoes_place"
 ]
 

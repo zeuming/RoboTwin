@@ -3,7 +3,7 @@ from .base_task import Base_task
 from .utils import *
 import sapien
 
-class dual_bottles_pick(Base_task):
+class dual_bottles_pick_easy(Base_task):
     def setup_demo(self,**kwags):
         super()._init(**kwags)
         self.create_table_and_wall()

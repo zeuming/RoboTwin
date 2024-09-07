@@ -1,4 +1,4 @@
-name: dual_bottles_pick_100
+name: blocks_stack_hard_20
 
 shape_meta: &shape_meta
   # acceptable types: rgb, low_dim
@@ -21,7 +21,7 @@ env_runner:
 
 dataset:
   _target_: diffusion_policy_3d.dataset.robot_dataset.RobotDataset
-  zarr_path: data/dual_bottles_pick_100.zarr
+  zarr_path: data/blocks_stack_hard_20.zarr
   horizon: ${horizon}
   pad_before: ${eval:'${n_obs_steps}-1'}
   pad_after: ${eval:'${n_action_steps}-1'}

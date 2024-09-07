@@ -4,7 +4,7 @@ from .utils import *
 import sapien
 import math
 
-class blocks_stack(Base_task):
+class blocks_stack_hard(Base_task):
 
     def setup_demo(self,**kwags):
         super()._init(**kwags)

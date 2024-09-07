@@ -1,6 +1,4 @@
-name: robot
-
-task_name: robot
+name: dual_bottles_pick_easy_50
 
 shape_meta: &shape_meta
   # acceptable types: rgb, low_dim
@@ -9,10 +7,10 @@ shape_meta: &shape_meta
       shape: [1024, 6]
       type: point_cloud
     agent_pos:
-      shape: [7]
+      shape: [14]
       type: low_dim
   action:
-    shape: [7]
+    shape: [14]
 
 env_runner:
   _target_: diffusion_policy_3d.env_runner.robot_runner.RobotRunner
@@ -23,7 +21,7 @@ env_runner:
 
 dataset:
   _target_: diffusion_policy_3d.dataset.robot_dataset.RobotDataset
-  zarr_path: data/{TODO}.zarr
+  zarr_path: data/dual_bottles_pick_easy_50.zarr
   horizon: ${horizon}
   pad_before: ${eval:'${n_obs_steps}-1'}
   pad_after: ${eval:'${n_action_steps}-1'}
