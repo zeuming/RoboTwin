@@ -32,13 +32,27 @@ Software:
 sudo apt install libvulkan1 mesa-vulkan-drivers vulkan-utility
 ```
 
-1. Assert download
+```
+
+1. Basic env
+First, prepare a conda environment.
+```bash
+conda create -n RoboTwin python=3.8
+```
+
+```
+pip install torch==2.3.1 sapien==3.0.0b1 scipy==1.10.1 mplib==0.1.1 gymnasium==0.29.1 trimesh==4.4.3 open3d==0.18.0 imageio==2.34.2 pydantic openai
+```
+
+
+2. Assert download
 ```
 gdown 'https://drive.google.com/uc?id=16rej25MdbWIqo1UC9Ph4xQ4irLXutdYb'
 unzip asset.zip
-```
 
-2. REMOVE !!!!!!!!!
+
+
+3. REMOVE !!!!!!!!!
 You can use `pip show mplib` to find where the `mplib` installed.
 ```
 # mplib.planner (mplib/planner.py) line 72
@@ -75,15 +89,6 @@ if np.linalg.norm(delta_twist) < 1e-4 or not within_joint_limit:
                 return {"status": "screw plan failed"}
 ```
 
-3. Basic env
-First, prepare a conda environment.
-```bash
-conda create -n RoboTwin python=3.8
-```
-
-```
-pip install torch==2.3.1 sapien==3.0.0b1 scipy==1.10.1 mplib==0.1.1 gymnasium==0.29.1 trimesh==4.4.3 open3d==0.18.0 imageio==2.34.2 pydantic openai
-```
 4. Install pytorch3d
 ```
 cd third_party/pytorch3d_simplified && pip install -e . && cd ../..
