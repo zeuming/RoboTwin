@@ -4,6 +4,8 @@ from gpt_api.prompt import *
 from gpt_api.task_info import *
 
 TASK_LIST = [PICK_APPLE, HAMMER_BEAT]
+
+# modify TASK
 TASK = HAMMER_BEAT
 
 # ========================================================
@@ -24,7 +26,7 @@ def robotwin():
     # Start Generation Process
     res = generate(Prompt)
     # Specify the file name and mode
-    file_name = f"gpt_envs/gpt_result/{task_name}.txt"
+    file_name = f"gpt_result/{task_name}.txt"
     file_mode = "w"  # 'w' for write, 'a' for append, 'x' for create new
     # Open the file and write the string
     with open(file_name, file_mode) as file:

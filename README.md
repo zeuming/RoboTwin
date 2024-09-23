@@ -35,3 +35,8 @@ main.py调用每个任务的类并完成数据采集
 # Installation
 See [Installation.md](./Installation.md) for installation instructions. 
 
+# Use gpt
+
+The task description is in [task_info.py](./gpt_api/task_info.py).
+
+Run [task_generation.py](./task_generation.py) file, the result code will in `gpt_result/task_name.txt`

@@ -1,3 +1,5 @@
+
+# TODO: task description
 PICK_APPLE = {
     "task_description": "Pick the apple on the table top down, and lift it up for 5 cm, using left arm.",
     "current_code": '''

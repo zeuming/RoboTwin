@@ -345,7 +345,7 @@ AVAILABLE_ENV_FUNCTOIN = {
         # ",
 
     # "get_actor_goal_pose": "Get the target pose point of an actor in world axis.", # TODO: refine the name, check success Agent
-
+    
     # "play_once": "Run the environment for a single episode.",
     # "check_success": "Check if the task has been successfully completed.",
     # "pre_move": "Perform any necessary actions before moving the robot.",
