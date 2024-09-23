@@ -90,6 +90,7 @@ class blocks_stack_easy(Base_task):
         actor_rpy = actor.get_pose().get_rpy()
         # print(actor_rpy)
         # print(math.fmod(actor_rpy[2], math.pi / 2))
+        # TODO self.check_grasp_qpose_reasonable()
         actor_pose = actor.get_pose().p
         actor_euler = math.fmod(actor_rpy[2], math.pi / 2)
         grasp_euler = actor_euler - math.pi/2  if actor_euler > math.pi/4 else actor_euler

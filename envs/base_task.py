@@ -101,6 +101,24 @@ class Base_task(gym.Env):
         self.plan_success = True
         self.step_lim = None
         self.fix_gripper = False
+        self.grasp_direction_dic = {
+            'left':         [0,      0,   0,    -1],
+            'front_left':   [-0.383, 0,   0,    -0.924],
+            'front' :       [-0.707, 0,   0,    -0.707],
+            'front_right':  [-0.924, 0,   0,    -0.383],
+            'right':        [-1,     0,   0,    0],
+            'top_down':     [-0.5,   0.5, -0.5, -0.5],
+        }
+
+        self.approach_direction_dic = {
+            'top_down':     [0,0,1,0],
+            'left':         [],
+            'front_left':   [],
+            'front' :       [],
+            'front_right':  [],
+            'right':        [],
+        }
+
         self.setup_scene()
 
         # Shijia Peng
@@ -1415,14 +1433,36 @@ class Base_task(gym.Env):
         res_pose = list(global_grasp_pose_p) + grasp_qpos
         return res_pose
 
-    def get_target_pose_from_goal_point_and_direction(self, actor, actor_data = DEFAULT_ACTOR_DATA, endpose = None, target_pose = None, target_grasp_qpose = None):
+    # def get_target_pose_from_goal_point_and_direction(self, actor, actor_data = DEFAULT_ACTOR_DATA, endpose = None, target_pose = None, target_grasp_qpose = None):
+    #     actor_matrix = actor.get_pose().to_transformation_matrix()
+    #     local_target_matrix = np.asarray(actor_data['target_pose'])
+    #     local_target_matrix[:3,3] *= actor_data['scale']
+    #     res_matrix = np.eye(4)
+    #     res_matrix[:3,3] = (actor_matrix  @ local_target_matrix)[:3,3] - endpose.global_pose.p
+    #     res_matrix[:3,3] = np.linalg.inv(t3d.quaternions.quat2mat(endpose.global_pose.q) @ np.array([[1,0,0],[0,-1,0],[0,0,-1]])) @ res_matrix[:3,3]
+    #     res_pose = list(target_pose - t3d.quaternions.quat2mat(target_grasp_qpose) @ res_matrix[:3,3]) + target_grasp_qpose
+    #     return res_pose
+    
+
+    def get_target_pose_from_goal_point_and_direction(self, actor, actor_data = DEFAULT_ACTOR_DATA, end_effector_pose = None, target_point = None, target_approach_direction = [0,0,1,0], pre_dis = 0):
+        
+        target_approach_direction = t3d.quaternions.quat2mat(target_approach_direction)
+        target_point -= target_approach_direction @ np.array([0,0,pre_dis])
         actor_matrix = actor.get_pose().to_transformation_matrix()
         local_target_matrix = np.asarray(actor_data['target_pose'])
         local_target_matrix[:3,3] *= actor_data['scale']
+
+        fuctional_matrix = (actor_matrix @ np.asarray(actor_data['functional_matrix']))[:3,:3]
+        endpose_trans_matrix = target_approach_direction @ np.linalg.inv(fuctional_matrix)
+        end_effector_pose_matrix = t3d.quaternions.quat2mat(end_effector_pose.global_pose.q)@ np.array([[1,0,0],[0,-1,0],[0,0,-1]])
+        target_grasp_matrix = endpose_trans_matrix @ end_effector_pose_matrix
+        
         res_matrix = np.eye(4)
-        res_matrix[:3,3] = (actor_matrix  @ local_target_matrix)[:3,3] - endpose.global_pose.p
-        res_matrix[:3,3] = np.linalg.inv(t3d.quaternions.quat2mat(endpose.global_pose.q) @ np.array([[1,0,0],[0,-1,0],[0,0,-1]])) @ res_matrix[:3,3]
-        res_pose = list(target_pose - t3d.quaternions.quat2mat(target_grasp_qpose) @ res_matrix[:3,3]) + target_grasp_qpose
+        res_matrix[:3,3] = (actor_matrix  @ local_target_matrix)[:3,3] - end_effector_pose.global_pose.p
+        res_matrix[:3,3] = np.linalg.inv(end_effector_pose_matrix) @ res_matrix[:3,3]
+        target_grasp_qpose = t3d.quaternions.mat2quat(target_grasp_matrix)
+        res_pose = (target_point - target_grasp_matrix @ res_matrix[:3,3]).tolist() + target_grasp_qpose.tolist()
+        # print(res_pose)
         return res_pose
     
     def get_actor_goal_pose(self,actor,actor_data = DEFAULT_ACTOR_DATA):

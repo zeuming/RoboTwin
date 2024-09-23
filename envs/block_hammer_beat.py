@@ -65,9 +65,10 @@ class block_hammer_beat(Base_task):
             self.close_right_gripper(save_freq=15)
             pose2[2] += 0.07
             self.right_move_to_pose_with_screw(pose2,save_freq = 15)
-            pose3 = self.get_target_pose_from_goal_point_and_direction(self.hammer,self.hammer_data,self.right_endpose,self.block.get_pose().p+[0,0,0.08],[-0.55,0.45,-0.45,-0.55])
+            pose3 = self.get_target_pose_from_goal_point_and_direction(self.hammer,self.hammer_data,self.right_endpose,self.block.get_pose().p, pre_dis = 0.08)
             self.right_move_to_pose_with_screw(pose3,save_freq = 15)
-            pose3[2] -= 0.06
+            # pose3[2] -= 0.06
+            pose3 = self.get_target_pose_from_goal_point_and_direction(self.hammer,self.hammer_data,self.right_endpose,self.block.get_pose().p, pre_dis = 0.02)
             self.right_move_to_pose_with_screw(pose3,save_freq = 15)
         else:
             self.open_left_gripper(save_freq=15)
@@ -76,9 +77,11 @@ class block_hammer_beat(Base_task):
             self.close_left_gripper(save_freq=15)
             pose2[2] += 0.07
             self.left_move_to_pose_with_screw(pose2,save_freq = 15)
-            pose3 = self.get_target_pose_from_goal_point_and_direction(self.hammer,self.hammer_data,self.left_endpose,self.block.get_pose().p+[0,0,0.08],[-0.55,0.45,-0.45,-0.55])
+            pose3 = self.get_target_pose_from_goal_point_and_direction(self.hammer,self.hammer_data,self.left_endpose,self.block.get_pose().p, pre_dis = 0.08)
+            # pose3 = self.get_target_pose_from_goal_point_and_direction(self.hammer,self.hammer_data,self.left_endpose,self.block.get_pose().p)
             self.left_move_to_pose_with_screw(pose3,save_freq = 15)
-            pose3[2] -= 0.06
+            # pose3[2] -= 0.06
+            pose3 = self.get_target_pose_from_goal_point_and_direction(self.hammer,self.hammer_data,self.left_endpose,self.block.get_pose().p, pre_dis = 0.02)
             self.left_move_to_pose_with_screw(pose3,save_freq = 15)
         
 

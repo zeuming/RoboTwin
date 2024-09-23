@@ -9,7 +9,7 @@ def generate(message, gpt="deepseek"):
         OPENAI_API_KEY="sk-0bc806156bb04622817a392d809b92e9"
 
     client = OpenAI(api_key=OPENAI_API_KEY, base_url="https://api.deepseek.com")
-
+    print('start generating')
     response = client.chat.completions.create(
         model=MODEL,
         messages=[
@@ -18,6 +18,7 @@ def generate(message, gpt="deepseek"):
         ],
         stream=False
     )
+    print('end generating')
 
     return response.choices[0].message.content 
 
