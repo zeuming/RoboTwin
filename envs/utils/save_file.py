@@ -6,13 +6,10 @@ import json
 import os
 import pickle
 
-
-# 检查目录是否存在，如果不存在则创建
 def ensure_dir(file_path):
     directory = os.path.dirname(file_path)
     if not os.path.exists(directory):
         os.makedirs(directory)
-
 
 def save_img(save_path, img_file):
     img = Image.fromarray(img_file)

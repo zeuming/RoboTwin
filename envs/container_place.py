@@ -12,10 +12,8 @@ class container_place(Base_task):
         self.load_camera(kwags.get('camera_w', 640),kwags.get('camera_h', 480))
         self.pre_move()
         if is_test:
-            # self.id_list = [2*i+1 for i in range(5)]
             self.id_list = [0,1,2,3,4,6,7]
         else:
-            # self.id_list = [2*i  for i in range(5)]
             self.id_list = [8,9]
         self.load_actors()
         self.step_lim = 350
@@ -89,7 +87,6 @@ class container_place(Base_task):
             target_pose[2] += 0.08
             self.left_move_to_pose_with_screw(pose = target_pose, save_freq = 15)
         else:
-            # use right arm
             pose1 = (container_pose + container_edge_dis).tolist() + [-0.5,0.5,-0.5,-0.5]
             pose1[2] += 0.08
             self.right_move_to_pose_with_screw(pose = pose1, save_freq = 15)

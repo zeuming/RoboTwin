@@ -20,7 +20,6 @@ def create_box(
     rigid_component = sapien.physx.PhysxRigidDynamicComponent()
     rigid_component.attach(
         sapien.physx.PhysxCollisionShapeBox(
-            # half_size=half_size, material=sapien.physx.get_default_material()
             half_size=half_size, material=scene.default_physical_material
         )
     )
@@ -61,7 +60,6 @@ def create_cylinder(
     rigid_component = sapien.physx.PhysxRigidDynamicComponent()
     rigid_component.attach(
         sapien.physx.PhysxCollisionShapeCylinder(
-            # half_size=half_size, material=sapien.physx.get_default_material()
             radius=radius, half_length = half_length, material=scene.default_physical_material
         )
     )
@@ -111,7 +109,6 @@ def create_visual_box(
     scene.add_entity(entity)
     return entity
 
-# 创建桌子（后续优化）
 def create_table(
     scene: sapien.Scene,
     pose: sapien.Pose,
@@ -119,7 +116,7 @@ def create_table(
     width: float,
     height: float,
     thickness=0.1,
-    color=(1, 1, 1),    # 白色
+    color=(1, 1, 1), 
     name="table",
     is_static = True
 ) -> sapien.Entity:
@@ -139,11 +136,11 @@ def create_table(
     )
 
     # Table legs (x4)
-    leg_spacing = 0.1 # 距离桌角的距离
+    leg_spacing = 0.1
     for i in [-1, 1]:
         for j in [-1, 1]:
-            x = i * (length / 2 - leg_spacing / 2)  # 计算桌腿的x坐标
-            y = j * (width / 2 - leg_spacing / 2)  # 计算桌腿的y坐标
+            x = i * (length / 2 - leg_spacing / 2) 
+            y = j * (width / 2 - leg_spacing / 2)
             table_leg_pose = sapien.Pose([x, y, -height / 2])
             table_leg_half_size = [thickness / 2, thickness / 2, height / 2]
             builder.add_box_collision(
@@ -176,7 +173,6 @@ def create_obj(
         file_name = modeldir + f"textured{model_id}.obj"
         json_file_path = modeldir + f'model_data{model_id}.json'
 
-    # 读取并解析JSON文件
     try:
         with open(json_file_path, 'r') as file:
             model_data = json.load(file)
@@ -193,7 +189,6 @@ def create_obj(
     if model_z_val:
         pose.set_p(pose.get_p()[:2].tolist() + [0.74 + (t3d.quaternions.quat2mat(pose.get_q()) @ (np.array(model_data["extents"]) * scale))[2]/2])
         
-    # 创建凸包或非凸包碰撞对象
     if convex==True:
         builder.add_multiple_convex_collisions_from_file(
             filename = file_name,
@@ -233,7 +228,6 @@ def create_glb(
         file_name = modeldir + f"base{model_id}.glb"
         json_file_path = modeldir + f'model_data{model_id}.json'
     
-    # 读取并解析JSON文件
     try:
         with open(json_file_path, 'r') as file:
             model_data = json.load(file)
@@ -250,7 +244,6 @@ def create_glb(
     if model_z_val:
         pose.set_p(pose.get_p()[:2].tolist() + [0.74 + (t3d.quaternions.quat2mat(pose.get_q()) @ (np.array(model_data["extents"]) * scale))[2]/2])
 
-    # 创建凸包或非凸包碰撞对象
     if convex==True:
         builder.add_multiple_convex_collisions_from_file(
             filename = file_name,
@@ -322,7 +315,6 @@ def create_urdf_obj(
     file_name = modeldir + "base.glb"
     json_file_path = modeldir + 'model_data.json'
     
-    # 读取并解析JSON文件
     try:
         with open(json_file_path, 'r') as file:
             model_data = json.load(file)

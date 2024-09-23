@@ -14,7 +14,7 @@ class blocks_stack_hard(Base_task):
         self.load_camera(kwags.get('camera_w', 640),kwags.get('camera_h', 480))
         self.pre_move()
         self.load_actors()
-        self.step_lim = 150
+        self.step_lim = 850
 
     def pre_move(self):
         render_freq = self.render_freq
@@ -119,17 +119,13 @@ class blocks_stack_hard(Base_task):
 
     def move_block(self,actor,id = 0, las_arm = None):
         actor_rpy = actor.get_pose().get_rpy()
-        # print(actor_rpy)
-        # print(math.fmod(actor_rpy[2], math.pi / 2))
         actor_pose = actor.get_pose().p
         actor_euler = math.fmod(actor_rpy[2], math.pi / 2)
         grasp_euler = actor_euler - math.pi/2  if actor_euler > math.pi/4 else actor_euler
         grasp_trans_quat = t3d.euler.euler2quat(0,0,grasp_euler)
         grasp_qpose = t3d.quaternions.qmult(grasp_trans_quat, [-0.5,0.5,-0.5,-0.5]).tolist()
-        if actor_pose[0] >0:
+        if actor_pose[0] > 0:
             now_arm = 'right'
-            # print(math.fmod(actor_rpy[2], math.pi / 2))
-            # print(grasp_qpose)
             pose1 = list(actor_pose + [0,0,0.2]) + grasp_qpose
             if now_arm == las_arm or las_arm is None:
                 if now_arm == las_arm:
@@ -152,8 +148,6 @@ class blocks_stack_hard(Base_task):
             self.right_move_to_pose_with_screw(traget_pose,save_freq = 15)
         else:
             now_arm = 'left'
-            # print(math.fmod(actor_rpy[2], math.pi / 2))
-            # print(grasp_qpose)
             pose1 = list(actor_pose + [0,0,0.2]) + grasp_qpose
             if now_arm == las_arm or las_arm is None:
                 if now_arm == las_arm:
@@ -187,7 +181,6 @@ class blocks_stack_hard(Base_task):
         block3_pose = self.block3.get_pose().p
         target_pose = [0,-0.1]
         eps = [0.025,0.025,0.01]
-        # return 1
         return np.all(abs(block1_pose - np.array(target_pose + [0.765])) < eps) and \
                np.all(abs(block2_pose - np.array(target_pose + [0.815])) < eps) and \
                np.all(abs(block3_pose - np.array(target_pose + [0.865])) < eps) and self.is_left_gripper_open() and self.is_right_gripper_open()

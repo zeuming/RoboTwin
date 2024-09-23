@@ -87,9 +87,6 @@ class block_handover(Base_task):
         right_target_pose[2] += 0.1
         self.right_move_to_pose_with_screw(right_target_pose, save_freq=15)
 
-        # right_target_pose[1]-=0.12
-        # self.right_move_to_pose_with_screw(right_target_pose)
-
     def check_success(self):
         box_pos = self.box.get_pose().p
         target_pose = self.target.get_pose().p

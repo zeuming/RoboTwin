@@ -14,7 +14,6 @@ class shoes_place(Base_task):
         self.pre_move()
         if is_test:
             self.id_list = [2*i+1 for i in range(5)]
-            # self.id_list = [i for i in range(10)]
         else:
             self.id_list = [2*i for i in range(5)]
         self.load_actors()
@@ -109,11 +108,9 @@ class shoes_place(Base_task):
         if math.fmod(math.fmod(shoe_rpy[2] + shoe_rpy[0], 2 * math.pi) + 2 * math.pi, 2*math.pi) < math.pi:
             grasp_matrix = np.array([[-1,0,0,0],[0,1,0,0],[0,0,-1,0],[0,0,0,1]])
             target_quat = [-0.707,0,-0.707,0]
-            # target_quat = [-0.5,-0.5,-0.5,0.5]
         else:
             grasp_matrix = np.eye(4)
             target_quat = [0,0.707,0,-0.707]
-            # target_quat = [-0.5,0.5,-0.5,-0.5]
         return grasp_matrix, target_quat
 
     def play_once(self):
@@ -147,18 +144,10 @@ class shoes_place(Base_task):
         self.open_left_gripper(save_freq = 15)
         left_target_pose[2] +=0.06
         self.left_move_to_pose_with_screw(pose = left_target_pose,save_freq = 15)
-
-        # right_temp_pose[-4:] = right_target_quat
-        # self.together_move_to_pose_with_screw(left_target_pose=self.left_original_pose, right_target_pose = right_temp_pose,save_freq = 15)
         self.together_move_to_pose_with_screw(left_target_pose=self.left_original_pose, right_target_pose = right_target_pose,save_freq = 15)
-        # self.right_move_to_pose_with_screw(pose = right_target_pose,save_freq = 15)
         right_target_pose[2] -=0.06
         self.right_move_to_pose_with_screw(pose = right_target_pose,save_freq = 15)
         self.open_right_gripper(save_freq = 15)
-
-        # while 1:
-        #     self.close_left_gripper()
-
     def check_success(self):
         left_shoe_pose_p = np.array(self.left_shoe.get_pose().p)
         left_shoe_pose_q = np.array(self.left_shoe.get_pose().q)
@@ -168,15 +157,9 @@ class shoes_place(Base_task):
             left_shoe_pose_q *= -1
         if right_shoe_pose_q[0] < 0:
             right_shoe_pose_q *= -1
-        # print(left_shoe_pose_p)
-        # print(left_shoe_pose_q)
-        # print(right_shoe_pose_p)
-        # print(right_shoe_pose_q)
-        # print('\n')
         target_pose_p = np.array([0,-0.13])
         target_pose_q = np.array([0.5,0.5,-0.5,-0.5])
         eps = np.array([0.02,0.02,0.05,0.05,0.05,0.05])
-        # return 1
         return np.all(abs(left_shoe_pose_p[:2] - (target_pose_p - [0,0.06])) < eps[:2]) and np.all(abs(left_shoe_pose_q - target_pose_q) < eps[-4:]) and \
                np.all(abs(right_shoe_pose_p[:2] - (target_pose_p + [0,0.06])) < eps[:2]) and np.all(abs(right_shoe_pose_q - target_pose_q) < eps[-4:]) and self.is_left_gripper_open() and self.is_right_gripper_open()
         

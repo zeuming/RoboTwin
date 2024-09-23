@@ -84,5 +84,5 @@ class dual_bottles_pick_easy(Base_task):
         green_bottle_pose = self.green_bottle.get_pose().p
         if red_bottle_pose[2] < 0.78 or green_bottle_pose[2] < 0.78:
             self.actor_pose = False
-        return abs(red_bottle_pose[0]-red_target[0])<eps and abs(red_bottle_pose[1]-red_target[1])<eps and red_bottle_pose[2]>0.9 and\
+        return abs(red_bottle_pose[0]-red_target[0])<eps and abs(red_bottle_pose[1]-red_target[1])<eps and red_bottle_pose[2]>0.9 and \
                abs(green_bottle_pose[0]-green_target[0])<eps and abs(green_bottle_pose[1]-green_target[1])<eps and green_bottle_pose[2]>0.9

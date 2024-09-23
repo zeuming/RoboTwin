@@ -70,8 +70,6 @@ class shoe_place(Base_task):
         self.shoe.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.1
 
     def play_once(self):
-        # while 1:
-        #     self.close_right_gripper()
         shoe_rpy = self.shoe.get_pose().get_rpy()
         if math.fmod(math.fmod(shoe_rpy[2] + shoe_rpy[0], 2 * math.pi) + 2 * math.pi, 2*math.pi) < math.pi:
             grasp_matrix = np.array([[-1,0,0,0],[0,1,0,0],[0,0,-1,0],[0,0,0,1]])
@@ -112,17 +110,14 @@ class shoe_place(Base_task):
             self.open_left_gripper(save_freq = 15)
             target_pose[2] +=0.06
             self.left_move_to_pose_with_screw(pose = target_pose,save_freq = 15)
-        # while 1:
-        #     self.close_right_gripper()
 
     def check_success(self):
         shoe_pose_p = np.array(self.shoe.get_pose().p)
         shoe_pose_q = np.array(self.shoe.get_pose().q)
+        
         if shoe_pose_q[0] < 0:
             shoe_pose_q *= -1
-        # print(shoe_pose_p)
-        # print(shoe_pose_q)
-        # print('\n')
+
         target_pose_p = np.array([0,-0.08])
         target_pose_q = np.array([0.5,0.5,-0.5,-0.5])
         eps = np.array([0.05,0.02,0.05,0.05,0.05,0.05])

@@ -3,12 +3,20 @@ import numpy as np
 import open3d as o3d
 from copy import deepcopy
 import zarr, shutil
+import argparse
 
 def main():
+    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser.add_argument('task_name', type=str)
+    parser.add_argument('episode_number', type=int)
+
+    args = parser.parse_args()
+    
     visualize_pcd = False
-    task_name = input('Please input task name: (such as block_hammer_beat): ')
-    num = input('Please input episode number: (such as 50): ')
-    current_ep, num = 0, int(num)
+
+    task_name = args.task_name
+    num = args.episode_number
+    current_ep, num = 0, num
     load_dir = f'./data/{task_name}_pkl'
     
     total_count = 0
@@ -25,7 +33,7 @@ def main():
     point_cloud_arrays, episode_ends_arrays, action_arrays, state_arrays, joint_action_arrays = [], [], [], [], []
     
     while os.path.isdir(load_dir+f'/episode{current_ep}') and current_ep < num:
-        print('processing episode', current_ep, end='\r')
+        print(f'processing episode: {current_ep + 1} / {num}', end='\r')
         file_num = 0
         point_cloud_sub_arrays = []
         state_sub_arrays = []
@@ -66,6 +74,7 @@ def main():
         state_arrays.extend(state_sub_arrays)
         joint_action_arrays.extend(joint_action_sub_arrays)
 
+    print()
     episode_ends_arrays = np.array(episode_ends_arrays)
     action_arrays = np.array(action_arrays)
     state_arrays = np.array(state_arrays)

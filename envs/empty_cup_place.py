@@ -138,5 +138,4 @@ class empty_cup_place(Base_task):
         eps = 0.025
         coaster_pose = self.coaster.get_pose().p
         cup_pose = self.cup.get_pose().p
-        # print(cup_pose)
         return abs(cup_pose[0] - coaster_pose[0])<eps  and  abs(cup_pose[1] - coaster_pose[1])<eps and (cup_pose[2] - 0.792) < 0.005

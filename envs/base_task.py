@@ -4,45 +4,22 @@ from sapien.utils.viewer import Viewer
 import mplib
 import numpy as np
 import gymnasium as gym
-
 import pdb
-
 import numpy as np
 from PIL import Image, ImageColor
-
 import toppra as ta
 import open3d as o3d
 import json
-
 import transforms3d as t3d
 from .utils import fps
 from collections import OrderedDict
 from .utils import *
-
 import collections
 from collections import deque
 import cv2
 import torch
 
-# import rospy
-# from sensor_msgs.msg import JointState
-# from sensor_msgs.msg import PointCloud2
-# import sensor_msgs.point_cloud2 as pc2
-# import struct
-# import ctypes
-
-# import ros
-
-# import std_msgs.msg 
-
-
-# from scipy.interpolate import PchipInterpolator
-
-# 基本环境类
 class Base_task(gym.Env):
-    '''基础环境
-    用于生成基础场景，以及存放 Aloha 各个 planner
-    '''
 
     DEFAULT_ACTOR_DATA = {
         "scale": [1,1,1],
@@ -69,21 +46,26 @@ class Base_task(gym.Env):
         pass
 
     def _init(self, **kwags):
-        '''初始化
-        self.PCD_INDEX:     当前场景保存文件的 index
-        self.fcitx5-configtool:     left griper pose (close <=0, open >=0.4)
-        self.ep_num:        episode id
-        self.task_name:     task name
-        self.save_dir:      save path,
-        self.left_original_pose:    left arm original pose
-        self.right_original_pose:   right arm original pose
-        self.left_arm_joint_id:     [6,14,18,22,26,30]
-        self.right_arm_joint_id:    [7,15,19,23,27,31]
-        self.render_fre:    render frequence
+        '''
+            Initialization
+            - `self.PCD_INDEX`: The index of the file saved for the current scene.
+            - `self.fcitx5-configtool`: Left gripper pose (close <=0, open >=0.4).
+            - `self.ep_num`: Episode ID.
+            - `self.task_name`: Task name.
+            - `self.save_dir`: Save path.
+            - `self.left_original_pose`: Left arm original pose.
+            - `self.right_original_pose`: Right arm original pose.
+            - `self.left_arm_joint_id`: [6,14,18,22,26,30].
+            - `self.right_arm_joint_id`: [7,15,19,23,27,31].
+            - `self.render_fre`: Render frequency.
         '''
         super().__init__()
         ta.setup_logging("CRITICAL") # hide logging
         np.random.seed(kwags.get('seed', 0))
+
+        global left_pub_data
+        global right_pub_data
+
         self.PCD_INDEX = 0
         self.task_name = kwags.get('task_name')
         self.save_dir = kwags.get('save_path', 'data') +'/' + kwags.get('task_name', 'Empty')
@@ -101,40 +83,21 @@ class Base_task(gym.Env):
         self.plan_success = True
         self.step_lim = None
         self.fix_gripper = False
-        self.grasp_direction_dic = {
-            'left':         [0,      0,   0,    -1],
-            'front_left':   [-0.383, 0,   0,    -0.924],
-            'front' :       [-0.707, 0,   0,    -0.707],
-            'front_right':  [-0.924, 0,   0,    -0.383],
-            'right':        [-1,     0,   0,    0],
-            'top_down':     [-0.5,   0.5, -0.5, -0.5],
-        }
-
-        self.approach_direction_dic = {
-            'top_down':     [0,0,1,0],
-            'left':         [],
-            'front_left':   [],
-            'front' :       [],
-            'front_right':  [],
-            'right':        [],
-        }
-
         self.setup_scene()
 
-        # Shijia Peng
         self.left_js = None
         self.right_js = None
         self.raw_top_pcl = None
         self.real_top_pcl = None
         self.real_top_pcl_color = None
-        global left_pub_data
+        
         left_pub_data = [0,0,0,0,0,0,0]
-        global right_pub_data
         right_pub_data = [0,0,0,0,0,0,0]
 
     def setup_scene(self,**kwargs):
-        '''设置场景
-        设置基础场景: 光源、viewer
+        '''
+        Set the scene
+            - Set up the basic scene: light source, viewer.
         '''
         self.engine = sapien.Engine()
         # declare sapien renderer
@@ -145,8 +108,6 @@ class Base_task(gym.Env):
         self.engine.set_renderer(self.renderer)
         
         sapien.render.set_camera_shader_dir("rt")
-        # if self.render_fre:
-        #     sapien.render.set_viewer_shader_dir("rt")
         sapien.render.set_ray_tracing_samples_per_pixel(32)
         sapien.render.set_ray_tracing_path_depth(8)
         sapien.render.set_ray_tracing_denoiser("oidn")
@@ -220,16 +181,9 @@ class Base_task(gym.Env):
             is_static=self.table_static
         )
 
-    # load 传感器
-    # def load_sensor(self, **kwargs):
-    #     sensor_mount_actor = self.scene.create_actor_builder().build_kinematic()
-    #     sensor_config = StereoDepthSensorConfig()
-    #     self.sensor = StereoDepthSensor(sensor_config, sensor_mount_actor, sapien.Pose([0, -0.55, 0.85], [1, 0, 0, 1]))
-
     def load_robot(self, **kwargs):
         """
-        load aloha robot urdf file and set root pose (后续 mobile 任务需要重写)
-        and set joints
+            load aloha robot urdf file, set root pose and set joints
         """
         # load urdf file
         loader: sapien.URDFLoader = self.scene.create_urdf_loader()
@@ -250,10 +204,6 @@ class Base_task(gym.Env):
         # set joints
         self.active_joints = self.robot.get_active_joints()
 
-        # for id,joint in enumerate(self.active_joints):
-        #     print(id, joint.get_name())
-
-        # pdb.set_trace()
         for joint in self.active_joints:
             joint.set_drive_property(
                 stiffness=kwargs.get("joint_stiffness", 1000),
@@ -277,10 +227,9 @@ class Base_task(gym.Env):
 
     def load_camera(self,camera_w,camera_h):
         '''
-        添加相机并设置相机参数
-        包括四个相机: left right front top
+            Add cameras and set camera parameters
+                - Including four cameras: left, right, front, top.
         '''
-        # sapien.set_cuda_tensor_backend("torch")  # called once per process
 
         near, far = 0.1, 100
         width, height = camera_w, camera_h
@@ -350,8 +299,8 @@ class Base_task(gym.Env):
             far=far,
         )
 
-        self.expert_camera = self.scene.add_camera(
-            name = "expert_camera",
+        self.observer_camera = self.scene.add_camera(
+            name = "observer_camera",
             width=width,
             height=height,
             fovy=np.deg2rad(93),
@@ -361,7 +310,7 @@ class Base_task(gym.Env):
 
         self.front_camera.entity.set_pose(sapien.Pose(front_mat44))
         self.top_camera.entity.set_pose(sapien.Pose(top_mat44))
-        self.expert_camera.entity.set_pose(sapien.Pose(expert_mat44))
+        self.observer_camera.entity.set_pose(sapien.Pose(expert_mat44))
         self.left_camera.entity.set_pose(self.all_links[46].get_pose())
         self.right_camera.entity.set_pose(self.all_links[49].get_pose())
 
@@ -370,10 +319,9 @@ class Base_task(gym.Env):
 
     def setup_planner(self, **kwargs):
         """
-        Create an mplib planner using the default robot.
-        See planner.py for more details on the arguments.
+            Create an mplib planner using the default robot.
+            See planner.py for more details on the arguments.
         """
-        # pdb.set_trace()
         self.left_planner = mplib.Planner(
             urdf=kwargs.get("urdf_path", "./aloha_maniskill_sim/urdf/arx5_description_isaac.urdf"),
             srdf=kwargs.get("srdf_path", "./aloha_maniskill_sim/srdf/arx5_description_isaac.srdf"),
@@ -385,22 +333,22 @@ class Base_task(gym.Env):
             move_group=kwargs.get("move_group", "fr_link6"),
         )
 
-        robot_pose_in_world = [0,-0.65,0,1,0,0,1]   # TODO
+        robot_pose_in_world = [0,-0.65,0,1,0,0,1] 
         self.left_planner.set_base_pose(robot_pose_in_world)
         self.right_planner.set_base_pose(robot_pose_in_world)
     
-    # 更新渲染，用于更新 camera 的 rgbd 信息（关闭渲染也需要更新render，否则无法采集数据）
+
     def _update_render(self):
+        """
+            Update rendering to refresh the camera's RGBD information 
+            (rendering must be updated even when disabled, otherwise data cannot be collected).
+        """
         self.left_camera.entity.set_pose(self.all_links[46].get_pose())
         self.right_camera.entity.set_pose(self.all_links[49].get_pose())
         self.scene.update_render()
         self.scene.update_render()
 
-    def left_follow_path(self, result, save_freq=15):
-        '''
-        左臂运动
-        result: 运动轨迹
-        '''
+    def left_follow_path(self, result, save_freq=15): # For left arm
         n_step = result["position"].shape[0]
 
         if n_step > 2000:
@@ -422,25 +370,18 @@ class Base_task(gym.Env):
                     result["velocity"][i][j]
                 )
             self.scene.step()
-            # 更新渲染
             if i%5 == 0:
                 self._update_render()
                 if self.render_freq and i % self.render_freq == 0:
                     self.viewer.render()
             
-            # 保存当前帧数据
             if save_freq != None and i % save_freq == 0:
                 self._take_picture()
 
         if save_freq != None:
             self._take_picture()
     
-    # 右臂运动，同左臂运动
-    def right_follow_path(self, result, save_freq=15):
-        '''
-        右臂运动
-        result: 运动轨迹
-        '''
+    def right_follow_path(self, result, save_freq=15): # For right arm
         n_step = result["position"].shape[0]
 
         if n_step > 2000:
@@ -476,11 +417,6 @@ class Base_task(gym.Env):
 
     
     def together_follow_path(self, left_result,right_result, save_freq=15):
-        '''
-        双臂同时运动，保证同时开始和结束
-        left_result:    左臂轨迹
-        right_result:   右臂轨迹
-        '''
         left_n_step = left_result["position"].shape[0]
         right_n_step = right_result["position"].shape[0]
         n_step = max(left_n_step, right_n_step)
@@ -495,7 +431,7 @@ class Base_task(gym.Env):
         now_left_id = 0
         now_right_id = 0
         i = 0
-        # for i in range(n_step):
+
         while now_left_id < left_n_step or now_right_id < right_n_step:
             qf = self.robot.compute_passive_force(
                 gravity=True, coriolis_and_centrifugal=True
@@ -503,7 +439,6 @@ class Base_task(gym.Env):
             self.robot.set_qf(qf)
             # set the joint positions and velocities for move group joints only.
             # The others are not the responsibility of the planner
-            # 同时规划双臂轨迹，同时开始同时结束
             if now_left_id < left_n_step and now_left_id / left_n_step <= now_right_id / right_n_step:
                 for j in range(len(self.left_arm_joint_id)):
                     left_j = self.left_arm_joint_id[j]
@@ -534,25 +469,24 @@ class Base_task(gym.Env):
 
     def set_gripper(self, left_pos = 0.045, right_pos = 0.045, set_tag = 'together', save_freq=15):
         '''
-        设置夹爪姿态
-        left_pos:   左爪 pose
-        right_pos:  右爪 pose
-        set_tag:    "left" 设置左爪, "right" 设置右爪, "together" 同时设置双爪
+            Set gripper posture
+            - `left_pos`: Left gripper pose
+            - `right_pos`: Right gripper pose
+            - `set_tag`: "left" to set the left gripper, "right" to set the right gripper, "together" to set both grippers simultaneously.
         '''
         if save_freq != None:
             self._take_picture()
         
-        # 线性插值，左右爪的步长
         left_gripper_step = 0
         right_gripper_step = 0
         real_left_gripper_step = 0
         real_right_gripper_step = 0
 
-        if set_tag == 'left' or set_tag == 'together':  # not right arm
+        if set_tag == 'left' or set_tag == 'together':
             left_gripper_step = (left_pos - self.left_gripper_val) / 400
             real_left_gripper_step = (left_pos - self.active_joints[34].get_drive_target()[0]) / 200
 
-        if set_tag == 'right' or set_tag == 'together':   # not left arm
+        if set_tag == 'right' or set_tag == 'together':
             right_gripper_step = (right_pos - self.right_gripper_val) / 400
             real_right_gripper_step = (right_pos - self.active_joints[36].get_drive_target()[0]) / 200
         
@@ -590,9 +524,9 @@ class Base_task(gym.Env):
         if save_freq != None:
             self._take_picture()
         
-        if set_tag == 'left' or set_tag == 'together':  # not right arm
+        if set_tag == 'left' or set_tag == 'together':
             self.left_gripper_val = left_pos
-        if set_tag == 'right' or set_tag == 'together':   # not left arm
+        if set_tag == 'right' or set_tag == 'together':
             self.right_gripper_val = right_pos
 
     def open_left_gripper(self, save_freq=15, pos = 0.045):
@@ -613,7 +547,7 @@ class Base_task(gym.Env):
     def together_close_gripper(self, save_freq=15,left_pos = 0, right_pos = 0):
         self.set_gripper(left_pos=left_pos, right_pos=right_pos, set_tag='together', save_freq=save_freq)
         
-    def move_to_pose_with_RRTConnect( # TODO
+    def move_to_pose_with_RRTConnect(
         self, pose, use_point_cloud=False, use_attach=False,freq =10
     ):
         """
@@ -672,9 +606,6 @@ class Base_task(gym.Env):
         else:
             print("\n left arm palnning failed!")
             self.plan_success = False
-        # else:
-        #     # fall back to RRTConnect if the screw motion fails (say contains collision)            
-        #     return self.move_to_pose_with_RRTConnect(pose, use_point_cloud, use_attach)
 
     def right_move_to_pose_with_screw(self, pose, use_point_cloud=False, use_attach=False,save_freq=15):
         """
@@ -699,10 +630,6 @@ class Base_task(gym.Env):
         else:
             print("\n right arm palnning failed!")
             self.plan_success = False
-        # else:
-        #     # fall back to RRTConnect if the screw motion fails (say contains collision)
-        #     # fall back to RRTConnect if the screw motion fails (say contains collision)
-        #     return self.move_to_pose_with_RRTConnect(pose, use_point_cloud, use_attach)
         
 
     def together_move_to_pose_with_screw(self, left_target_pose,right_target_pose, use_point_cloud=False, use_attach=False,save_freq=15):
@@ -743,13 +670,13 @@ class Base_task(gym.Env):
                 print("\n right arm palnning failed!")
             self.plan_success = False
 
-    # 获取camera的rbga
+    # Get Camera RGBA
     def _get_camera_rgba(self, camera, camera_pose = 'top'):
         rgba = camera.get_picture("Color")
         rgba_img = (rgba * 255).clip(0, 255).astype("uint8")
         return rgba_img
     
-    # 获取camera的segmentation
+    # Get Camera Segmentation
     def _get_camera_segmentation(self, camera,level = "mesh"):
         # visual_id is the unique id of each visual shape
         seg_labels = camera.get_picture("Segmentation")  # [H, W, 4]
@@ -760,42 +687,38 @@ class Base_task(gym.Env):
         if level == "mesh":
             label0_image = seg_labels[..., 0].astype(np.uint8) # mesh-level
         elif level == "actor":
-            label0_image = seg_labels[..., 1].astype(np.uint8)  # actor-level
-        # label0_pil = Image.fromarray(color_palette[label0_image])
+            label0_image = seg_labels[..., 1].astype(np.uint8) # actor-level
         return color_palette[label0_image]
     
-    # 获取camera的depth
+    # Get Camera Depth
     def _get_camera_depth(self, camera):
         position = camera.get_picture("Position")
         depth = -position[..., 2]
-        # depth_image = (depth * 1000.0).astype(np.uint16)
         depth_image = (depth * 1000.0).astype(np.float32)
-        # depth_pil = Image.fromarray(depth_image)
-        
         return depth_image
     
-    # 获取camera的PointCloud
+    # Get Camera PointCloud
     def _get_camera_pcd(self, camera, point_num = 0):
-        rgba = camera.get_picture_cuda("Color").torch()  # [H, W, 4]
-        position = camera.get_picture_cuda("Position").torch()  # 获取位置数据
-        model_matrix = camera.get_model_matrix()  # 获取模型矩阵
+        rgba = camera.get_picture_cuda("Color").torch() # [H, W, 4]
+        position = camera.get_picture_cuda("Position").torch()
+        model_matrix = camera.get_model_matrix()
 
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         model_matrix = torch.tensor(model_matrix, dtype=torch.float32).to(device)
 
-        # 提取有效的三维点和对应的颜色数据
+        # Extract valid three-dimensional points and corresponding color data.
         valid_mask = position[..., 3] < 1
-        # pdb.set_trace()
         points_opengl = position[..., :3][valid_mask]
         points_color = rgba[valid_mask][:,:3]
-        # 转换到世界坐标系
+        # Transform into the world coordinate system.
         points_world = torch.bmm(points_opengl.view(1, -1, 3), model_matrix[:3, :3].transpose(0,1).view(-1, 3, 3)).squeeze(1) + model_matrix[:3, 3]
 
-        # 格式化颜色数据
+        # Format color data.
         points_color = torch.clamp(points_color, 0, 1)
 
         points_world = points_world.squeeze(0)
-        # 如果需要裁剪点云
+        
+        # If crop is needed
         if self.pcd_crop:
             min_bound = torch.tensor(self.pcd_crop_bbox[0], dtype=torch.float32).to(device)
             max_bound = torch.tensor(self.pcd_crop_bbox[1], dtype=torch.float32).to(device)
@@ -803,7 +726,7 @@ class Base_task(gym.Env):
             points_world = points_world[inside_bounds_mask]
             points_color = points_color[inside_bounds_mask]
         
-        # 将张量转换回NumPy数组以用于Open3D
+        # Convert the tensor back to a NumPy array for use with Open3D.
         points_world_np = points_world.cpu().numpy()
         points_color_np = points_color.cpu().numpy()
 
@@ -835,11 +758,9 @@ class Base_task(gym.Env):
         return jointState_list
     
     def endpose_transform(self, joint, gripper_val):
-        # 矩阵变换
         rpy = joint.global_pose.get_rpy()
         roll, pitch, yaw = rpy
         x,y,z = joint.global_pose.p
-        # 保存
         endpose = {
             "gripper": float(gripper_val),
             "pitch" : float(pitch),
@@ -899,8 +820,8 @@ class Base_task(gym.Env):
         return self.left_endpose.global_pose
     def get_right_endpose_pose(self):
         return self.right_endpose.global_pose
-    # 保存数据
-    def _take_picture(self):
+
+    def _take_picture(self): # Save data
         if not self.is_save:
             return
 
@@ -909,10 +830,9 @@ class Base_task(gym.Env):
         self.left_camera.take_picture()
         self.right_camera.take_picture()
         self.top_camera.take_picture()
-        self.expert_camera.take_picture()
+        self.observer_camera.take_picture()
         self.front_camera.take_picture()
         
-        # clear save dir
         if self.PCD_INDEX==0:
             self.file_path ={
                 "expert_color" : f"{self.save_dir}/episode{self.ep_num}/camera/color/observer/",
@@ -957,7 +877,6 @@ class Base_task(gym.Env):
                 "conbine_pcd" : f"{self.save_dir}/episode{self.ep_num}/camera/pointCloud/conbine/",
             }
 
-            # clear old data
             for directory in self.file_path.values():
                 if os.path.exists(directory):
                     file_list = os.listdir(directory)
@@ -965,13 +884,13 @@ class Base_task(gym.Env):
                         os.remove(directory + file)
 
         pkl_dic = {
-            "observations":{
-                "head_camera":{},       #rbg , mesh_seg , actior_seg , depth , intrinsic_cv , extrinsic_cv , cam2world_gl(model_matrix)
+            "observation":{
+                "head_camera":{},   # rbg , mesh_seg , actior_seg , depth , intrinsic_cv , extrinsic_cv , cam2world_gl(model_matrix)
                 "left_camera":{},
                 "right_camera":{},
                 "front_camera":{}
             },
-            "pointcloud":[],        # conbinet pcd
+            "pointcloud":[],   # conbinet pcd
             "joint_action":[],
             "endpose":[]
         }
@@ -980,7 +899,7 @@ class Base_task(gym.Env):
         top_camera_extrinsic_cv = self.top_camera.get_extrinsic_matrix()
         top_camera_model_matrix = self.top_camera.get_model_matrix()
 
-        pkl_dic["observations"]["head_camera"] = {
+        pkl_dic["observation"]["head_camera"] = {
             "intrinsic_cv" : top_camera_intrinsic_cv,
             "extrinsic_cv" : top_camera_extrinsic_cv,
             "cam2world_gl" : top_camera_model_matrix
@@ -990,7 +909,7 @@ class Base_task(gym.Env):
         front_camera_extrinsic_cv = self.front_camera.get_extrinsic_matrix()
         front_camera_model_matrix = self.front_camera.get_model_matrix()
 
-        pkl_dic["observations"]["front_camera"] = {
+        pkl_dic["observation"]["front_camera"] = {
             "intrinsic_cv" : front_camera_intrinsic_cv,
             "extrinsic_cv" : front_camera_extrinsic_cv,
             "cam2world_gl" : front_camera_model_matrix
@@ -1000,7 +919,7 @@ class Base_task(gym.Env):
         left_camera_extrinsic_cv = self.left_camera.get_extrinsic_matrix()
         left_camera_model_matrix = self.left_camera.get_model_matrix()
 
-        pkl_dic["observations"]["left_camera"] = {
+        pkl_dic["observation"]["left_camera"] = {
             "intrinsic_cv" : left_camera_intrinsic_cv,
             "extrinsic_cv" : left_camera_extrinsic_cv,
             "cam2world_gl" : left_camera_model_matrix
@@ -1010,7 +929,7 @@ class Base_task(gym.Env):
         right_camera_extrinsic_cv = self.right_camera.get_extrinsic_matrix()
         right_camera_model_matrix = self.right_camera.get_model_matrix()
 
-        pkl_dic["observations"]["right_camera"] = {
+        pkl_dic["observation"]["right_camera"] = {
             "intrinsic_cv" : right_camera_intrinsic_cv,
             "extrinsic_cv" : right_camera_extrinsic_cv,
             "cam2world_gl" : right_camera_model_matrix
@@ -1027,7 +946,7 @@ class Base_task(gym.Env):
 
             if self.save_type.get('raw_data', True):
                 if self.data_type.get('observer', False):
-                    expert_rgba = self._get_camera_rgba(self.expert_camera, camera_pose='observer')
+                    expert_rgba = self._get_camera_rgba(self.observer_camera, camera_pose='observer')
                     save_img(self.file_path["expert_color"]+f"{self.PCD_INDEX}.png",expert_rgba)
                 save_img(self.file_path["t_color"]+f"{self.PCD_INDEX}.png",top_rgba)
                 save_img(self.file_path["f_color"]+f"{self.PCD_INDEX}.png",front_rgba)
@@ -1035,10 +954,10 @@ class Base_task(gym.Env):
                 save_img(self.file_path["r_color"]+f"{self.PCD_INDEX}.png",right_rgba)
 
             if self.save_type.get('pkl' , True):
-                pkl_dic["observations"]["head_camera"]["rgb"] = top_rgba[:,:,:3]
-                pkl_dic["observations"]["front_camera"]["rgb"] = front_rgba[:,:,:3]
-                pkl_dic["observations"]["left_camera"]["rgb"] = left_rgba[:,:,:3]
-                pkl_dic["observations"]["right_camera"]["rgb"] = right_rgba[:,:,:3]
+                pkl_dic["observation"]["head_camera"]["rgb"] = top_rgba[:,:,:3]
+                pkl_dic["observation"]["front_camera"]["rgb"] = front_rgba[:,:,:3]
+                pkl_dic["observation"]["left_camera"]["rgb"] = left_rgba[:,:,:3]
+                pkl_dic["observation"]["right_camera"]["rgb"] = right_rgba[:,:,:3]
         # # ---------------------------------------------------------------------------- #
         # # mesh_segmentation
         # # ---------------------------------------------------------------------------- # 
@@ -1053,10 +972,10 @@ class Base_task(gym.Env):
                 save_img(self.file_path["r_seg_mesh"]+f"{self.PCD_INDEX}.png", right_seg)
 
             if self.save_type.get('pkl' , True):
-                pkl_dic["observations"]["head_camera"]["mesh_segmentation"] = top_seg
-                # pkl_dic["observations"]["front_camera"]["mesh_segmentation"] = front_seg
-                pkl_dic["observations"]["left_camera"]["mesh_segmentation"] = left_seg
-                pkl_dic["observations"]["right_camera"]["mesh_segmentation"] = right_seg
+                pkl_dic["observation"]["head_camera"]["mesh_segmentation"] = top_seg
+                # pkl_dic["observation"]["front_camera"]["mesh_segmentation"] = front_seg
+                pkl_dic["observation"]["left_camera"]["mesh_segmentation"] = left_seg
+                pkl_dic["observation"]["right_camera"]["mesh_segmentation"] = right_seg
         # # ---------------------------------------------------------------------------- #
         # # actor_segmentation
         # # --------------------------------------------------------------------------- # 
@@ -1070,9 +989,9 @@ class Base_task(gym.Env):
                 save_img(self.file_path["l_seg_actor"]+f"{self.PCD_INDEX}.png", left_seg)
                 save_img(self.file_path["r_seg_actor"]+f"{self.PCD_INDEX}.png", right_seg)
             if self.save_type.get('pkl' , True):
-                pkl_dic["observations"]["head_camera"]["actor_segmentation"] = top_seg
-                pkl_dic["observations"]["left_camera"]["actor_segmentation"] = left_seg
-                pkl_dic["observations"]["right_camera"]["actor_segmentation"] = right_seg
+                pkl_dic["observation"]["head_camera"]["actor_segmentation"] = top_seg
+                pkl_dic["observation"]["left_camera"]["actor_segmentation"] = left_seg
+                pkl_dic["observation"]["right_camera"]["actor_segmentation"] = right_seg
         # # ---------------------------------------------------------------------------- #
         # # DEPTH
         # # ---------------------------------------------------------------------------- #
@@ -1088,10 +1007,10 @@ class Base_task(gym.Env):
                 save_img(self.file_path["l_depth"]+f"{self.PCD_INDEX}.png", left_depth)
                 save_img(self.file_path["r_depth"]+f"{self.PCD_INDEX}.png", right_depth)
             if self.save_type.get('pkl' , True):
-                pkl_dic["observations"]["head_camera"]["depth"] = top_depth
-                pkl_dic["observations"]["front_camera"]["depth"] = front_depth
-                pkl_dic["observations"]["left_camera"]["depth"] = left_depth
-                pkl_dic["observations"]["right_camera"]["depth"] = right_depth
+                pkl_dic["observation"]["head_camera"]["depth"] = top_depth
+                pkl_dic["observation"]["front_camera"]["depth"] = front_depth
+                pkl_dic["observation"]["left_camera"]["depth"] = left_depth
+                pkl_dic["observation"]["right_camera"]["depth"] = right_depth
         # # ---------------------------------------------------------------------------- #
         # # endpose JSON
         # # ---------------------------------------------------------------------------- #
@@ -1144,14 +1063,12 @@ class Base_task(gym.Env):
         # # PointCloud
         # # ---------------------------------------------------------------------------- #
         if self.data_type.get('pointcloud', False):
-            # 保存点云到PCD文件
-            # pdb.set_trace()
             top_pcd = self._get_camera_pcd(self.top_camera, point_num=0)
             front_pcd = self._get_camera_pcd(self.front_camera, point_num=0)
             left_pcd = self._get_camera_pcd(self.left_camera, point_num=0)
             right_pcd = self._get_camera_pcd(self.right_camera, point_num=0) 
 
-            # 合并点云
+            # Merge pointcloud
             if self.data_type.get("conbine", False):
                 conbine_pcd = np.vstack((top_pcd , left_pcd , right_pcd, front_pcd))
             else:
@@ -1173,7 +1090,6 @@ class Base_task(gym.Env):
                     ensure_dir(self.file_path["conbine_pcd"] + f"{self.PCD_INDEX}.pcd")
                     o3d.io.write_point_cloud(self.file_path["conbine_pcd"] + f"{self.PCD_INDEX}.pcd", self.arr2pcd(pcd_array, conbine_pcd[index,3:]))
 
-            # pdb.set_trace()
             if self.save_type.get('pkl' , True):
                 pkl_dic["pointcloud"] = conbine_pcd[index]
         #===========================================================#
@@ -1187,22 +1103,24 @@ class Base_task(gym.Env):
         self._update_render()
         self._update_render()
         obs = collections.OrderedDict()
-        
-        # right arm endpose
-        rpy = self.all_joints[43].global_pose.get_rpy()
-        roll, pitch, yaw = rpy
-        x,y,z = self.all_joints[43].global_pose.p
-        gripper = self.all_joints[36].get_drive_target() # czx 
-        
-        right_endpose_matrix = t3d.euler.euler2mat(roll,pitch,yaw) @ t3d.euler.euler2mat(3.14,0,0)
-        right_endpose_quat = t3d.quaternions.mat2quat(right_endpose_matrix) * -1
-        right_endpose_array = np.array([x, y, z, *list(right_endpose_quat), gripper[0]])
+
 
         # left arm endpose
         rpy = self.all_joints[42].global_pose.get_rpy()
         roll, pitch, yaw = rpy
         x,y,z = self.all_joints[42].global_pose.p
-        gripper = self.all_joints[34].get_drive_target() # czx 
+        gripper = self.all_joints[34].get_drive_target()
+        
+        # right arm endpose
+        rpy = self.all_joints[43].global_pose.get_rpy()
+        roll, pitch, yaw = rpy
+        x,y,z = self.all_joints[43].global_pose.p
+        gripper = self.all_joints[36].get_drive_target()
+        
+        right_endpose_matrix = t3d.euler.euler2mat(roll,pitch,yaw) @ t3d.euler.euler2mat(3.14,0,0)
+        right_endpose_quat = t3d.quaternions.mat2quat(right_endpose_matrix) * -1
+        right_endpose_array = np.array([x, y, z, *list(right_endpose_quat), gripper[0]])
+
         
         left_endpose_matrix = t3d.euler.euler2mat(roll,pitch,yaw) @ t3d.euler.euler2mat(3.14,0,0)
         left_endpose_quat = t3d.quaternions.mat2quat(left_endpose_matrix) * -1
@@ -1224,7 +1142,7 @@ class Base_task(gym.Env):
         right_pcd = self._get_camera_pcd(self.right_camera, point_num=0)
         front_pcd = self._get_camera_pcd(self.front_camera, point_num=0)
 
-        # 合并点云
+        # Merge PointCloud
         if self.data_type.get("conbine", False):
             conbine_pcd = np.vstack((top_pcd , left_pcd , right_pcd, front_pcd))
         else:
@@ -1288,7 +1206,6 @@ class Base_task(gym.Env):
                 left_path = np.vstack((left_current_qpos, left_arm_actions))
             right_path = np.vstack((right_current_qpos, right_arm_actions))
 
-
             topp_left_flag, topp_right_flag = True, True
             try:
                 times, left_pos, left_vel, acc, duration = self.left_planner.TOPP(left_path, 1/250, verbose=True)
@@ -1340,7 +1257,6 @@ class Base_task(gym.Env):
                         self.active_joints[left_j].set_drive_velocity_target(left_result["velocity"][now_left_id][j])
                     if not self.fix_gripper:
                         for joint in self.active_joints[34:36]:
-                            # joint.set_drive_target(left_result["position"][i][6])
                             joint.set_drive_target(left_gripper[now_left_id])
                             joint.set_drive_velocity_target(0.05)
                             self.left_gripper_val = left_gripper[now_left_id]
@@ -1354,7 +1270,6 @@ class Base_task(gym.Env):
                         self.active_joints[right_j].set_drive_velocity_target(right_result["velocity"][now_right_id][j])
                     if not self.fix_gripper:
                         for joint in self.active_joints[36:38]:
-                            # joint.set_drive_target(right_result["position"][i][6])
                             joint.set_drive_target(right_gripper[now_right_id])
                             joint.set_drive_velocity_target(0.05)
                             self.right_gripper_val = right_gripper[now_right_id]
@@ -1408,7 +1323,7 @@ class Base_task(gym.Env):
             
             if self.actor_pose == False:
                 break
-            continue
+            
         print("\nfail!")
     
     def get_grasp_pose_w_labeled_direction(self, actor, actor_data = DEFAULT_ACTOR_DATA, grasp_matrix = np.eye(4), pre_dis = 0, id = 0):
@@ -1432,18 +1347,7 @@ class Base_task(gym.Env):
         global_grasp_pose_p = global_contact_pose_matrix[:3,3] + grasp_matrix @ np.array([-0.12-pre_dis,0,0]).T
         res_pose = list(global_grasp_pose_p) + grasp_qpos
         return res_pose
-
-    # def get_target_pose_from_goal_point_and_direction(self, actor, actor_data = DEFAULT_ACTOR_DATA, endpose = None, target_pose = None, target_grasp_qpose = None):
-    #     actor_matrix = actor.get_pose().to_transformation_matrix()
-    #     local_target_matrix = np.asarray(actor_data['target_pose'])
-    #     local_target_matrix[:3,3] *= actor_data['scale']
-    #     res_matrix = np.eye(4)
-    #     res_matrix[:3,3] = (actor_matrix  @ local_target_matrix)[:3,3] - endpose.global_pose.p
-    #     res_matrix[:3,3] = np.linalg.inv(t3d.quaternions.quat2mat(endpose.global_pose.q) @ np.array([[1,0,0],[0,-1,0],[0,0,-1]])) @ res_matrix[:3,3]
-    #     res_pose = list(target_pose - t3d.quaternions.quat2mat(target_grasp_qpose) @ res_matrix[:3,3]) + target_grasp_qpose
-    #     return res_pose
     
-
     def get_target_pose_from_goal_point_and_direction(self, actor, actor_data = DEFAULT_ACTOR_DATA, end_effector_pose = None, target_point = None, target_approach_direction = [0,0,1,0], pre_dis = 0):
         
         target_approach_direction = t3d.quaternions.quat2mat(target_approach_direction)
@@ -1462,7 +1366,6 @@ class Base_task(gym.Env):
         res_matrix[:3,3] = np.linalg.inv(end_effector_pose_matrix) @ res_matrix[:3,3]
         target_grasp_qpose = t3d.quaternions.mat2quat(target_grasp_matrix)
         res_pose = (target_point - target_grasp_matrix @ res_matrix[:3,3]).tolist() + target_grasp_qpose.tolist()
-        # print(res_pose)
         return res_pose
     
     def get_actor_goal_pose(self,actor,actor_data = DEFAULT_ACTOR_DATA):
@@ -1480,176 +1383,31 @@ class Base_task(gym.Env):
     def pre_move(self):
         pass
 
-    # =============== Real Robot ===============
-    # Shijia Peng
-    def ros_init(self):
-        import rospy
-        from sensor_msgs.msg import JointState
-        from sensor_msgs.msg import PointCloud2
-        import sensor_msgs.point_cloud2 as pc2
-        import struct
-        import ctypes
-        # self._get_camera_pcd(self.top_camera, point_num=0)
-        rospy.init_node('joint_state_publisher', anonymous=True)
-        self.right_pub = rospy.Publisher("/master/joint_right",JointState,queue_size=10)
-        self.left_pub = rospy.Publisher("/master/joint_left",JointState,queue_size=10)
-        jointState_right_sub = rospy.Subscriber("/puppet/joint_right",JointState,self.get_right_js,queue_size=10)
-        jointState_right_sub = rospy.Subscriber("/puppet/joint_left",JointState,self.get_left_js,queue_size=10)
-        top_cam_sub = rospy.Subscriber("/camera_f/depth/color/points",PointCloud2,self.get_top_pcl,queue_size=10)
-
-    def get_right_js(self,msg):
-        self.right_js = msg.position
-
-    def get_left_js(self,msg):
-        self.left_js = msg.position
-    # 获取真机点云
-    def get_top_pcl(self,cloud_msg):
-        self.raw_top_pcl = cloud_msg
-
-    def real_robot_get_obs(self):
-        if self.right_js != None and self.left_js != None:
-            right_js = np.asarray(self.right_js)
-            left_js = np.asarray(self.left_js)
-            right_js[6] = (right_js[6]-1) /100
-            left_js[6] = (left_js[6]-1) /100
-
-        else:
-            right_js = None
-            left_js = None
-
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        # 读取ros pcl2格式点云
-        points = pc2.read_points(self.raw_top_pcl, skip_nans=True)
-
-        int_data = list(points)
-        xyz = []
-        rgb = []
-        for x in int_data:
-            test = x[3] 
-            s = struct.pack('>f' ,test)
-            i = struct.unpack('>l',s)[0]
-            pack = ctypes.c_uint32(i).value
-            r = (pack & 0x00FF0000)>> 16
-            g = (pack & 0x0000FF00)>> 8 
-            b = (pack & 0x000000FF) 
-            xyz.append((x[0],x[1],x[2]))
-            rgb.append((r,g,b))
-            
-        # 将点云转换为NumPy数组
-        points_array = np.array(xyz)
-        points_color = np.array(rgb)
-        # 计算每个点颜色与(150, 150, 150)的差值
-        color_difference = abs(points_color - 150)
-        # 计算差值的均值
-        mean_difference = color_difference.mean(axis=1)
-        # 过滤出均值差值小于或等于50的点
-        filtered_indices = mean_difference >=50
-        # 使用过滤后的索引来选择点云数据和颜色数据
-        points_array = points_array[filtered_indices]
-        points_color = points_color[filtered_indices]
-
-        
-
-        # 坐标转换
-        real2sim_cam_mat = t3d.euler.euler2mat(0, 0 ,(1.57+1.00)*-1, axes='rzyx')
-        real2sim_cam_xyz = np.array([0,-0.27,1.315])
-        points_world = points_array @ real2sim_cam_mat[:3, :3].T  + real2sim_cam_xyz  # 转换到世界坐标系
-        # pdb.set_trace()
-        points_color = points_color /255
-        # 点存为tensor
-        points_world = torch.tensor(points_world, dtype=torch.float32).to(device)
-        points_color = torch.tensor(points_color, dtype=torch.float32).to(device)
-        # if True:   #TODO：是否crop
-        #     # crop范围
-        #     min_bound = torch.tensor([-0.6, -0.35, 0.741], dtype=torch.float32).to(device)
-        #     max_bound = torch.tensor([0.6, 0.35, 2], dtype=torch.float32).to(device)
-        #     inside_bounds_mask = (points_world.squeeze(0) >= min_bound).all(dim=1) & (points_world.squeeze(0)  <= max_bound).all(dim=1)
-        #     points_world = points_world[inside_bounds_mask]
-        #     points_color = points_color[inside_bounds_mask]
-
-        # 将张量转换回NumPy数组以用于Open3D
-        points_world_np = points_world.cpu().numpy()
-        points_color_np = points_color.cpu().numpy()
-        point_num = 1024
-        if point_num > 0:
-            real_top_pcl,index = fps(points_world_np,point_num)
-            index = index.detach().cpu().numpy()[0]
-            real_top_pcl_color = points_color_np[index,:]
-        
-
-        observation = dict()
-        observation["pcd"] = real_top_pcl
-        observation["color"] = real_top_pcl_color
-        observation["right_jointState"] = right_js
-        observation["left_jointState"] = left_js
-
-        pcd = o3d.geometry.PointCloud()
-        pcd.points = o3d.utility.Vector3dVector(observation["pcd"])
-        pcd.colors = o3d.utility.Vector3dVector(observation["color"])
-        # 保存点云到PCD文件
-        o3d.io.write_point_cloud("output_t3d2.pcd", pcd)
-        pdb.set_trace()
-        return observation
-        
-    def apply_policy_real_robot(self, model): # Shijia Peng
-        cnt = 0
+    # ================= For Your Policy Deployment =================
+    def apply_policy_demo(self, model):
+        step_cnt = 0
         self.test_num += 1
-
         success_flag = False
         self._update_render()
         if self.render_freq:
             self.viewer.render()
-        
         self.actor_pose = True
-        ############################
-        self.ros_init()
-        while self.raw_top_pcl == None or self.right_js == None or self.left_js == None:
-            # print("no data")
-            if self.raw_top_pcl == None:
-                print("raw_top_pcl = None")
-            if self.right_js == None:
-                print("right_js = None")
-            if self.left_js == None:
-                print("left_js = None")
+        
+        while step_cnt < self.step_lim: # If it is not successful within the specified number of steps, it is judged as a failure.
+            obs = self.get_obs() # get observation
+            
+            actions = model.get_action(obs) # TODO, get actions according to your policy and current obs
 
-        # while True:
-        #     self.real_robot_get_obs()
-            # print(11)
-        ############################
-        while cnt < self.step_lim:
-            # observation = self.get_obs()  
-            ############################
-            observation = self.real_robot_get_obs()
-            ############################
-            obs = dict()
-            # pdb.set_trace()
-            obs['point_cloud'] = observation['pcd'][:,:3]
-            if self.dual_arm:
-                obs['agent_pos'] = np.concatenate((observation['left_joint_action'], observation['right_joint_action']))
-                # obs['real_joint_action'] = np.concatenate((observation['left_real_joint_action'], observation['left_real_joint_action']))
-                assert obs['agent_pos'].shape[0] == 14, 'agent_pose shape, error'
-            else:
-                obs['agent_pos'] = np.array(observation['right_joint_action'])
-                # obs['real_joint_action'] = np.array(observation['left_real_joint_action'])
-                assert obs['agent_pos'].shape[0] == 7, 'agent_pose shape, error'
-            # pdb.set_trace()
-            actions = model.get_action(obs)
-            # pdb.set_trace()
             left_arm_actions , left_gripper , left_current_qpos, left_path = [], [], [], []
             right_arm_actions , right_gripper , right_current_qpos, right_path = [], [], [], []
-            if self.dual_arm:
-                left_arm_actions,left_gripper = actions[:, :6],actions[:, 6]
-                right_arm_actions,right_gripper = actions[:, 7:13],actions[:, 13]
-                left_current_qpos, right_current_qpos = obs['agent_pos'][:6], obs['agent_pos'][7:13]
-            else:
-                right_arm_actions,right_gripper = actions[:, :6],actions[:, 6]
-                right_current_qpos = obs['agent_pos'][:6]
+
+            left_arm_actions, left_gripper = actions[:, :6],actions[:, 6] # 0-5 left joint action, 6 left gripper action
+            right_arm_actions, right_gripper = actions[:, 7:13],actions[:, 13] # 7-12 right joint action, 13 right gripper action
+            left_current_qpos, right_current_qpos = obs['left_joint_action'][:6], obs['right_joint_action'][7:13]  # current joint and gripper action
             
-            if self.dual_arm:
-                left_path = np.vstack((left_current_qpos, left_arm_actions))
+
+            left_path = np.vstack((left_current_qpos, left_arm_actions))
             right_path = np.vstack((right_current_qpos, right_arm_actions))
-
-
             topp_left_flag, topp_right_flag = True, True
             try:
                 times, left_pos, left_vel, acc, duration = self.left_planner.TOPP(left_path, 1/250, verbose=True)
@@ -1658,10 +1416,6 @@ class Base_task(gym.Env):
                 left_n_step = left_result["position"].shape[0]
                 left_gripper = np.linspace(left_gripper[0], left_gripper[-1], left_n_step)
             except:
-                topp_left_flag = False
-                left_n_step = 1
-            
-            if left_n_step == 0 or (not self.dual_arm):
                 topp_left_flag = False
                 left_n_step = 1
 
@@ -1679,7 +1433,7 @@ class Base_task(gym.Env):
                 topp_right_flag = False
                 right_n_step = 1
             
-            cnt += (actions.shape[0]-4)
+            step_cnt += actions.shape[0]
             
             n_step = max(left_n_step, right_n_step)
 
@@ -1701,22 +1455,9 @@ class Base_task(gym.Env):
                         self.active_joints[left_j].set_drive_velocity_target(left_result["velocity"][now_left_id][j])
                     if not self.fix_gripper:
                         for joint in self.active_joints[34:36]:
-                            # joint.set_drive_target(left_result["position"][i][6])
                             joint.set_drive_target(left_gripper[now_left_id])
                             joint.set_drive_velocity_target(0.05)
                             self.left_gripper_val = left_gripper[now_left_id]
-                    
-                    # print(self.red)
-                    # ShijiaPeng
-                    self.left_joint_state = JointState()
-                    self.left_joint_state.header.stamp = rospy.Time.now()  # 设置时间戳
-                    global left_pub_data
-                    left_pub_data[0:6]=left_result["position"][now_left_id]
-                    left_pub_data[6] = left_gripper[now_left_id] *100+ 1
-                    self.left_joint_state.position = left_pub_data       # 设置位置数据
-                    # pdb.set_trace()
-                    self.left_pub.publish(self.left_joint_state)
-                    # ShijiaPeng
 
                     now_left_id +=1
                     
@@ -1727,80 +1468,40 @@ class Base_task(gym.Env):
                         self.active_joints[right_j].set_drive_velocity_target(right_result["velocity"][now_right_id][j])
                     if not self.fix_gripper:
                         for joint in self.active_joints[36:38]:
-                            # joint.set_drive_target(right_result["position"][i][6])
                             joint.set_drive_target(right_gripper[now_right_id])
                             joint.set_drive_velocity_target(0.05)
                             self.right_gripper_val = right_gripper[now_right_id]
-
-                    # ShijiaPeng
-                    self.right_joint_state = JointState()
-                    self.right_joint_state.header.stamp = rospy.Time.now()  # 设置时间戳
-                    global right_pub_data
-                    right_pub_data[0:6]=right_result["position"][now_right_id]
-                    right_pub_data[6] = right_gripper[now_right_id] *100+ 1
-                    self.right_joint_state.position = right_pub_data       # 设置位置数据
-                    # pdb.set_trace()
-                    self.right_pub.publish(self.right_joint_state)
-                    # ShijiaPeng
 
                     now_right_id +=1
                 
                 self.scene.step()
                 self._update_render()
 
-                if i != 0 and i % obs_update_freq == 0:
-                    observation = self.real_robot_get_obs()
-                    obs=dict()
-                    obs['point_cloud'] = observation['pcd'][:,:3]
-                    if self.dual_arm:
-                        obs['agent_pos'] = np.concatenate((observation['left_joint_action'], observation['right_joint_action']))
-                        # obs['real_joint_action'] = np.concatenate((observation['left_real_joint_action'], observation['left_real_joint_action']))
-                        assert obs['agent_pos'].shape[0] == 14, 'agent_pose shape, error'
-                    else:
-                        obs['agent_pos'] = np.array(observation['right_joint_action'])
-                        # obs['real_joint_action'] = np.is_staticarray(observation['left_real_joint_action'])
-                        assert obs['agent_pos'].shape[0] == 7, 'agent_pose shape, error'
-                    
-                    model.update_obs(obs)
-                    self._take_picture()
-
-
-                print("left   :",self.left_gripper_val)
-                print("right  :",self.right_gripper_val,"\n")
                 if i % 5==0:
                     self._update_render()
                     if self.render_freq and i % self.render_freq == 0:
                         self.viewer.render()
                 
-                i+=1
-                # if self.check_success():
-                #     success_flag = True
-                #     break
+                i += 1
+                if self.check_success():
+                    success_flag = True
+                    break
 
-                # if self.actor_pose == False:
-                #     break
+                if self.actor_pose == False:
+                    break
             
             self. _update_render()
             if self.render_freq:
                 self.viewer.render()
             
-            self._take_picture()
+            print(f'step: {step_cnt} / {self.step_lim}', end='\r')
 
-            print(f'step: {cnt} / {self.step_lim}', end='\r')
-
-            # if success_flag:
-            #     print("\nsuccess!")
-            #     self.suc +=1
-            #     return
+            if success_flag:
+                print("\nsuccess!")
+                self.suc +=1
+                return
             
-            # if self.actor_pose == False:
-            #     break
-            continue
+            if self.actor_pose == False:
+                break
+            
         print("\nfail!")
-    # ==========================================
-    
-    def reset_arms(self):
-        self.together_move_to_pose_with_screw
-
-
-        

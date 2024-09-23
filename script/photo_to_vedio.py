@@ -2,19 +2,15 @@ import imageio
 import os
 
 def create_video(image_folder, output_video_file, save_dir='./task_video/', fps=30):
-    # 修复创建目录的语法错误
     video_dir = save_dir
     if not os.path.exists(video_dir):
         os.makedirs(video_dir)
 
-    # 获取并排序图像文件
     images = [img for img in os.listdir(image_folder) if img.endswith(".png")]
     images.sort(key=lambda x: int(x.split('.')[0]))
 
-    # 创建视频写入器
     writer = imageio.get_writer(os.path.join(video_dir, output_video_file), fps=fps)
 
-    # 添加图像到视频
     for i, image_name in enumerate(images, start=1):
         img_path = os.path.join(image_folder, image_name)
         try:
@@ -27,21 +23,8 @@ def create_video(image_folder, output_video_file, save_dir='./task_video/', fps=
     writer.close()
     print("\nVideo creation complete.")
 
-# # 使用函数
-# def main():
-#     create_video('./policy_data/test/episode0/camera/color/front/0.png', 'pick_cup_with_liquid_top.mp4')
-
 if __name__ == '__main__':
-    # task_list = ['block_hammer_beat', 'block_handover', 'apple_cabinet_storage', 'dual_bottles_pick_easy', 'empty_cup_place', 'block_sweep']
     task_list = ['mug_hanging']
     load_dir = './data'
     for task in task_list:
-        # create_video(f'{load_dir}/{task}/episode0/camera/color/front/',f'{task}_top.mp4', save_dir=f'./task_video/success/')
-        # create_video(f'{load_dir}/{task}/episode0/camera/color/observer/',f'{task}_expert.mp4', save_dir='./task_video/success/')
-        # create_video(f'{load_dir}/{task}/episode1/camera/color/front/',f'{task}_top.mp4', save_dir=f'./task_video/fail/')
-        # create_video(f'{load_dir}/{task}/episode1/camera/color/observer/',f'{task}_expert.mp4', save_dir='./task_video/fail/')
-
-        create_video(f'{load_dir}/{task}/episode0/camera/color/top/',f'{task}_top.mp4', save_dir=f'./task_video/')
-        # create_video(f'{load_dir}/{task}/episode0/camera/color/observer/',f'{task}_expert.mp4', save_dir='./task_video/')
-        create_video(f'{load_dir}/{task}/episode0/camera/color/left/',f'{task}_left.mp4', save_dir='./task_video/')
         create_video(f'{load_dir}/{task}/episode0/camera/color/right/',f'{task}_right.mp4', save_dir='./task_video/')

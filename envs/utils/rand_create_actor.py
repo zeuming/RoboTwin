@@ -21,7 +21,6 @@ def rand_pose(
     if (len(zlim)<2 or zlim[1]<zlim[0]):
         zlim=np.array([zlim[0],zlim[0]])
     
-    # 随机生成物体 xyz 坐标
     x = np.random.uniform(xlim[0],xlim[1])
     y = np.random.uniform(ylim[0],ylim[1])
 
@@ -30,20 +29,16 @@ def rand_pose(
         
     z = np.random.uniform(zlim[0],zlim[1])
 
-    # 随机生成物体旋转姿态
     rotate = qpos
     if (rotate_rand):
         angles = [0,0,0]
         for i in range(3):
             angles[i] = np.random.uniform(-rotate_lim[i],rotate_lim[i])
         rotate_quat = t3d.euler.euler2quat(angles[0], angles[1], angles[2])
-        # print(rotate_quat)
         rotate = t3d.quaternions.qmult(rotate, rotate_quat)
-        # print(rotate)
 
     return sapien.Pose([x, y, z],rotate)
 
-#创建随机位置的obj对象
 def rand_create_obj(
     scene: sapien.Scene,
     modelname: str,

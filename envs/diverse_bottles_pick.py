@@ -13,7 +13,6 @@ class diverse_bottles_pick(Base_task):
         self.pre_move()
         if is_test:
             self.id_list = [2*i + 1 for i in range(11)]
-            # self.id_list = [i for i in range(22)]
         else:
             self.id_list = [2*i for i in range(11)]
         self.load_actors()
@@ -74,12 +73,8 @@ class diverse_bottles_pick(Base_task):
         right_pose1 = self.get_grasp_pose_w_given_direction(self.bottle2, self.bottle2_data,grasp_qpos=[-0.415,0,0,-0.910], pre_dis=0.01)
         left_target_pose = [-0.19,-0.12,0.92,1,0,0,0]
         right_target_pose = [0.19,-0.12,0.92,-0.01,0.01,0.03,-1]
-
-        # print('bottle1 pose: ',self.bottle1.get_pose().p)
-        # print('bottle2 pose: ',self.bottle2.get_pose().p)
+        
         self.together_move_to_pose_with_screw(left_pose0,right_pose0,save_freq=15)
-        # while 1:
-        #     self.open_left_gripper()
 
         self.together_move_to_pose_with_screw(left_pose1,right_pose1,save_freq=15)
         

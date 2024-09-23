@@ -104,8 +104,6 @@ class dual_bottles_pick_hard(Base_task):
         eps = 0.03
         red_bottle_pose = self.red_bottle.get_pose().p
         green_bottle_pose = self.green_bottle.get_pose().p
-
-        # print(red_bottle_pose)
-        # print(green_bottle_pose)
+        
         return abs(red_bottle_pose[0]-red_target[0])<eps and abs(red_bottle_pose[1]-red_target[1])<eps and red_bottle_pose[2]>0.9 and\
                abs(green_bottle_pose[0]-green_target[0])<eps and abs(green_bottle_pose[1]-green_target[1])<eps and green_bottle_pose[2]>0.9

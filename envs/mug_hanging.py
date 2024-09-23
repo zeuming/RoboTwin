@@ -18,7 +18,7 @@ class mug_hanging(Base_task):
             self.id_list = [0,2]
 
         self.load_actors()
-        self.step_lim = 750
+        self.step_lim = 800
     
     def pre_move(self):
         render_freq = self.render_freq
@@ -86,11 +86,9 @@ class mug_hanging(Base_task):
         right_pose1[2] += 0.05
         self.right_move_to_pose_with_screw(pose=right_pose1,save_freq=15)
 
-        # target_pose_p = [0.191, 0.123, 0.93]
         target_pose_p = self.get_actor_goal_pose(self.rack,self.rack_data)
         target_pose_q = [-0.371601, -0.176777, -0.391124, -0.823216]
         right_target_pose = self.get_target_pose_from_goal_point_and_direction(self.mug,self.mug_data,self.right_endpose,target_pose_p,target_pose_q)
-        # right_target_pose = list(target_pose_p - t3d.quaternions.quat2mat(target_pose_q) @ target_pose_trans_endpose_matrix[:3,3]) + target_pose_q
         self.right_move_to_pose_with_screw(pose=right_target_pose,save_freq=15)
         right_target_pose[0] += 0.04
         right_target_pose[2] -= 0.04

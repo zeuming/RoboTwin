@@ -14,7 +14,7 @@ class blocks_stack_easy(Base_task):
         self.load_camera(kwags.get('camera_w', 640),kwags.get('camera_h', 480))
         self.pre_move()
         self.load_actors()
-        self.step_lim = 150
+        self.step_lim = 600
 
     def pre_move(self):
         render_freq = self.render_freq
@@ -88,9 +88,6 @@ class blocks_stack_easy(Base_task):
 
     def move_block(self,actor,id = 0, las_arm = None):
         actor_rpy = actor.get_pose().get_rpy()
-        # print(actor_rpy)
-        # print(math.fmod(actor_rpy[2], math.pi / 2))
-        # TODO self.check_grasp_qpose_reasonable()
         actor_pose = actor.get_pose().p
         actor_euler = math.fmod(actor_rpy[2], math.pi / 2)
         grasp_euler = actor_euler - math.pi/2  if actor_euler > math.pi/4 else actor_euler

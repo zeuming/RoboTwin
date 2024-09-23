@@ -14,7 +14,6 @@ class pick_apple_messy(Base_task):
         self.pre_move()
         if is_test:
             self.id_list = [2*i+1 for i in range(5)]
-            # self.id_list = [i for i in range(10)]
         else:
             self.id_list = [2*i for i in range(5)]
         self.load_actors()
@@ -111,9 +110,6 @@ class pick_apple_messy(Base_task):
             self.close_right_gripper()  # close right gripper to grasp the apple
             pose2[2] += 0.05  # lift the apple up for 5 cm
             self.right_move_to_pose_with_screw(pose2) # lift the apple up for 5 cm
-
-        # while 1:
-        #     self.close_right_gripper()
 
     def check_success(self):
         apple_pose = self.apple.get_pose().p
