@@ -350,11 +350,6 @@ AVAILABLE_ENV_FUNCTOIN = {
     # "check_success": "Check if the task has been successfully completed.",
     # "pre_move": "Perform any necessary actions before moving the robot.",
 
-    # "ros_init": "Initialize ROS node and subscribers for real robot application.",
-    # "get_right_js": "Get the current joint states of the right arm from ROS.",
-    # "get_left_js": "Get the current joint states of the left arm from ROS.",
-    # "get_top_pcl": "Get the point cloud data from the top camera via ROS.",
     # "real_robot_get_obs": "Get observations for the real robot including joint states and point cloud data.",
-    # "apply_policy_real_robot": "Apply a policy model to control the real robot based on the current observation."
 }
 
