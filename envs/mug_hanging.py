@@ -27,7 +27,7 @@ class mug_hanging(Base_task):
         self.render_freq = render_freq
 
     def load_actors(self):
-        self.mug, self.mug_data = rand_create_glb(
+        self.mug, self.mug_data = rand_create_actor(
             self.scene,
             xlim=[-0.25,-0.1],
             ylim=[-0.05,0.1],
@@ -39,7 +39,6 @@ class mug_hanging(Base_task):
             qpos=[0.707,0.707,0,0],
             convex=False,
             model_id = np.random.choice(self.id_list)
-            # model_id = self.ep_num
         )
 
         rack_pose = rand_pose(
@@ -57,6 +56,9 @@ class mug_hanging(Base_task):
             convex=True
         )
         self.mug.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.001
+        self.middle_pos = [0.05, -0.15, 0.75]
+        self.actor_data_dic = {'mug_data':self.mug_data,'rack_data':self.rack_data, 'middle_pose_of_left_arm': self.middle_pos}
+        self.actor_name_dic = {'mug':self.mug,'rack':self.rack, 'middle_pose_of_left_arm': self.middle_pos}
 
     def play_once(self):
         left_pose1 = self.get_grasp_pose_w_labeled_direction(self.mug,self.mug_data,pre_dis=0.05)
@@ -88,7 +90,7 @@ class mug_hanging(Base_task):
 
         target_pose_p = self.get_actor_goal_pose(self.rack,self.rack_data)
         target_pose_q = [-0.371601, -0.176777, -0.391124, -0.823216]
-        right_target_pose = self.get_target_pose_from_goal_point_and_direction(self.mug,self.mug_data,self.right_endpose,target_pose_p,target_pose_q)
+        right_target_pose = self.get_grasp_pose_from_goal_point_and_direction(self.mug,self.mug_data,self.right_endpose,target_pose_p,target_pose_q)
         self.right_move_to_pose_with_screw(pose=right_target_pose,save_freq=15)
         right_target_pose[0] += 0.04
         right_target_pose[2] -= 0.04
@@ -98,5 +100,5 @@ class mug_hanging(Base_task):
 
     def check_success(self):
         mug_target_pose = self.get_actor_goal_pose(self.mug,self.mug_data)
-        eps = np.array([0.01,0.01,0.01])
-        return np.all(abs(mug_target_pose - self.rack.get_pose().p + [0.02,0.02,-0.1]) < eps) and np.all(abs(self.right_endpose.global_pose.p - [0.3,-0.32,0.935]) < 0.05)
+        eps = np.array([0.05,0.03,0.02])
+        return np.all(abs(mug_target_pose - self.rack.get_pose().p + [0.07,0.02,-0.035]) < eps) and self.is_right_gripper_open()

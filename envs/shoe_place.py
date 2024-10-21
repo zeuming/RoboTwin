@@ -25,6 +25,40 @@ class shoe_place(Base_task):
         self.together_open_gripper(save_freq=None)
         self.render_freq = render_freq
 
+    def create_block_data(self, half_size):
+        contact_discription_list = []
+        test_matrix = np.array([[0,0,1,0],[1,0,0,0],[0,1,0,0],[0,0,0,1]])
+        test_matrix[:3,:3] = t3d.euler.euler2mat(0,0,np.pi) @ test_matrix[:3,:3]
+        # print(test_matrix.tolist())
+        contact_points_list = [
+                # [[0, 0, 1, 0], [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1]], # top_down(front)
+                # [[1, 0, 0, 0], [0, 0, -1, 0], [0, 1, 0, 0], [0, 0, 0, 1]], # top_down(right)
+                # [[-1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]], # top_down(left)
+                # [[0, 0, -1, 0], [-1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1]], # top_down(back)
+                
+                # [[0, 0, 1, 0], [0, -1, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1]], # front
+                # [[0, 1, 0, 0], [0, 0, 1, 0], [1, 0, 0, 0], [0, 0, 0, 1]], # left
+                # [[0, -1, 0, 0], [0, 0, -1, 0], [1, 0, 0, 0], [0, 0, 0, 1]], # right
+                # [[0, 0, -1, 0], [0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1]], # back
+                # test_matrix.tolist(),
+            ]
+
+        data = {
+            'center': [0,0,0],
+            'extents': half_size,
+            'scale': [1,1,1],                                     # 缩放
+            'target_pose': [[[1,0,0,0],[0,1,0,0],[0,0,1,half_size[2]],[0,0,0,1]]],              # 目标点矩阵
+            'contact_points_pose' : contact_points_list,    # 抓取点矩阵（多个）
+            'transform_matrix': np.eye(4).tolist(),           # 模型到标轴的旋转矩阵
+            "functional_matrix": [[0., 1., 0., 0.], [0., 0., -1., 0.], [1., 0., 0., 0.], [0., 0., 0., 1.]],         # 功能点矩阵
+            'contact_points_discription': contact_discription_list,    # 抓取点描述
+            'contact_points_group': [],
+            'contact_points_mask': [],
+            'target_point_discription': ["The center point on the top of the box." ]
+        }
+
+        return data
+
     def load_actors(self, **kwargs):
         # super().setup_scene()
         self.target = create_visual_box(
@@ -35,6 +69,7 @@ class shoe_place(Base_task):
             name="box"
         )
 
+        self.target_data = self.create_block_data([0.13,0.05,0.0005])
         shoes_pose = rand_pose(
             xlim=[-0.25,0.25],
             ylim=[-0.1,0.05],
@@ -57,7 +92,7 @@ class shoe_place(Base_task):
             )
         
 
-        self.shoe, self.shoe_data = create_glb(
+        self.shoe, self.shoe_data = create_actor(
             self.scene,
             pose=shoes_pose,
             modelname="041_shoes",
@@ -68,9 +103,12 @@ class shoe_place(Base_task):
         )
 
         self.shoe.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.1
+        self.actor_data_dic = {'target_data':self.target_data,'shoe_data':self.shoe_data}
+        self.actor_name_dic = {'target':self.target,'shoe':self.shoe}
 
     def play_once(self):
         shoe_rpy = self.shoe.get_pose().get_rpy()
+        print(self.shoe.get_pose())
         if math.fmod(math.fmod(shoe_rpy[2] + shoe_rpy[0], 2 * math.pi) + 2 * math.pi, 2*math.pi) < math.pi:
             grasp_matrix = np.array([[-1,0,0,0],[0,1,0,0],[0,0,-1,0],[0,0,0,1]])
             target_quat = [-0.707,0,-0.707,0]
@@ -114,7 +152,7 @@ class shoe_place(Base_task):
     def check_success(self):
         shoe_pose_p = np.array(self.shoe.get_pose().p)
         shoe_pose_q = np.array(self.shoe.get_pose().q)
-        
+
         if shoe_pose_q[0] < 0:
             shoe_pose_q *= -1
 
@@ -122,4 +160,4 @@ class shoe_place(Base_task):
         target_pose_q = np.array([0.5,0.5,-0.5,-0.5])
         eps = np.array([0.05,0.02,0.05,0.05,0.05,0.05])
         endpose_z = max(self.get_right_endpose_pose().p[2], self.get_left_endpose_pose().p[2])
-        return np.all(abs(shoe_pose_p[:2] - target_pose_p) < eps[:2]) and np.all(abs(shoe_pose_q - target_pose_q) < eps[-4:] )and endpose_z > 0.97 and self.is_left_gripper_open() and self.is_right_gripper_open()
+        return np.all(abs(shoe_pose_p[:2] - target_pose_p) < eps[:2]) and np.all(abs(shoe_pose_q - target_pose_q) < eps[-4:] ) and self.is_left_gripper_open() and self.is_right_gripper_open()

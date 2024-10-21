@@ -1,17 +1,17 @@
-tmp/
 aloha_maniskill_sim/
 models/
-hammer_beat_pkl/
 data/
 __pycache__/
-tmp_/
 policy/3D-Diffusion-Policy/3D-Diffusion-Policy/data/
 policy/3D-Diffusion-Policy/3D-Diffusion-Policy/checkpoints/
 result/
 asset.zip
 aloha_maniskill_sim_modify/
-aloha_maniskill_sim_bac/
-task_video_benchmark/
 models_copy/
-third_party
-DOING_TASKS/
+third_party/
+result_dp3/
+task_config/seeds/*.txt
+
+# Code Generation
+robotwin.py
+gpt_api/*

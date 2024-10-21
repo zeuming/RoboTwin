@@ -1,40 +1,97 @@
-from gpt_api.api import *
 from gpt_api.gpt_agent import *
 from gpt_api.prompt import *
 from gpt_api.task_info import *
+from script.test_gpt_code import *
+import os
 
-TASK_LIST = [PICK_APPLE, HAMMER_BEAT]
+TASK_LIST = [BLOCK_HAMMER_BEAT, 
+             DUAL_BOTTLES_PICK_EASY,
+             DUAL_BOTTLES_PICK_HARD,
+             DIVERSE_BOTTLES_PICK,
+             BLOCK_HANDOVER,
+             BLOCKS_STACK_EASY,
+             DUAL_BOTTLES_PICK_HARD]
 
-# modify TASK
-TASK = HAMMER_BEAT
-
-# ========================================================
-def robotwin():
-    # input TASK_DESCRIPTION
-    # print('Please input your TASK_DESCRIPTION, using natural language:')
-    TASK_DESCRIPTION = TASK['task_description']
-    CURRENT_CODE = TASK['current_code']
-    AVAILABLE_ENV_FUNCTOIN_str = str(AVAILABLE_ENV_FUNCTOIN)
-    EXAMPLE_TASK_str = str(EXAMPLE_TASK)
-
-    # Generate Task Name
-    TASK_NAME_PROMPT = f'Please directly give me a task name, no more than 4 words, use \'_\' instead of space to split the words, the task is: {TASK_DESCRIPTION}'
-    task_name = generate(TASK_NAME_PROMPT)
+def generate_code(task_info, las_error = None, message:list = None):
+    task_discription = task_info['task_description']
+    current_code = task_info['current_code']
+    available_env_function = str(AVAILABLE_ENV_FUNCTOIN)
+    function_example = str(FUNCTION_EXAMPLE)
+    task_name = task_info['task_name']
+    available_constants = str(AVAILABLE_CONSTANTS)
 
     # Generate Code
-    Prompt = BASIC_INFO + '\n\n' + 'Code Template: \n' + CODE_TEMPLATE + '\n\n' + 'Example Task: \n' + EXAMPLE_TASK_str + '\n\n' + 'Available API: \n' + AVAILABLE_ENV_FUNCTOIN_str + '\n\n' + 'Please Generate the Code According to task description and current unfinished code:\n' + 'task description:' + TASK_DESCRIPTION + '\n\n' + CURRENT_CODE
+    if las_error is not None:
+        Prompt = f"\n\nThe code is unsuccessful, \nLast Error Message: \n{las_error}"
+    else:
+        res = f'''
+from .base_task import Base_task
+from .{task_name} import {task_name}
+from .utils import *
+import sapien
+
+class gpt_{task_name}({task_name}):
+    def play_once(self):
+        pass
+        '''
+        # pdb.set_trace()
+        file_name = f"envs/gpt_{task_name}.py"
+        with open(file_name, 'w') as file:
+            file.write(res)
+        actor_name_keys, actor_data_keys, actor_points_discription = get_actor_keys_and_points_discription(f"gpt_{task_name}")
+        # actor_points_discription = get_actor_points_discription(f"gpt_{task_name}")
+        Prompt = f"{BASIC_INFO}\n\n\
+                    Task Discription: \n{task_discription}\n\n\
+                    Available API: \n{available_env_function}\n\n\
+                    Function Example: \n{function_example}\n\n\
+                    Available Constants: \n{available_constants}\n\n\
+                    The Actor Name List: {actor_name_keys}\n\n\
+                    The Actor Data List: {actor_data_keys}\n\n\
+                    The Actor Points Discription: {actor_points_discription}\n\n\
+                    Current Code:\n{current_code}"
+    message.append({"role": "user", "content": Prompt})
+    # write the prompt to a file
+    # with open("prompt.txt", 'w') as file:
+    #     file.write(Prompt)
+
     # Start Generation Process
-    res = generate(Prompt)
-    # Specify the file name and mode
-    file_name = f"gpt_result/{task_name}.txt"
-    file_mode = "w"  # 'w' for write, 'a' for append, 'x' for create new
-    # Open the file and write the string
-    with open(file_name, file_mode) as file:
+    res = generate(message)
+    res = f'''
+from .base_task import Base_task
+from .{task_name} import {task_name}
+from .utils import *
+import sapien
+
+class gpt_{task_name}({task_name}):
+    ''' + res[res.find('def play_once'):res.rfind("```")]
+    # pdb.set_trace()
+    file_name = f"envs/gpt_{task_name}.py"
+    with open(file_name, 'w') as file:
         file.write(res)
-    print(f"The string has been written to {file_name}")
     
-    # Corr: TODO
+    # return success rate, error message, error count
+    success_rate, error_message, error_count = test_run(f"gpt_{task_name}")
+    return res, success_rate, error_message, error_count
+
+def main():
+    # keys: "task_name", "task_description", "current_code"
+    task_info = now_task_info = BLOCKS_STACK_HARD
+    messages=[{"role": "system", "content": "You need to generate relevant code for some robot tasks in a robot simulation environment based on the provided API."}]
+    generate_num = 5
+    success_threshold = 0.4
+    las_error_message = None
+    for id in range(generate_num):
+        print("Generate code for task: ", task_info['task_name'], f"({id+1}/{generate_num})")
+        res_code, success_rate, las_error_message, error_count = generate_code(now_task_info, las_error_message, messages)
+        if success_rate >= success_threshold:
+            print("Success generate code for task: ", task_info['task_name'])
+            break
+        print("Failed to generate code for task: ", task_info['task_name'], f"{id}\nError massage: \n{las_error_message}")
+        now_task_info["task_description"] = " Failed to generate code, error message: " + las_error_message + ", error count: " + str(error_count)
+        # las_code = task_info["current_code"][:task_info["current_code"].find('def play_once')]
+        now_task_info["current_code"] = res_code
+        # pdb.set_trace() 
 
 if __name__ == "__main__":
-    robotwin()
-    # generate('what\'s your name')
+    # pdb.set_trace()
+    main()

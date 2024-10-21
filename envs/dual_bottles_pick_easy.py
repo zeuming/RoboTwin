@@ -25,25 +25,27 @@ class dual_bottles_pick_easy(Base_task):
 
     def load_actors(self, **kwargs):
         # super().setup_scene()
-        self.red_bottle,_ = rand_create_glb(
+        self.red_bottle, self.red_bottle_data = rand_create_glb(
             self.scene,
             xlim=[-0.25,-0.05],
             ylim=[0.03,0.23],
             zlim=[0.865],
             modelname="001_bottles",
-            rotate_rand=False,
+            rotate_rand=True,
+            rotate_lim=[0,1.57,0],
             qpos=[0.707,0.707,0,0],
             scale=(0.132,0.132,0.132),
             model_id=13
         )
 
-        self.green_bottle, _=rand_create_glb(
+        self.green_bottle, self.green_bottle_data=rand_create_glb(
             self.scene,
             xlim=[0.05,0.25],
             ylim=[0.03,0.23],
             zlim=[0.865],
             modelname="001_bottles",
-            rotate_rand=False,
+            rotate_rand=True,
+            rotate_lim=[0,1.57,0],
             # qpos=[0.709,0.705,0.015,0.015],
             qpos=[0.707,0.707,0,0],
             scale=(0.161,0.161,0.161),
@@ -52,6 +54,10 @@ class dual_bottles_pick_easy(Base_task):
 
         self.red_bottle.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.01
         self.green_bottle.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.01
+        self.left_bottle_target_position = [-0.06,-0.105, 0.92]
+        self.right_bottle_target_position = [0.06,-0.105, 0.92]
+        self.actor_name_dic = {'red_bottle':self.red_bottle,'green_bottle':self.green_bottle,'left_bottle_target_position':self.left_bottle_target_position,'right_bottle_target_position':self.right_bottle_target_position}
+        self.actor_data_dic = {'red_bottle_data':self.red_bottle_data,'green_bottle_data':self.green_bottle_data,'left_bottle_target_position':self.left_bottle_target_position,'right_bottle_target_position':self.right_bottle_target_position}
 
         render_freq = self.render_freq
         self.render_freq = 0
@@ -60,10 +66,14 @@ class dual_bottles_pick_easy(Base_task):
         self.render_freq = render_freq
 
     def play_once(self):
-        left_pose0 = list(self.red_bottle.get_pose().p+[-0.14,-0.18,0])+[-0.906,0,0,-0.424]
-        right_pose0 = list(self.green_bottle.get_pose().p+[0.14,-0.18,0])+[-0.415,0,0,-0.910]
-        left_pose1 = list(self.red_bottle.get_pose().p+[-0.08,-0.11,0])+[-0.906,0,0,-0.424]
-        right_pose1 = list(self.green_bottle.get_pose().p+[0.1,-0.11,0])+[-0.415,0,0,-0.910]
+        # left_pose0 = list(self.red_bottle.get_pose().p+[-0.14,-0.18,0])+[-0.906,0,0,-0.424]
+        # right_pose0 = list(self.green_bottle.get_pose().p+[0.14,-0.18,0])+[-0.415,0,0,-0.910]
+        # left_pose1 = list(self.red_bottle.get_pose().p+[-0.08,-0.11,0])+[-0.906,0,0,-0.424]
+        # right_pose1 = list(self.green_bottle.get_pose().p+[0.1,-0.11,0])+[-0.415,0,0,-0.910]
+        left_pose0 = self.get_grasp_pose_to_grasp_object("left", self.red_bottle, self.red_bottle_data, pre_dis=0.1)
+        right_pose0 = self.get_grasp_pose_to_grasp_object("right", self.green_bottle, self.green_bottle_data, pre_dis=0.1)
+        left_pose1 = self.get_grasp_pose_to_grasp_object("left", self.red_bottle, self.red_bottle_data, pre_dis=0)
+        right_pose1 = self.get_grasp_pose_to_grasp_object("right", self.green_bottle, self.green_bottle_data, pre_dis=0)
         left_target_pose = [-0.19,-0.12,0.92,1,0,0,0]
         right_target_pose = [0.19,-0.12,0.92,-0.01,0.01,0.03,-1]
         
@@ -77,8 +87,8 @@ class dual_bottles_pick_easy(Base_task):
         self.together_move_to_pose_with_screw(left_target_pose,right_target_pose,save_freq=15)
 
     def check_success(self):
-        red_target = [-0.046,-0.105]
-        green_target = [0.057,-0.105]
+        red_target = [-0.055,-0.105]
+        green_target = [0.055,-0.105]
         eps = 0.03
         red_bottle_pose = self.red_bottle.get_pose().p
         green_bottle_pose = self.green_bottle.get_pose().p

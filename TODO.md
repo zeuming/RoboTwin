@@ -1,28 +1,23 @@
-# Task List
+# TODO List
 
-## 0816
+## 2024.10.1
 
-- [x] `diverse_bottles` task
-- [x] `mug_hanging` task
-- [x] find new hammer model and modeify `block_hammer_beat` task
-- [x] `many_bottles_into_box` task
+- [x] dual_bottles_pick_easy
+- [x] block_hammer_beat
 
-## 0818
+## 2024.10.2
 
-- [x] `block_hammer_beat_hard` task
-- [x] `blocks_stack_hard` task
-- [x] `shoes_place` task (a pair of shoes place)
+- [x] Modify the code generation logic and include multiple iterations.
 
-## 0819
+## Models
+1. Gripper Module: Return a suitable gripper grasping posture based on the axis and point calibrated in the object file.
+2. Evaluation Module: Assess whether the gripper's posture is reasonable.
+3. Handover Module: Hand over the objects on the left and right grippers to the other gripper with a suitable posture.
+4. Motion Module: Move the gripper to perform the target action.
+5. 
 
-- [x] add code comments, and move some func to `gpt-api` model
-- [x] change tasks from single_arm to dual_arm, `...`
+## API list
 
-## 0821
-
-- [ ] some tasks about mani-pot (pick, open, ...)
-
-## 0828
-
-- [x] `pick_apple_messy` task
-- [x] `pick_cuboid_cylinder` task
+1. `get_gripper_pose_to_grab_object()`: Returns the appropriate gripper pose for grasping an object, where the grasping pose is obtained based on the object's calibration information.
+2. `evaluate_gripper_pose()`: An evaluation function for gripper poses, which determines whether a given pose is suitable for the gripper.
+3. ``

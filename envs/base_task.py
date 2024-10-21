@@ -18,30 +18,10 @@ import collections
 from collections import deque
 import cv2
 import torch
+from copy import deepcopy
 
 class Base_task(gym.Env):
 
-    DEFAULT_ACTOR_DATA = {
-        "scale": [1,1,1],
-        "target_pose": [
-            [1,0,0,0],
-            [0,1,0,0],
-            [0,0,1,0],
-            [0,0,0,1]
-        ],
-        "contact_pose": [[
-            [1,0,0,0],
-            [0,1,0,0],
-            [0,0,1,0],
-            [0,0,0,1]]
-        ],
-        "trans_matrix": [
-            [1,0,0,0],
-            [0,1,0,0],
-            [0,0,1,0],
-            [0,0,0,1]
-        ]
-    }
     def __init__(self):
         pass
 
@@ -81,18 +61,57 @@ class Base_task(gym.Env):
         self.table_static = kwags.get('table_static', True)
         self.file_path = []
         self.plan_success = True
+        self.left_plan_success = True
+        self.right_plan_success = True
         self.step_lim = None
         self.fix_gripper = False
         self.setup_scene()
 
         self.left_js = None
         self.right_js = None
-        self.raw_top_pcl = None
-        self.real_top_pcl = None
-        self.real_top_pcl_color = None
+        self.raw_head_pcl = None
+        self.real_head_pcl = None
+        self.real_head_pcl_color = None
         
         left_pub_data = [0,0,0,0,0,0,0]
         right_pub_data = [0,0,0,0,0,0,0]
+
+        self.grasp_direction_dic = {
+            'left':         [0,      0,   0,    -1],
+            'front_left':   [-0.383, 0,   0,    -0.924],
+            'front' :       [-0.707, 0,   0,    -0.707],
+            'front_right':  [-0.924, 0,   0,    -0.383],
+            'right':        [-1,     0,   0,    0],
+            'top_down':     [-0.5,   0.5, -0.5, -0.5],
+        }
+
+        self.world_direction_dic = {
+            'left':         [0.5,  0.5,  0.5,  0.5],
+            'front_left':   [0.65334811, 0.27043713, 0.65334811, 0.27043713],
+            'front' :       [0.707, 0,    0.707, 0],
+            'front_right':  [0.65334811, -0.27043713,  0.65334811, -0.27043713],
+            'right':        [0.5,    -0.5, 0.5,  0.5],
+            'top_down':     [0,      0,   1,    0],
+        }
+        self.target_left_pose_front = [-0.19,-0.12,0.92,1,0,0,0]
+        self.target_right_pose_front = [0.19,-0.12,0.92,-0.01,0.01,0.03,-1]
+        self.handover_block_pose = [-0.054, -0.105,  0.8]
+        self.actor_name_dic = {}
+        self.actor_data_dic = {}
+        self.used_contant = []
+        self.left_prepare_grasp_data = None
+        self.left_prepare_grasp_point_group = None
+        self.right_prepare_grasp_data = None
+        self.right_prepare_grasp_point_group = None
+
+        self.pre_left_pose = None
+        self.pre_right_pose = None
+
+        self.pose_of_close_left_gripper = None
+        self.pose_of_close_right_gripper = None
+        
+        self.now_left_pose = None
+        self.now_right_pose = None
 
     def setup_scene(self,**kwargs):
         '''
@@ -228,7 +247,7 @@ class Base_task(gym.Env):
     def load_camera(self,camera_w,camera_h):
         '''
             Add cameras and set camera parameters
-                - Including four cameras: left, right, front, top.
+                - Including four cameras: left, right, front, head.
         '''
 
         near, far = 0.1, 100
@@ -244,24 +263,24 @@ class Base_task(gym.Env):
         front_mat44[:3, :3] = np.stack([front_cam_forward, front_cam_left, front_up], axis=1)
         front_mat44[:3, 3] = front_cam_pos
         
-        # top camera
-        top_cam_pos = np.array([-0.032, -0.45, 1.35])
-        top_cam_forward = np.array([0,0.1,-0.55]) 
-        top_cam_left = np.cross([0, 0, 1], top_cam_forward)
-        top_cam_left = top_cam_left / np.linalg.norm(top_cam_left)
-        top_up = np.cross(top_cam_forward, top_cam_left)
-        top_mat44 = np.eye(4)
-        top_mat44[:3, :3] = np.stack([top_cam_forward, top_cam_left, top_up], axis=1)
-        top_mat44[:3, 3] = top_cam_pos
+        # head camera
+        head_cam_pos = np.array([-0.032, -0.45, 1.35])
+        head_cam_forward = np.array([0,0.1,-0.55]) 
+        head_cam_left = np.cross([0, 0, 1], head_cam_forward)
+        head_cam_left = head_cam_left / np.linalg.norm(head_cam_left)
+        head_up = np.cross(head_cam_forward, head_cam_left)
+        head_mat44 = np.eye(4)
+        head_mat44[:3, :3] = np.stack([head_cam_forward, head_cam_left, head_up], axis=1)
+        head_mat44[:3, 3] = head_cam_pos
 
         # observer camera
-        expert_cam_pos = np.array([0.4, 0.22, 1.42])
-        expert_cam_forward = np.array([-1,-1,-1])
-        expert_cam_left = np.array([1,-1, 0])
-        expert_up = np.cross(expert_cam_forward, expert_cam_left)
-        expert_mat44 = np.eye(4)
-        expert_mat44[:3, :3] = np.stack([expert_cam_forward, expert_cam_left, expert_up], axis=1)
-        expert_mat44[:3, 3] = expert_cam_pos
+        observer_cam_pos = np.array([0.4, 0.22, 1.42])
+        observer_cam_forward = np.array([-1,-1,-1])
+        observer_cam_left = np.array([1,-1, 0])
+        observer_up = np.cross(observer_cam_forward, observer_cam_left)
+        observer_mat44 = np.eye(4)
+        observer_mat44[:3, :3] = np.stack([observer_cam_forward, observer_cam_left, observer_up], axis=1)
+        observer_mat44[:3, 3] = observer_cam_pos
         
         self.left_camera = self.scene.add_camera(
             name="left_camera",
@@ -290,8 +309,8 @@ class Base_task(gym.Env):
             far=far,
         )
         
-        self.top_camera = self.scene.add_camera(
-            name="top_camera",
+        self.head_camera = self.scene.add_camera(
+            name="head_camera",
             width=width,
             height=height,
             fovy=np.deg2rad(37),
@@ -309,8 +328,8 @@ class Base_task(gym.Env):
         )
 
         self.front_camera.entity.set_pose(sapien.Pose(front_mat44))
-        self.top_camera.entity.set_pose(sapien.Pose(top_mat44))
-        self.observer_camera.entity.set_pose(sapien.Pose(expert_mat44))
+        self.head_camera.entity.set_pose(sapien.Pose(head_mat44))
+        self.observer_camera.entity.set_pose(sapien.Pose(observer_mat44))
         self.left_camera.entity.set_pose(self.all_links[46].get_pose())
         self.right_camera.entity.set_pose(self.all_links[49].get_pose())
 
@@ -529,23 +548,81 @@ class Base_task(gym.Env):
         if set_tag == 'right' or set_tag == 'together':
             self.right_gripper_val = right_pos
 
+    def gripper_move_back(self, gripper_tag: str,save_freq=15):
+        if gripper_tag == 'left':
+            pose_of_close_gripper = self.pose_of_close_left_gripper
+            now_pose = self.now_left_pose
+            pre_pose = self.pre_left_pose
+            move_function = self.left_move_to_pose_with_screw
+        elif gripper_tag == 'right':
+            pose_of_close_gripper = self.pose_of_close_right_gripper
+            now_pose = self.now_right_pose
+            pre_pose = self.pre_right_pose
+            move_function = self.right_move_to_pose_with_screw
+        else:
+            return
+        
+        if pose_of_close_gripper is not None and pre_pose is not None and now_pose is not None:
+            las_pose_matrix = np.eye(4)
+            las_pose_matrix[:3,3] = pose_of_close_gripper[:3]
+            las_pose_matrix[:3,:3] = t3d.quaternions.quat2mat(pose_of_close_gripper[3:])
+
+            now_pose_matrix = np.eye(4)
+            now_pose_matrix[:3,3] = now_pose[:3]
+            now_pose_matrix[:3,:3] = t3d.quaternions.quat2mat(now_pose[3:])
+
+            trans_matrix = np.dot(now_pose_matrix, np.linalg.inv(las_pose_matrix))
+            
+            las_pre_pose_matrix = np.eye(4)
+            las_pre_pose_matrix[:3,3] = pre_pose[:3]
+            las_pre_pose_matrix[:3,:3] = t3d.quaternions.quat2mat(pre_pose[3:])
+            
+            nxt_pose_matrix = np.dot(trans_matrix, las_pre_pose_matrix)
+
+            xyz_dis = np.ones(4)
+            xyz_dis[:3] = np.array(pre_pose[:3]) - np.array(pose_of_close_gripper[:3])
+            xyz_dis[:3] = trans_matrix[:3,:3] @ xyz_dis[:3]
+            nxt_pose_matrix[:3,3] = now_pose[:3] + xyz_dis[:3]
+            nxt_pose = list(nxt_pose_matrix[:3,3]) + list(t3d.quaternions.mat2quat(nxt_pose_matrix[:3,:3]))
+            move_function(nxt_pose, save_freq=save_freq)
+
     def open_left_gripper(self, save_freq=15, pos = 0.045):
         self.set_gripper(left_pos = pos, set_tag='left', save_freq=save_freq)
+        if self.left_prepare_grasp_point_group is not None:
+            self.left_prepare_grasp_data['contact_points_mask'][self.left_prepare_grasp_point_group] = True
+            self.left_prepare_grasp_data = None
+            self.left_prepare_grasp_point_group = None
+        self.gripper_move_back('left',save_freq=save_freq)
 
     def close_left_gripper(self, save_freq=15, pos = 0):
         self.set_gripper(left_pos = pos, set_tag='left',save_freq=save_freq)
+        if self.left_prepare_grasp_point_group is not None:
+            self.left_prepare_grasp_data['contact_points_mask'][self.left_prepare_grasp_point_group] = False
+        self.pose_of_close_left_gripper = self.now_left_pose
 
     def open_right_gripper(self, save_freq=15,pos = 0.045):
         self.set_gripper(right_pos=pos, set_tag='right', save_freq=save_freq)
+        if self.right_prepare_grasp_point_group is not None:
+            self.right_prepare_grasp_data['contact_points_mask'][self.right_prepare_grasp_point_group] = True
+            self.right_prepare_grasp_data = None
+            self.right_prepare_grasp_point_group = None
+        self.gripper_move_back('right',save_freq=save_freq)
 
     def close_right_gripper(self, save_freq=15,pos = 0):
         self.set_gripper(right_pos=pos, set_tag='right', save_freq=save_freq)
+        if self.right_prepare_grasp_point_group is not None:
+            self.right_prepare_grasp_data['contact_points_mask'][self.right_prepare_grasp_point_group] = False
+        self.pose_of_close_right_gripper = self.now_right_pose
 
     def together_open_gripper(self, save_freq=15, left_pos = 0.045, right_pos = 0.045):
         self.set_gripper(left_pos=left_pos, right_pos=right_pos, set_tag='together', save_freq=save_freq)
+        self.gripper_move_back('left',save_freq=save_freq)
+        self.gripper_move_back('right',save_freq=save_freq)
 
     def together_close_gripper(self, save_freq=15,left_pos = 0, right_pos = 0):
         self.set_gripper(left_pos=left_pos, right_pos=right_pos, set_tag='together', save_freq=save_freq)
+        self.pose_of_close_left_gripper = self.now_left_pose
+        self.pose_of_close_right_gripper = self.now_right_pose
         
     def move_to_pose_with_RRTConnect(
         self, pose, use_point_cloud=False, use_attach=False,freq =10
@@ -587,6 +664,9 @@ class Base_task(gym.Env):
         Interpolative planning with screw motion.
         Will not avoid collision and will fail if the path contains collision.
         """
+        if self.is_left_gripper_open():
+            self.pre_left_pose = self.now_left_pose
+        self.now_left_pose = pose
         joint_pose = self.robot.get_qpos()
         qpos=[]
         for i in range(6):
@@ -605,6 +685,7 @@ class Base_task(gym.Env):
             return 0
         else:
             print("\n left arm palnning failed!")
+            self.left_plan_success = False
             self.plan_success = False
 
     def right_move_to_pose_with_screw(self, pose, use_point_cloud=False, use_attach=False,save_freq=15):
@@ -612,6 +693,9 @@ class Base_task(gym.Env):
         Interpolative planning with screw motion.
         Will not avoid collision and will fail if the path contains collision.
         """
+        if self.is_right_gripper_open():
+            self.pre_right_pose = self.now_right_pose
+        self.now_right_pose = pose
         joint_pose = self.robot.get_qpos()
         qpos=[]
         for i in range(6):
@@ -629,6 +713,7 @@ class Base_task(gym.Env):
             return 0
         else:
             print("\n right arm palnning failed!")
+            self.right_plan_success = False
             self.plan_success = False
         
 
@@ -637,6 +722,12 @@ class Base_task(gym.Env):
         Interpolative planning with screw motion.
         Will not avoid collision and will fail if the path contains collision.
         """
+        if self.is_left_gripper_open():
+            self.pre_left_pose = self.now_left_pose
+        if self.is_right_gripper_open():
+            self.now_left_pose = left_target_pose
+        self.pre_right_pose = self.now_right_pose
+        self.now_right_pose = right_target_pose
         joint_pose = self.robot.get_qpos()
         left_qpos=[]
         right_qpos=[]
@@ -666,12 +757,14 @@ class Base_task(gym.Env):
         else:
             if left_result["status"] != "Success":
                 print("\n left arm palnning failed!")
+                self.left_plan_success = False
             if right_result["status"] != "Success":
                 print("\n right arm palnning failed!")
+                self.right_plan_success = False
             self.plan_success = False
 
     # Get Camera RGBA
-    def _get_camera_rgba(self, camera, camera_pose = 'top'):
+    def _get_camera_rgba(self, camera):
         rgba = camera.get_picture("Color")
         rgba_img = (rgba * 255).clip(0, 255).astype("uint8")
         return rgba_img
@@ -694,7 +787,7 @@ class Base_task(gym.Env):
     def _get_camera_depth(self, camera):
         position = camera.get_picture("Position")
         depth = -position[..., 2]
-        depth_image = (depth * 1000.0).astype(np.float32)
+        depth_image = (depth * 1000.0).astype(np.float64)
         return depth_image
     
     # Get Camera PointCloud
@@ -829,17 +922,17 @@ class Base_task(gym.Env):
         self._update_render()
         self.left_camera.take_picture()
         self.right_camera.take_picture()
-        self.top_camera.take_picture()
+        self.head_camera.take_picture()
         self.observer_camera.take_picture()
         self.front_camera.take_picture()
         
         if self.PCD_INDEX==0:
             self.file_path ={
-                "expert_color" : f"{self.save_dir}/episode{self.ep_num}/camera/color/observer/",
+                "observer_color" : f"{self.save_dir}/episode{self.ep_num}/camera/color/observer/",
+
                 "l_color" : f"{self.save_dir}/episode{self.ep_num}/camera/color/left/",
                 "l_depth" : f"{self.save_dir}/episode{self.ep_num}/camera/depth/left/",
                 "l_pcd" : f"{self.save_dir}/episode{self.ep_num}/camera/pointCloud/left/",
-
 
                 "f_color" : f"{self.save_dir}/episode{self.ep_num}/camera/color/front/",
                 "f_depth" : f"{self.save_dir}/episode{self.ep_num}/camera/depth/front/",
@@ -849,19 +942,22 @@ class Base_task(gym.Env):
                 "r_depth" : f"{self.save_dir}/episode{self.ep_num}/camera/depth/right/",
                 "r_pcd" : f"{self.save_dir}/episode{self.ep_num}/camera/pointCloud/right/",
 
-                "t_color" : f"{self.save_dir}/episode{self.ep_num}/camera/color/top/",
-                "t_depth" : f"{self.save_dir}/episode{self.ep_num}/camera/depth/top/",
-                "t_pcd" : f"{self.save_dir}/episode{self.ep_num}/camera/pointCloud/top/",
+                "t_color" : f"{self.save_dir}/episode{self.ep_num}/camera/color/head/",
+                "t_depth" : f"{self.save_dir}/episode{self.ep_num}/camera/depth/head/",
+                "t_pcd" : f"{self.save_dir}/episode{self.ep_num}/camera/pointCloud/head/",
 
                 "f_seg_mesh" : f"{self.save_dir}/episode{self.ep_num}/camera/segmentation/front/mesh/",
                 "l_seg_mesh" : f"{self.save_dir}/episode{self.ep_num}/camera/segmentation/left/mesh/",
                 "r_seg_mesh" : f"{self.save_dir}/episode{self.ep_num}/camera/segmentation/right/mesh/",
+                "t_seg_mesh" : f"{self.save_dir}/episode{self.ep_num}/camera/segmentation/top/mesh/",
+
                 "f_seg_actor" : f"{self.save_dir}/episode{self.ep_num}/camera/segmentation/front/actor/",
                 "l_seg_actor" : f"{self.save_dir}/episode{self.ep_num}/camera/segmentation/left/actor/",
                 "r_seg_actor" : f"{self.save_dir}/episode{self.ep_num}/camera/segmentation/right/actor/",
+                "t_seg_actor" : f"{self.save_dir}/episode{self.ep_num}/camera/segmentation/head/actor/",
 
                 "f_camera" : f"{self.save_dir}/episode{self.ep_num}/camera/model_camera/front/",
-                "t_camera" : f"{self.save_dir}/episode{self.ep_num}/camera/model_camera/top/",
+                "t_camera" : f"{self.save_dir}/episode{self.ep_num}/camera/model_camera/head/",
                 "l_camera" : f"{self.save_dir}/episode{self.ep_num}/camera/model_camera/left/",
                 "r_camera" : f"{self.save_dir}/episode{self.ep_num}/camera/model_camera/right/",
 
@@ -895,14 +991,14 @@ class Base_task(gym.Env):
             "endpose":[]
         }
         
-        top_camera_intrinsic_cv = self.top_camera.get_intrinsic_matrix()
-        top_camera_extrinsic_cv = self.top_camera.get_extrinsic_matrix()
-        top_camera_model_matrix = self.top_camera.get_model_matrix()
+        head_camera_intrinsic_cv = self.head_camera.get_intrinsic_matrix()
+        head_camera_extrinsic_cv = self.head_camera.get_extrinsic_matrix()
+        head_camera_model_matrix = self.head_camera.get_model_matrix()
 
         pkl_dic["observation"]["head_camera"] = {
-            "intrinsic_cv" : top_camera_intrinsic_cv,
-            "extrinsic_cv" : top_camera_extrinsic_cv,
-            "cam2world_gl" : top_camera_model_matrix
+            "intrinsic_cv" : head_camera_intrinsic_cv,
+            "extrinsic_cv" : head_camera_extrinsic_cv,
+            "cam2world_gl" : head_camera_model_matrix
         }
 
         front_camera_intrinsic_cv = self.front_camera.get_intrinsic_matrix()
@@ -939,22 +1035,22 @@ class Base_task(gym.Env):
         # # RGBA
         # # ---------------------------------------------------------------------------- #
         if self.data_type.get('rgb', False):
-            front_rgba = self._get_camera_rgba(self.front_camera, camera_pose='front')
-            top_rgba = self._get_camera_rgba(self.top_camera, camera_pose='top')
-            left_rgba = self._get_camera_rgba(self.left_camera, camera_pose='left')
-            right_rgba = self._get_camera_rgba(self.right_camera, camera_pose='right')
+            front_rgba = self._get_camera_rgba(self.front_camera)
+            head_rgba = self._get_camera_rgba(self.head_camera)
+            left_rgba = self._get_camera_rgba(self.left_camera)
+            right_rgba = self._get_camera_rgba(self.right_camera)
 
             if self.save_type.get('raw_data', True):
                 if self.data_type.get('observer', False):
-                    expert_rgba = self._get_camera_rgba(self.observer_camera, camera_pose='observer')
-                    save_img(self.file_path["expert_color"]+f"{self.PCD_INDEX}.png",expert_rgba)
-                save_img(self.file_path["t_color"]+f"{self.PCD_INDEX}.png",top_rgba)
+                    observer_rgba = self._get_camera_rgba(self.observer_camera)
+                    save_img(self.file_path["observer_color"]+f"{self.PCD_INDEX}.png",observer_rgba)
+                save_img(self.file_path["t_color"]+f"{self.PCD_INDEX}.png",head_rgba)
                 save_img(self.file_path["f_color"]+f"{self.PCD_INDEX}.png",front_rgba)
                 save_img(self.file_path["l_color"]+f"{self.PCD_INDEX}.png",left_rgba)
                 save_img(self.file_path["r_color"]+f"{self.PCD_INDEX}.png",right_rgba)
 
             if self.save_type.get('pkl' , True):
-                pkl_dic["observation"]["head_camera"]["rgb"] = top_rgba[:,:,:3]
+                pkl_dic["observation"]["head_camera"]["rgb"] = head_rgba[:,:,:3]
                 pkl_dic["observation"]["front_camera"]["rgb"] = front_rgba[:,:,:3]
                 pkl_dic["observation"]["left_camera"]["rgb"] = left_rgba[:,:,:3]
                 pkl_dic["observation"]["right_camera"]["rgb"] = right_rgba[:,:,:3]
@@ -962,52 +1058,57 @@ class Base_task(gym.Env):
         # # mesh_segmentation
         # # ---------------------------------------------------------------------------- # 
         if self.data_type.get('mesh_segmentation', False):
-            top_seg = self._get_camera_segmentation(self.top_camera,level="mesh")
+            head_seg = self._get_camera_segmentation(self.head_camera,level="mesh")
             left_seg = self._get_camera_segmentation(self.left_camera,level="mesh")
             right_seg = self._get_camera_segmentation(self.right_camera,level="mesh")
+            front_seg = self._get_camera_segmentation(self.front_camera,level="mesh")
 
             if self.save_type.get('raw_data', True):
-                save_img(self.file_path["f_seg_mesh"]+f"{self.PCD_INDEX}.png", top_seg)
+                save_img(self.file_path["t_seg_mesh"]+f"{self.PCD_INDEX}.png", head_seg)
                 save_img(self.file_path["l_seg_mesh"]+f"{self.PCD_INDEX}.png", left_seg)
                 save_img(self.file_path["r_seg_mesh"]+f"{self.PCD_INDEX}.png", right_seg)
+                save_img(self.file_path["f_seg_mesh"]+f"{self.PCD_INDEX}.png", front_seg)
 
             if self.save_type.get('pkl' , True):
-                pkl_dic["observation"]["head_camera"]["mesh_segmentation"] = top_seg
-                # pkl_dic["observation"]["front_camera"]["mesh_segmentation"] = front_seg
+                pkl_dic["observation"]["head_camera"]["mesh_segmentation"] = head_seg
+                pkl_dic["observation"]["front_camera"]["mesh_segmentation"] = front_seg
                 pkl_dic["observation"]["left_camera"]["mesh_segmentation"] = left_seg
                 pkl_dic["observation"]["right_camera"]["mesh_segmentation"] = right_seg
         # # ---------------------------------------------------------------------------- #
         # # actor_segmentation
         # # --------------------------------------------------------------------------- # 
         if self.data_type.get('actor_segmentation', False):
-            top_seg = self._get_camera_segmentation(self.top_camera,level="actor")
+            head_seg = self._get_camera_segmentation(self.head_camera,level="actor")
             left_seg = self._get_camera_segmentation(self.left_camera,level="actor")
             right_seg = self._get_camera_segmentation(self.right_camera,level="actor")
+            front_seg = self._get_camera_segmentation(self.front_camera,level="actor")
 
             if self.save_type.get('raw_data', True):
-                save_img(self.file_path["f_seg_actor"]+f"{self.PCD_INDEX}.png", top_seg)
+                save_img(self.file_path["t_seg_actor"]+f"{self.PCD_INDEX}.png", head_seg)
                 save_img(self.file_path["l_seg_actor"]+f"{self.PCD_INDEX}.png", left_seg)
                 save_img(self.file_path["r_seg_actor"]+f"{self.PCD_INDEX}.png", right_seg)
+                save_img(self.file_path["f_seg_actor"]+f"{self.PCD_INDEX}.png", front_seg)
             if self.save_type.get('pkl' , True):
-                pkl_dic["observation"]["head_camera"]["actor_segmentation"] = top_seg
+                pkl_dic["observation"]["head_camera"]["actor_segmentation"] = head_seg
                 pkl_dic["observation"]["left_camera"]["actor_segmentation"] = left_seg
                 pkl_dic["observation"]["right_camera"]["actor_segmentation"] = right_seg
+                pkl_dic["observation"]["front_camera"]["actor_segmentation"] = front_seg
         # # ---------------------------------------------------------------------------- #
         # # DEPTH
         # # ---------------------------------------------------------------------------- #
         if self.data_type.get('depth', False):
             front_depth = self._get_camera_depth(self.front_camera)
-            top_depth = self._get_camera_depth(self.top_camera)
+            head_depth = self._get_camera_depth(self.head_camera)
             left_depth = self._get_camera_depth(self.left_camera)
             right_depth = self._get_camera_depth(self.right_camera)
-
+            
             if self.save_type.get('raw_data', True):
-                save_img(self.file_path["t_depth"]+f"{self.PCD_INDEX}.png", top_depth)
-                save_img(self.file_path["f_depth"]+f"{self.PCD_INDEX}.png", front_depth)
-                save_img(self.file_path["l_depth"]+f"{self.PCD_INDEX}.png", left_depth)
-                save_img(self.file_path["r_depth"]+f"{self.PCD_INDEX}.png", right_depth)
+                save_img(self.file_path["t_depth"]+f"{self.PCD_INDEX}.png", head_depth.astype(np.uint16))
+                save_img(self.file_path["f_depth"]+f"{self.PCD_INDEX}.png", front_depth.astype(np.uint16))
+                save_img(self.file_path["l_depth"]+f"{self.PCD_INDEX}.png", left_depth.astype(np.uint16))
+                save_img(self.file_path["r_depth"]+f"{self.PCD_INDEX}.png", right_depth.astype(np.uint16))
             if self.save_type.get('pkl' , True):
-                pkl_dic["observation"]["head_camera"]["depth"] = top_depth
+                pkl_dic["observation"]["head_camera"]["depth"] = head_depth
                 pkl_dic["observation"]["front_camera"]["depth"] = front_depth
                 pkl_dic["observation"]["left_camera"]["depth"] = left_depth
                 pkl_dic["observation"]["right_camera"]["depth"] = right_depth
@@ -1063,16 +1164,16 @@ class Base_task(gym.Env):
         # # PointCloud
         # # ---------------------------------------------------------------------------- #
         if self.data_type.get('pointcloud', False):
-            top_pcd = self._get_camera_pcd(self.top_camera, point_num=0)
+            head_pcd = self._get_camera_pcd(self.head_camera, point_num=0)
             front_pcd = self._get_camera_pcd(self.front_camera, point_num=0)
             left_pcd = self._get_camera_pcd(self.left_camera, point_num=0)
             right_pcd = self._get_camera_pcd(self.right_camera, point_num=0) 
 
             # Merge pointcloud
             if self.data_type.get("conbine", False):
-                conbine_pcd = np.vstack((top_pcd , left_pcd , right_pcd, front_pcd))
+                conbine_pcd = np.vstack((head_pcd , left_pcd , right_pcd, front_pcd))
             else:
-                conbine_pcd = top_pcd
+                conbine_pcd = head_pcd
             
             pcd_array,index = conbine_pcd[:,:3], np.array(range(len(conbine_pcd)))
             if self.pcd_down_sample_num > 0:
@@ -1080,12 +1181,14 @@ class Base_task(gym.Env):
                 index = index.detach().cpu().numpy()[0]
 
             if self.save_type.get('raw_data', True):
-                ensure_dir(self.file_path["f_pcd"] + f"{self.PCD_INDEX}.pcd")
-                o3d.io.write_point_cloud(self.file_path["f_pcd"] + f"{self.PCD_INDEX}.pcd", self.arr2pcd(top_pcd[:,:3], top_pcd[:,3:])) 
+                ensure_dir(self.file_path["t_pcd"] + f"{self.PCD_INDEX}.pcd")
+                o3d.io.write_point_cloud(self.file_path["t_pcd"] + f"{self.PCD_INDEX}.pcd", self.arr2pcd(head_pcd[:,:3], head_pcd[:,3:])) 
                 ensure_dir(self.file_path["l_pcd"] + f"{self.PCD_INDEX}.pcd")
                 o3d.io.write_point_cloud(self.file_path["l_pcd"] + f"{self.PCD_INDEX}.pcd", self.arr2pcd(left_pcd[:,:3], left_pcd[:,3:]))
                 ensure_dir(self.file_path["r_pcd"] + f"{self.PCD_INDEX}.pcd")
                 o3d.io.write_point_cloud(self.file_path["r_pcd"] + f"{self.PCD_INDEX}.pcd", self.arr2pcd(right_pcd[:,:3], right_pcd[:,3:]))
+                ensure_dir(self.file_path["f_pcd"] + f"{self.PCD_INDEX}.pcd")
+                o3d.io.write_point_cloud(self.file_path["f_pcd"] + f"{self.PCD_INDEX}.pcd", self.arr2pcd(front_pcd[:,:3], front_pcd[:,3:]))
                 if self.data_type.get("conbine", False):
                     ensure_dir(self.file_path["conbine_pcd"] + f"{self.PCD_INDEX}.pcd")
                     o3d.io.write_point_cloud(self.file_path["conbine_pcd"] + f"{self.PCD_INDEX}.pcd", self.arr2pcd(pcd_array, conbine_pcd[index,3:]))
@@ -1103,28 +1206,9 @@ class Base_task(gym.Env):
         self._update_render()
         self._update_render()
         obs = collections.OrderedDict()
-
-
-        # left arm endpose
-        rpy = self.all_joints[42].global_pose.get_rpy()
-        roll, pitch, yaw = rpy
-        x,y,z = self.all_joints[42].global_pose.p
-        gripper = self.all_joints[34].get_drive_target()
         
-        # right arm endpose
-        rpy = self.all_joints[43].global_pose.get_rpy()
-        roll, pitch, yaw = rpy
-        x,y,z = self.all_joints[43].global_pose.p
-        gripper = self.all_joints[36].get_drive_target()
-        
-        right_endpose_matrix = t3d.euler.euler2mat(roll,pitch,yaw) @ t3d.euler.euler2mat(3.14,0,0)
-        right_endpose_quat = t3d.quaternions.mat2quat(right_endpose_matrix) * -1
-        right_endpose_array = np.array([x, y, z, *list(right_endpose_quat), gripper[0]])
-
-        
-        left_endpose_matrix = t3d.euler.euler2mat(roll,pitch,yaw) @ t3d.euler.euler2mat(3.14,0,0)
-        left_endpose_quat = t3d.quaternions.mat2quat(left_endpose_matrix) * -1
-        left_endpose_array = np.array([x, y, z, *list(left_endpose_quat), gripper[0]])
+        left_endpose = self.endpose_transform(self.all_joints[42], self.left_gripper_val)
+        right_endpose = self.endpose_transform(self.all_joints[43], self.right_gripper_val)
 
         right_jointState = self.get_right_arm_jointState()
         right_jointState_array = np.array(right_jointState)
@@ -1134,36 +1218,97 @@ class Base_task(gym.Env):
 
         self.left_camera.take_picture()
         self.right_camera.take_picture()
-        self.top_camera.take_picture()
+        self.head_camera.take_picture()
         self.front_camera.take_picture()
 
-        top_pcd = self._get_camera_pcd(self.top_camera, point_num=0)
+        head_pcd = self._get_camera_pcd(self.head_camera, point_num=0)
         left_pcd = self._get_camera_pcd(self.left_camera, point_num=0)
         right_pcd = self._get_camera_pcd(self.right_camera, point_num=0)
         front_pcd = self._get_camera_pcd(self.front_camera, point_num=0)
+        head_rgba = self._get_camera_rgba(self.head_camera)
+        left_rgba = self._get_camera_rgba(self.left_camera)
+        right_rgba = self._get_camera_rgba(self.right_camera)
+        front_rgba = self._get_camera_rgba(self.front_camera)
+        head_depth = self._get_camera_depth(self.head_camera)
+        left_depth = self._get_camera_depth(self.left_camera)
+        right_depth = self._get_camera_depth(self.right_camera)
+        front_depth = self._get_camera_depth(self.front_camera)
 
         # Merge PointCloud
         if self.data_type.get("conbine", False):
-            conbine_pcd = np.vstack((top_pcd , left_pcd , right_pcd, front_pcd))
+            conbine_pcd = np.vstack((head_pcd , left_pcd , right_pcd, front_pcd))
         else:
-            conbine_pcd = top_pcd
+            conbine_pcd = head_pcd
         pcd_array, index = fps(conbine_pcd[:,:3],self.pcd_down_sample_num)
 
-        obs["pcd"]= conbine_pcd[index.detach().cpu().numpy()[0]]
-        obs["left_endpose"] = left_endpose_array
-        obs["right_endpose"] = right_endpose_array
-        obs["left_joint_action"] = left_jointState_array
-        obs["right_joint_action"] = right_jointState_array
-        active_joint_state = self.robot.get_qpos()
-        qpos = []
-        for id in self.left_arm_joint_id:
-            qpos.append(active_joint_state[id])
-        obs["left_real_joint_action"] = np.array(qpos)
+        obs = {
+            "observation":{
+                "head_camera":{},   # rbg , mesh_seg , actior_seg , depth , intrinsic_cv , extrinsic_cv , cam2world_gl(model_matrix)
+                "left_camera":{},
+                "right_camera":{},
+                "front_camera":{}
+            },
+            "pointcloud":[],   # conbinet pcd
+            "joint_action":[],
+            "endpose":[]
+        }
+        
+        head_camera_intrinsic_cv = self.head_camera.get_intrinsic_matrix()
+        head_camera_extrinsic_cv = self.head_camera.get_extrinsic_matrix()
+        head_camera_model_matrix = self.head_camera.get_model_matrix()
 
-        qpos = []
-        for id in self.right_arm_joint_id:
-            qpos.append(active_joint_state[id])
-        obs["right_real_joint_action"] = np.array(qpos)
+        obs["observation"]["head_camera"] = {
+            "intrinsic_cv" : head_camera_intrinsic_cv,
+            "extrinsic_cv" : head_camera_extrinsic_cv,
+            "cam2world_gl" : head_camera_model_matrix
+        }
+
+        front_camera_intrinsic_cv = self.front_camera.get_intrinsic_matrix()
+        front_camera_extrinsic_cv = self.front_camera.get_extrinsic_matrix()
+        front_camera_model_matrix = self.front_camera.get_model_matrix()
+
+        obs["observation"]["front_camera"] = {
+            "intrinsic_cv" : front_camera_intrinsic_cv,
+            "extrinsic_cv" : front_camera_extrinsic_cv,
+            "cam2world_gl" : front_camera_model_matrix
+        }
+
+        left_camera_intrinsic_cv = self.left_camera.get_intrinsic_matrix()
+        left_camera_extrinsic_cv = self.left_camera.get_extrinsic_matrix()
+        left_camera_model_matrix = self.left_camera.get_model_matrix()
+
+        obs["observation"]["left_camera"] = {
+            "intrinsic_cv" : left_camera_intrinsic_cv,
+            "extrinsic_cv" : left_camera_extrinsic_cv,
+            "cam2world_gl" : left_camera_model_matrix
+        }
+
+        right_camera_intrinsic_cv = self.right_camera.get_intrinsic_matrix()
+        right_camera_extrinsic_cv = self.right_camera.get_extrinsic_matrix()
+        right_camera_model_matrix = self.right_camera.get_model_matrix()
+
+        obs["observation"]["right_camera"] = {
+            "intrinsic_cv" : right_camera_intrinsic_cv,
+            "extrinsic_cv" : right_camera_extrinsic_cv,
+            "cam2world_gl" : right_camera_model_matrix
+        }
+
+        obs["observation"]["head_camera"]["rgb"] = head_rgba[:,:,:3]
+        obs["observation"]["front_camera"]["rgb"] = front_rgba[:,:,:3]
+        obs["observation"]["left_camera"]["rgb"] = left_rgba[:,:,:3]
+        obs["observation"]["right_camera"]["rgb"] = right_rgba[:,:,:3]
+
+        obs["observation"]["head_camera"]["depth"] = head_depth
+        obs["observation"]["front_camera"]["depth"] = front_depth
+        obs["observation"]["left_camera"]["depth"] = left_depth
+        obs["observation"]["right_camera"]["depth"] = right_depth
+
+        obs["pointcloud"] = conbine_pcd[index.detach().cpu().numpy()[0]]
+        obs["endpose"] = np.array([left_endpose["x"],left_endpose["y"],left_endpose["z"],left_endpose["roll"],
+                                    left_endpose["pitch"],left_endpose["yaw"],left_endpose["gripper"],
+                                    right_endpose["x"],right_endpose["y"],right_endpose["z"],right_endpose["roll"],
+                                    right_endpose["pitch"],right_endpose["yaw"],right_endpose["gripper"],])
+        obs["joint_action"] = np.hstack((left_jointState_array, right_jointState_array))
 
         return obs
     
@@ -1181,14 +1326,12 @@ class Base_task(gym.Env):
         while cnt < self.step_lim:
             observation = self.get_obs()  
             obs = dict()
-            obs['point_cloud'] = observation['pcd']
+            obs['point_cloud'] = observation['pointcloud']
             if self.dual_arm:
-                obs['agent_pos'] = np.concatenate((observation['left_joint_action'], observation['right_joint_action']))
-                obs['real_joint_action'] = np.concatenate((observation['left_real_joint_action'], observation['right_real_joint_action']))
+                obs['agent_pos'] = observation['joint_action']
                 assert obs['agent_pos'].shape[0] == 14, 'agent_pose shape, error'
             else:
-                obs['agent_pos'] = np.array(observation['right_joint_action'])
-                obs['real_joint_action'] = np.array(observation['right_real_joint_action'])
+                obs['agent_pos'] = observation['joint_action']
                 assert obs['agent_pos'].shape[0] == 7, 'agent_pose shape, error'
             
             actions = model.get_action(obs)
@@ -1282,14 +1425,12 @@ class Base_task(gym.Env):
                 if i != 0 and i % obs_update_freq == 0:
                     observation = self.get_obs()
                     obs=dict()
-                    obs['point_cloud'] = observation['pcd']
+                    obs['point_cloud'] = observation['pointcloud']
                     if self.dual_arm:
-                        obs['agent_pos'] = np.concatenate((observation['left_joint_action'], observation['right_joint_action']))
-                        obs['real_joint_action'] = np.concatenate((observation['left_real_joint_action'], observation['right_real_joint_action']))
+                        obs['agent_pos'] = observation['joint_action']
                         assert obs['agent_pos'].shape[0] == 14, 'agent_pose shape, error'
                     else:
-                        obs['agent_pos'] = np.array(observation['right_joint_action'])
-                        obs['real_joint_action'] = np.is_staticarray(observation['right_real_joint_action'])
+                        obs['agent_pos'] = observation['joint_action']
                         assert obs['agent_pos'].shape[0] == 7, 'agent_pose shape, error'
                     
                     model.update_obs(obs)
@@ -1326,21 +1467,33 @@ class Base_task(gym.Env):
             
         print("\nfail!")
     
-    def get_grasp_pose_w_labeled_direction(self, actor, actor_data = DEFAULT_ACTOR_DATA, grasp_matrix = np.eye(4), pre_dis = 0, id = 0):
+
+################################################# Generate Data API #################################################
+    # def get_grasp_pose_w_labeled_direction(self, actor, actor_data, grasp_matrix = np.eye(4), pre_dis = 0, id = 0):
+    # 获取抓取位姿通过标记的抓取点
+    # pre_dis 为抓取点的前方距离
+    # id 为抓取点的索引
+
+    def get_grasp_pose_w_labeled_direction(self, actor, actor_data, pre_dis = 0., id = 0):
         actor_matrix = actor.get_pose().to_transformation_matrix()
-        local_contact_matrix = np.asarray(actor_data['contact_pose'][id])
-        trans_matrix = np.asarray(actor_data['trans_matrix'])
+        local_contact_matrix = np.asarray(actor_data['contact_points_pose'][id])
+        # trans_matrix = np.asarray(actor_data['transform_matrix'])
         local_contact_matrix[:3,3] *= actor_data['scale']
-        global_contact_pose_matrix = actor_matrix  @ local_contact_matrix @ trans_matrix @ grasp_matrix @ np.array([[0,0,1,0],[-1,0,0,0],[0,-1,0,0],[0,0,0,1]])
+        global_contact_pose_matrix = actor_matrix  @ local_contact_matrix @ np.array([[0, 0, 1, 0],
+                                                                                      [-1,0, 0, 0],
+                                                                                      [0, -1,0, 0],
+                                                                                      [0, 0, 0, 1]])
         global_contact_pose_matrix_q = global_contact_pose_matrix[:3,:3]
         global_grasp_pose_p = global_contact_pose_matrix[:3,3] + global_contact_pose_matrix_q @ np.array([-0.12-pre_dis,0,0]).T
         global_grasp_pose_q = t3d.quaternions.mat2quat(global_contact_pose_matrix_q)
         res_pose = list(global_grasp_pose_p)+list(global_grasp_pose_q)
         return res_pose
 
-    def get_grasp_pose_w_given_direction(self,actor,actor_data = DEFAULT_ACTOR_DATA,grasp_qpos: list = None, pre_dis = 0, id = 0):
+    # 获取抓取位姿通过给定的抓取方向
+    # grasp_qpos 为抓取方向，以夹爪坐标系为基准
+    def get_grasp_pose_w_given_direction(self,actor,actor_data, grasp_qpos: list = None, pre_dis = 0., id = 0):
         actor_matrix = actor.get_pose().to_transformation_matrix()
-        local_contact_matrix = np.asarray(actor_data['contact_pose'][id])
+        local_contact_matrix = np.asarray(actor_data['contact_points_pose'][id])
         local_contact_matrix[:3,3] *= actor_data['scale']
         grasp_matrix= t3d.quaternions.quat2mat(grasp_qpos)
         global_contact_pose_matrix = actor_matrix @ local_contact_matrix
@@ -1348,31 +1501,258 @@ class Base_task(gym.Env):
         res_pose = list(global_grasp_pose_p) + grasp_qpos
         return res_pose
     
-    def get_target_pose_from_goal_point_and_direction(self, actor, actor_data = DEFAULT_ACTOR_DATA, end_effector_pose = None, target_point = None, target_approach_direction = [0,0,1,0], pre_dis = 0):
-        
-        target_approach_direction = t3d.quaternions.quat2mat(target_approach_direction)
-        target_point -= target_approach_direction @ np.array([0,0,pre_dis])
+    # 获取抓取位姿通过给定目标点和接触方向
+    # target_point 为目标点
+    # target_approach_direction 为接触方向，以世界坐标系为基准
+    def get_grasp_pose_from_goal_point_and_direction(self, actor, actor_data,  endpose_tag: str, actor_functional_point_id = 0, target_point = None,
+                                                     target_approach_direction = [0,0,1,0], actor_target_orientation = None, pre_dis = 0.):
+        target_approach_direction_mat = t3d.quaternions.quat2mat(target_approach_direction)
         actor_matrix = actor.get_pose().to_transformation_matrix()
-        local_target_matrix = np.asarray(actor_data['target_pose'])
-        local_target_matrix[:3,3] *= actor_data['scale']
+        target_point_copy = deepcopy(target_point[:3])
+        target_point_copy -= target_approach_direction_mat @ np.array([0,0,pre_dis])
 
-        fuctional_matrix = (actor_matrix @ np.asarray(actor_data['functional_matrix']))[:3,:3]
-        endpose_trans_matrix = target_approach_direction @ np.linalg.inv(fuctional_matrix)
-        end_effector_pose_matrix = t3d.quaternions.quat2mat(end_effector_pose.global_pose.q)@ np.array([[1,0,0],[0,-1,0],[0,0,-1]])
-        target_grasp_matrix = endpose_trans_matrix @ end_effector_pose_matrix
+        try:
+            actor_orientation_point = np.array(actor_data['orientation_point'])[:3,3]
+        except:
+            actor_orientation_point = [0,0,0]
+
+        if actor_target_orientation is not None:
+            actor_target_orientation = actor_target_orientation / np.linalg.norm(actor_target_orientation)
         
-        res_matrix = np.eye(4)
-        res_matrix[:3,3] = (actor_matrix  @ local_target_matrix)[:3,3] - end_effector_pose.global_pose.p
-        res_matrix[:3,3] = np.linalg.inv(end_effector_pose_matrix) @ res_matrix[:3,3]
-        target_grasp_qpose = t3d.quaternions.mat2quat(target_grasp_matrix)
-        res_pose = (target_point - target_grasp_matrix @ res_matrix[:3,3]).tolist() + target_grasp_qpose.tolist()
+        # adjunction_matrix_list = [
+        #     t3d.euler.euler2mat(0,0,0),
+        #     t3d.euler.euler2mat(np.pi/2,0,0),
+        #     t3d.euler.euler2mat(-np.pi/2,0,0),
+        #     t3d.euler.euler2mat(np.pi,0,0),
+        # ]
+        adjunction_matrix_list = [
+            t3d.euler.euler2mat(0,0,0),
+            t3d.euler.euler2mat(0,0,np.pi/2),
+            t3d.euler.euler2mat(0,0,-np.pi/2),
+            t3d.euler.euler2mat(0,0,np.pi),
+            t3d.euler.euler2mat(0,0,np.pi/4),
+            t3d.euler.euler2mat(0,0,np.pi*3/4),
+            t3d.euler.euler2mat(0,0,-np.pi*3/4),
+            t3d.euler.euler2mat(0,0,-np.pi/4),
+        ]
+
+        end_effector_pose = self.left_endpose if endpose_tag == 'left' else self.right_endpose
+        res_pose = None
+        res_eval= -1e10
+        for adjunction_matrix in adjunction_matrix_list:
+            local_target_matrix = np.asarray(actor_data['functional_matrix'][actor_functional_point_id])
+            local_target_matrix[:3,:3] = adjunction_matrix @ local_target_matrix[:3,:3]
+            local_target_matrix[:3,3] *= actor_data['scale']
+            fuctional_matrix = adjunction_matrix @ actor_matrix[:3,:3] @ np.asarray(actor_data['functional_matrix'][actor_functional_point_id])[:3,:3]
+            # pdb.set_trace()
+            trans_matrix = target_approach_direction_mat @ np.linalg.inv(fuctional_matrix)
+            end_effector_pose_matrix = t3d.quaternions.quat2mat(end_effector_pose.global_pose.q)@ np.array([[1,0,0],[0,-1,0],[0,0,-1]])
+            target_grasp_matrix = trans_matrix @ end_effector_pose_matrix
+            # pdb.set_trace()
+
+            # print(now_actor_orientation_point)
+            # Use actor target orientation to filter
+            if actor_target_orientation is not None:
+                now_actor_orientation_point = trans_matrix @ actor_matrix[:3,:3] @ np.array(actor_orientation_point)
+                now_actor_orientation_point = now_actor_orientation_point / np.linalg.norm(now_actor_orientation_point)
+                produt = np.dot(now_actor_orientation_point, actor_target_orientation)
+                # print(produt)
+                if produt < 0.8:
+                    continue
+            
+            res_matrix = np.eye(4)
+            res_matrix[:3,3] = (actor_matrix  @ local_target_matrix)[:3,3] - end_effector_pose.global_pose.p
+            res_matrix[:3,3] = np.linalg.inv(end_effector_pose_matrix) @ res_matrix[:3,3]
+            target_grasp_qpose = t3d.quaternions.mat2quat(target_grasp_matrix)
+            # print(target_grasp_matrix @ res_matrix[:3,3])
+            now_pose = (target_point_copy - target_grasp_matrix @ res_matrix[:3,3]).tolist() + target_grasp_qpose.tolist()
+            # print('!!!', now_pose)
+            now_pose_eval = self.evaluate_grasp_pose(endpose_tag, now_pose, actor, is_grasp_actor=False, target_point=target_point[:3])
+            # print(now_pose, now_pose_eval)
+            if actor_target_orientation is not None and produt > res_eval or now_pose_eval > res_eval:
+            # if True:
+                res_pose = now_pose
+                res_eval = now_pose_eval if actor_target_orientation is None else produt
+            # pdb.set_trace()
+        # print(res_pose)
+        # print(res_pose)
         return res_pose
     
-    def get_actor_goal_pose(self,actor,actor_data = DEFAULT_ACTOR_DATA):
+    # def get_grasp_pose_from_goal_point_and_direction(self, actor, actor_data, endpose = None, target_pose = None, target_grasp_qpose = None):
+    #     actor_matrix = actor.get_pose().to_transformation_matrix()
+    #     local_target_matrix = np.asarray(actor_data['target_pose'])
+    #     local_target_matrix[:3,3] *= actor_data['scale']
+    #     res_matrix = np.eye(4)
+    #     res_matrix[:3,3] = (actor_matrix  @ local_target_matrix)[:3,3] - endpose.global_pose.p
+    #     res_matrix[:3,3] = np.linalg.inv(t3d.quaternions.quat2mat(endpose.global_pose.q) @ np.array([[1,0,0],[0,-1,0],[0,0,-1]])) @ res_matrix[:3,3]
+    #     res_pose = list(target_pose - t3d.quaternions.quat2mat(target_grasp_qpose) @ res_matrix[:3,3]) + target_grasp_qpose
+    #     return res_pose
+    
+    # 获取actor目标点的世界坐标系下的位姿(x,y,z)
+    def get_actor_goal_pose(self,actor,actor_data, id = 0):
+        if type(actor) == list:
+            return actor
         actor_matrix = actor.get_pose().to_transformation_matrix()
-        local_target_matrix = np.asarray(actor_data['target_pose'])
+        local_target_matrix = np.asarray(actor_data['target_pose'][id])
         local_target_matrix[:3,3] *= actor_data['scale']
         return (actor_matrix @ local_target_matrix)[:3,3]
+
+    # @TODO: 获取actor功能点和轴的世界坐标系下的[x,y,z,quaternion]
+    def get_actor_functional_pose(self, actor, actor_data, actor_functional_point_id = 0):
+        if type(actor) == list:
+            return actor
+        actor_matrix = actor.get_pose().to_transformation_matrix()
+        local_functional_matrix = np.asarray(actor_data['functional_matrix'][actor_functional_point_id])
+        local_functional_matrix[:3,3] *= actor_data['scale']
+        res_matrix = actor_matrix @ local_functional_matrix
+        # print('!!!',local_functional_matrix)
+        # res_pose = res_matrix[:3,3]
+        return res_matrix[:3,3].tolist() + t3d.quaternions.mat2quat(res_matrix[:3,:3]).tolist()
+
+    # @TODO: 抓取模块, 上层API, 输入左右臂 endpose 和需要抓取得物体对象, 返回合适的抓取位姿
+    # endpose_tag: 'left' or 'right'
+    def get_grasp_pose_to_grasp_object(self, endpose_tag: str, actor, actor_data, pre_dis = 0):
+        endpose = self.left_endpose if endpose_tag == 'left' else self.right_endpose
+        contact_points = actor_data['contact_points_pose']
+
+        grasp_pose_eval = -1e9
+        res_grasp_pose = None
+        id = None
+
+        mask = [True] * len(actor_data["contact_points_pose"])
+
+        for i in range(len(actor_data["contact_points_group"])):
+            if actor_data["contact_points_mask"][i] == False:
+                for id in actor_data["contact_points_group"][i]:
+                    mask[id] = False
+        
+        for i in range(len(contact_points)):
+            if mask[i] == False:
+                continue
+            grasp_pose = self.get_grasp_pose_w_labeled_direction(actor, actor_data, pre_dis, i)
+            # print(i)
+            now_grasp_pose_eval = self.evaluate_grasp_pose(endpose_tag, grasp_pose, actor, is_grasp_actor = True)
+            # print(grasp_pose, now_grasp_pose_eval, i)
+            if now_grasp_pose_eval > grasp_pose_eval:
+                grasp_pose_eval = now_grasp_pose_eval
+                res_grasp_pose = grasp_pose
+                id = i
+        
+        for i, contact_points in enumerate(actor_data["contact_points_group"]):
+            if id in contact_points:
+                if endpose_tag == 'left':
+                    self.left_prepare_grasp_data = actor_data
+                    self.left_prepare_grasp_point_group = i
+                else:
+                    self.right_prepare_grasp_data = actor_data
+                    self.right_prepare_grasp_point_group = i
+                break
+    
+        # self.evaluate_grasp_pose(endpose_tag, res_grasp_pose)
+        return res_grasp_pose
+
+    # @TODO: 评估模块, 用于评估抓取位姿是否合适
+    def evaluate_grasp_pose(self, endpose_tag: str, grasp_pose: list, actor, is_grasp_actor = True, target_point = None):
+        
+        endpose = self.left_endpose if endpose_tag == 'left' else self.right_endpose
+        base_xy = np.array([-0.3,-0.417]) if endpose_tag == 'left' else np.array([0.3,-0.417])
+        actor_xy = np.array([actor.get_pose().p[0], actor.get_pose().p[1]]) if is_grasp_actor else np.array(target_point[:2])
+        angle = np.arctan2(actor_xy[1]-base_xy[1], actor_xy[0]-base_xy[0])
+        res = 0
+        # 三个旋转轴的角度相对于基准位置均不超过[-pi/2,pi/2]
+        trans_matrix = t3d.quaternions.quat2mat(grasp_pose[3:]) @ np.linalg.inv(np.array([[0,-1,0],[1,0,0],[0,0,1]]))
+        delta_euler = np.array(t3d.euler.mat2euler(trans_matrix))
+        if np.any(delta_euler > np.pi/2 + 0.1):
+            # print("euler out of range")
+            res += 1e9
+        
+        # 限定xyz范围
+        if endpose_tag == 'left':
+            grasp_limit = [[-0.4,0.1],[-0.3,0.3],[0.85, 1.2]]
+        elif endpose_tag == 'right':
+            grasp_limit = [[-0.1, 0.4],[-0.3,0.3],[0.85, 1.2]]
+
+        if np.any([grasp_pose[i] < grasp_limit[i][0] or grasp_pose[i] > grasp_limit[i][1] for i in range(3)]):
+            # print("grasp pose out of range")
+            res += 1e8
+
+        # 计算抓取位姿的评估值
+        res = 0
+        res = np.sum(np.abs(endpose.global_pose.p - np.array(grasp_pose)[:3]) * [1/0.5, 1/0.6, 1/0.36])
+        # res = np.sum(np.abs(endpose.global_pose.p - np.array(grasp_pose)[:3]))
+        trans_now_pose_matrix = t3d.quaternions.quat2mat(grasp_pose[3:]) @ np.linalg.inv(endpose.global_pose.to_transformation_matrix()[:3,:3])
+        theta_xy = np.mod(np.abs(t3d.euler.mat2euler(trans_now_pose_matrix)[:2]), np.pi)
+        theta_z = delta_euler[-1] + np.pi/2 - np.mod(angle + np.pi, np.pi)
+
+        # 限定左右夹爪方向，防止较大角度的外翻
+        # if endpose_tag == 'right' and delta_euler[-1] < -1:
+        #     return -1e9
+        
+        # if endpose_tag == 'left' and delta_euler[-1] > 1:
+        #     return -1e9
+        
+        res += 2 * np.sum(theta_xy/np.pi) + 2 * np.abs(theta_z)/np.pi
+        # res = 2 * np.abs(theta_z)/np.pi
+        return -res
+
+    # @TODO: 避让模块, 用于左右臂避免碰撞
+    # move_arm_tag: 'left' or 'right', 用于指定移动的臂
+    # direction: 'left', 'right', front', 'back', 'up', 'down', 用于指定移动的方向
+    # distance: float, 用于指定移动的距离
+    # def avoid_collision_by_move_in_direction(self, move_arm_tag: str, direction: str, distance = 0.05):
+    # @TODO: get_save_pose
+    def get_avoid_collision_pose(self, avoid_collision_arm_tag: str):
+
+        if avoid_collision_arm_tag == 'right':
+            endpose = self.right_endpose.global_pose
+            target_pose = [0.28, -0.07, endpose.p[2]] + t3d.quaternions.qmult(endpose.q, [0,1,0,0]).tolist()
+        else:
+            endpose = self.left_endpose.global_pose
+            target_pose = [-0.28, -0.07, endpose.p[2]] + t3d.quaternions.qmult(endpose.q, [0,1,0,0]).tolist()
+
+        return target_pose
+        # if direction == 'left':
+        #     dis_vec = np.array([-1,0,0])
+        # elif direction == 'right':
+        #     dis_vec = np.array([1,0,0])
+        # elif direction == 'front':
+        #     dis_vec = np.array([0,1,0])
+        # elif direction == 'back':
+        #     dis_vec = np.array([0,-1,0])
+        # elif direction == 'up':
+        #     dis_vec = np.array([0,0,1])
+        # elif direction == 'down':
+        #     dis_vec = np.array([0,0,-1])
+    
+    # @TODO: 获取物体各个点描述
+    def get_actor_points_discription(self):
+        res_dic = {}
+        for actor_data_str in self.actor_data_dic.keys():
+            res_dic[actor_data_str] = {}
+        for actor_data_str in self.actor_data_dic.keys():
+            try:
+                res_dic[actor_data_str]['contact_points'] = self.actor_data_dic[actor_data_str]['contact_points_discription']
+            except:
+                res_dic[actor_data_str]['contact_points'] = ""
+
+            try:
+                res_dic[actor_data_str]['target_point'] = self.actor_data_dic[actor_data_str]['target_point_discription']
+            except:
+                res_dic[actor_data_str]['target_point'] = ""
+            
+            try:
+                res_dic[actor_data_str]['functional_point'] = self.actor_data_dic[actor_data_str]['functional_point_discription']
+            except:
+                res_dic[actor_data_str]['functional_point'] = ""
+
+            try:
+                res_dic[actor_data_str]['actor_orientation'] = self.actor_data_dic[actor_data_str]['orientation_point_discription']
+            except:
+                res_dic[actor_data_str]['actor_orientation'] = ""
+
+        return res_dic    
+
+################################################# Generate Data API #################################################
 
     def play_once(self):
         pass
@@ -1401,9 +1781,9 @@ class Base_task(gym.Env):
             left_arm_actions , left_gripper , left_current_qpos, left_path = [], [], [], []
             right_arm_actions , right_gripper , right_current_qpos, right_path = [], [], [], []
 
-            left_arm_actions, left_gripper = actions[:, :6],actions[:, 6] # 0-5 left joint action, 6 left gripper action
-            right_arm_actions, right_gripper = actions[:, 7:13],actions[:, 13] # 7-12 right joint action, 13 right gripper action
-            left_current_qpos, right_current_qpos = obs['left_joint_action'][:6], obs['right_joint_action'][7:13]  # current joint and gripper action
+            left_arm_actions, left_gripper = actions[:, :6], actions[:, 6] # 0-5 left joint action, 6 left gripper action
+            right_arm_actions, right_gripper = actions[:, 7:13], actions[:, 13] # 7-12 right joint action, 13 right gripper action
+            left_current_qpos, right_current_qpos = obs['joint_action'][:6], obs['joint_action'][7:13]  # current joint and gripper action
             
 
             left_path = np.vstack((left_current_qpos, left_arm_actions))
@@ -1505,3 +1885,196 @@ class Base_task(gym.Env):
                 break
             
         print("\nfail!")
+
+
+    def get_cam_obs(self, observation: dict) -> dict:
+        head_cam = np.moveaxis(observation['observation']['head_camera']['rgb'], -1, 0) / 255
+        front_cam = np.moveaxis(observation['observation']['front_camera']['rgb'], -1, 0) / 255
+        left_cam = np.moveaxis(observation['observation']['left_camera']['rgb'], -1, 0) / 255
+        right_cam = np.moveaxis(observation['observation']['right_camera']['rgb'], -1, 0) / 255
+        return dict(
+            head_cam = head_cam,
+            front_cam = front_cam,
+            left_cam = left_cam,
+            right_cam = right_cam
+        )
+
+    def apply_dp(self, model, video_log=False, save_dir='default'):
+        cnt = 0
+        self.test_num += 1
+
+        if video_log:
+            import subprocess
+            from pathlib import Path
+            save_dir = Path('video') / save_dir
+            save_dir.mkdir(parents=True, exist_ok=True)
+            ffmpeg = subprocess.Popen([
+                'ffmpeg', '-y',
+                '-f', 'rawvideo',
+                '-pixel_format', 'rgb24',
+                '-video_size', '320x240',
+                '-framerate', '10',
+                '-i', '-',
+                '-pix_fmt', 'yuv420p',
+                '-vcodec', 'libx264',
+                '-crf', '23',
+                f'{save_dir}/{self.test_num}.mp4'
+            ], stdin=subprocess.PIPE)
+
+        success_flag = False
+        self._update_render()
+        if self.render_freq:
+            self.viewer.render()
+        
+        self.actor_pose = True
+
+        observation = self.get_obs()
+        obs = self.get_cam_obs(observation)
+
+        obs['agent_pos'] = observation['joint_action']
+        model.update_obs(obs)
+
+        while cnt < self.step_lim:
+            if video_log:
+                ffmpeg.stdin.write(observation['head_camera'].tobytes())
+            
+            actions = model.get_action()
+            obs = model.get_last_obs()
+            left_arm_actions , left_gripper , left_current_qpos, left_path = [], [], [], []
+            right_arm_actions , right_gripper , right_current_qpos, right_path = [], [], [], []
+            if self.dual_arm:
+                left_arm_actions,left_gripper = actions[:, :6],actions[:, 6]
+                right_arm_actions,right_gripper = actions[:, 7:13],actions[:, 13]
+                left_current_qpos, right_current_qpos = obs['agent_pos'][:6], obs['agent_pos'][7:13]
+            else:
+                right_arm_actions,right_gripper = actions[:, :6],actions[:, 6]
+                right_current_qpos = obs['agent_pos'][:6]
+            
+            if self.dual_arm:
+                left_path = np.vstack((left_current_qpos, left_arm_actions))
+            right_path = np.vstack((right_current_qpos, right_arm_actions))
+
+
+            topp_left_flag, topp_right_flag = True, True
+            try:
+                times, left_pos, left_vel, acc, duration = self.left_planner.TOPP(left_path, 1/250, verbose=True)
+                left_result = dict()
+                left_result['position'], left_result['velocity'] = left_pos, left_vel
+                left_n_step = left_result["position"].shape[0]
+                left_gripper = np.linspace(left_gripper[0], left_gripper[-1], left_n_step)
+            except:
+                topp_left_flag = False
+                left_n_step = 1
+            
+            if left_n_step == 0 or (not self.dual_arm):
+                topp_left_flag = False
+                left_n_step = 1
+
+            try:
+                times, right_pos, right_vel, acc, duration = self.right_planner.TOPP(right_path, 1/250, verbose=True)            
+                right_result = dict()
+                right_result['position'], right_result['velocity'] = right_pos, right_vel
+                right_n_step = right_result["position"].shape[0]
+                right_gripper = np.linspace(right_gripper[0], right_gripper[-1], right_n_step)
+            except:
+                topp_right_flag = False
+                right_n_step = 1
+            
+            if right_n_step == 0:
+                topp_right_flag = False
+                right_n_step = 1
+            
+            cnt += actions.shape[0]
+            
+            n_step = max(left_n_step, right_n_step)
+
+            obs_update_freq = n_step // actions.shape[0]
+
+            now_left_id = 0 if topp_left_flag else 1e9
+            now_right_id = 0 if topp_right_flag else 1e9
+            i = 0
+            
+            while now_left_id < left_n_step or now_right_id < right_n_step:
+                qf = self.robot.compute_passive_force(
+                    gravity=True, coriolis_and_centrifugal=True
+                )
+                self.robot.set_qf(qf)
+                if topp_left_flag and now_left_id < left_n_step and now_left_id / left_n_step <= now_right_id / right_n_step:
+                    for j in range(len(self.left_arm_joint_id)):
+                        left_j = self.left_arm_joint_id[j]
+                        self.active_joints[left_j].set_drive_target(left_result["position"][now_left_id][j])
+                        self.active_joints[left_j].set_drive_velocity_target(left_result["velocity"][now_left_id][j])
+                    if not self.fix_gripper:
+                        for joint in self.active_joints[34:36]:
+                            # joint.set_drive_target(left_result["position"][i][6])
+                            joint.set_drive_target(left_gripper[now_left_id])
+                            joint.set_drive_velocity_target(0.05)
+                            self.left_gripper_val = left_gripper[now_left_id]
+
+                    now_left_id +=1
+                    
+                if topp_right_flag and now_right_id < right_n_step and now_right_id / right_n_step <= now_left_id / left_n_step:
+                    for j in range(len(self.right_arm_joint_id)):
+                        right_j = self.right_arm_joint_id[j]
+                        self.active_joints[right_j].set_drive_target(right_result["position"][now_right_id][j])
+                        self.active_joints[right_j].set_drive_velocity_target(right_result["velocity"][now_right_id][j])
+                    if not self.fix_gripper:
+                        for joint in self.active_joints[36:38]:
+                            # joint.set_drive_target(right_result["position"][i][6])
+                            joint.set_drive_target(right_gripper[now_right_id])
+                            joint.set_drive_velocity_target(0.05)
+                            self.right_gripper_val = right_gripper[now_right_id]
+
+                    now_right_id +=1
+                
+                self.scene.step()
+                self._update_render()
+
+                if i != 0 and i % obs_update_freq == 0:
+                    observation = self.get_obs()
+                    obs = self.get_cam_obs(observation)
+                    obs['agent_pos'] = observation['joint_action']
+                    
+                    model.update_obs(obs)
+                    self._take_picture()
+
+                if i % 5==0:
+                    self._update_render()
+                    if self.render_freq and i % self.render_freq == 0:
+                        self.viewer.render()
+                
+                i+=1
+                if self.check_success():
+                    success_flag = True
+                    break
+
+                if self.actor_pose == False:
+                    break
+            
+            self. _update_render()
+
+            if self.render_freq:
+                self.viewer.render()
+            
+            self._take_picture()
+
+            print(f'step: {cnt} / {self.step_lim}', end='\r')
+
+            if success_flag:
+                print("\nsuccess!")
+                self.suc +=1
+                if video_log:
+                    ffmpeg.stdin.close()
+                    ffmpeg.wait()
+                    del ffmpeg
+
+                return
+            
+            if self.actor_pose == False:
+                break
+            continue
+        print("\nfail!")
+        if video_log:
+            ffmpeg.stdin.close()
+            ffmpeg.wait()
+            del ffmpeg

@@ -1,5 +1,5 @@
 import sys
-sys.path.append('./policy/3D-Diffusion-Policy/3D-Diffusion-Policy')
+sys.path.insert(0, './policy/3D-Diffusion-Policy/3D-Diffusion-Policy')
 sys.path.append('./')
 
 import torch  

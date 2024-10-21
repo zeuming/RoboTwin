@@ -25,15 +25,52 @@ class shoes_place(Base_task):
         self.together_open_gripper(save_freq=None)
         self.render_freq = render_freq
 
+
+    def create_block_data(self, half_size):
+        contact_discription_list = []
+        test_matrix = np.array([[0,0,1,0],[1,0,0,0],[0,1,0,0],[0,0,0,1]])
+        test_matrix[:3,:3] = t3d.euler.euler2mat(0,0,np.pi) @ test_matrix[:3,:3]
+        # print(test_matrix.tolist())
+        contact_points_list = [
+                # [[0, 0, 1, 0], [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1]], # top_down(front)
+                # [[1, 0, 0, 0], [0, 0, -1, 0], [0, 1, 0, 0], [0, 0, 0, 1]], # top_down(right)
+                # [[-1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]], # top_down(left)
+                # [[0, 0, -1, 0], [-1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1]], # top_down(back)
+                
+                # [[0, 0, 1, 0], [0, -1, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1]], # front
+                # [[0, 1, 0, 0], [0, 0, 1, 0], [1, 0, 0, 0], [0, 0, 0, 1]], # left
+                # [[0, -1, 0, 0], [0, 0, -1, 0], [1, 0, 0, 0], [0, 0, 0, 1]], # right
+                # [[0, 0, -1, 0], [0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1]], # back
+                # test_matrix.tolist(),
+            ]
+
+        data = {
+            'center': [0,0,0],
+            'extents': half_size,
+            'scale': [1,1,1],                                     # 缩放
+            'target_pose': [[[1,0,0,0],[0,1,0,-0.06],[0,0,1,half_size[2]],[0,0,0,1]], [[1,0,0,0],[0,1,0,0.06],[0,0,1,half_size[2]],[0,0,0,1]]],              # 目标点矩阵
+            'contact_points_pose' : contact_points_list,    # 抓取点矩阵（多个）
+            'transform_matrix': np.eye(4).tolist(),           # 模型到标轴的旋转矩阵
+            "functional_matrix": [[0., 1., 0., 0.], [0., 0., -1., 0.], [1., 0., 0., 0.], [0., 0., 0., 1.]],         # 功能点矩阵
+            'contact_points_discription': contact_discription_list,    # 抓取点描述
+            'contact_points_group': [],
+            'contact_points_mask': [],
+            'target_point_discription': ["The center point on the top of the box." ]
+        }
+
+        return data
+
     def load_actors(self, **kwargs):
         # super().setup_scene()
-        self.target = create_visual_box(
+        self.target_block = create_visual_box(
             scene = self.scene,
             pose = sapien.Pose([0,-0.13,0.74],[1,0,0,0]),
             half_size=(0.13,0.1,0.0005),
             color=(0,0,1),
             name="box"
         )
+
+        self.target_block_data = self.create_block_data([0.13,0.05,0.0005])
 
         shoe_id = np.random.choice(self.id_list)
 
@@ -92,7 +129,7 @@ class shoes_place(Base_task):
             )
         
 
-        self.right_shoe, _ = create_glb(
+        self.right_shoe, self.right_shoe_data = create_glb(
             self.scene,
             pose=shoes_pose,
             modelname="041_shoes",
@@ -103,6 +140,8 @@ class shoes_place(Base_task):
 
         self.left_shoe.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.1
         self.right_shoe.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.1
+        self.actor_name_dic = {'target_block':self.target_block,'left_shoe':self.left_shoe,'right_shoe':self.right_shoe}
+        self.actor_data_dic = {'target_block_data':self.target_block_data,'shoe_data':self.shoe_data,'right_shoe_data':self.right_shoe_data}
 
     def get_target_grap_pose(self,shoe_rpy):
         if math.fmod(math.fmod(shoe_rpy[2] + shoe_rpy[0], 2 * math.pi) + 2 * math.pi, 2*math.pi) < math.pi:

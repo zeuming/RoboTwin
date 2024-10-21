@@ -103,8 +103,45 @@ def rand_create_glb(
         rotate_lim=rotate_lim,
         qpos=qpos
     )
-
     return create_glb(
+        scene=scene,
+        pose=obj_pose,
+        modelname=modelname,
+        scale=scale,
+        convex=convex,
+        is_static=is_static,
+        model_id = model_id,
+        model_z_val = model_z_val
+    )
+
+def rand_create_actor(
+    scene: sapien.Scene,
+    modelname: str,
+    xlim: np.ndarray,
+    ylim: np.ndarray,
+    zlim: np.ndarray,
+    ylim_prop = False,
+    rotate_rand = False,
+    rotate_lim = [0,0,0],
+    qpos = [1,0,0,0],
+    scale = (1,1,1),
+    convex = False,
+    is_static = False,
+    model_id = None,
+    model_z_val = False
+) -> sapien.Entity:
+    
+    obj_pose = rand_pose(
+        xlim=xlim,
+        ylim=ylim,
+        zlim=zlim,
+        ylim_prop=ylim_prop,
+        rotate_rand=rotate_rand,
+        rotate_lim=rotate_lim,
+        qpos=qpos
+    )
+
+    return create_actor(
         scene=scene,
         pose=obj_pose,
         modelname=modelname,

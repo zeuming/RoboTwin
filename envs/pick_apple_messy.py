@@ -27,7 +27,6 @@ class pick_apple_messy(Base_task):
 
     def load_actors(self, **kwargs):
         self.actor_list=[]
-        self.actor_data_list=[]
         file_path = './envs/utils/rand_model_data.json'
         with open(file_path, 'r', encoding='utf-8') as file:
             data = json.load(file)
@@ -50,6 +49,8 @@ class pick_apple_messy(Base_task):
             modelname="035_apple",
             convex=True
         )
+        self.actor_name_dic = {'apple':self.apple}
+        self.actor_data_dic = {'apple_data':self.apple_data}
         for i in obj_list:
             model_index = f"model{i}"
             actor_pose = rand_pose(
@@ -89,8 +90,8 @@ class pick_apple_messy(Base_task):
                 model_z_val = data[model_index]["model_z_val"],
             )
 
-            self.actor_list.append(model)
-            self.actor_data_list.append(model_data)
+            # self.actor_list.append(model)
+            # self.actor_data_dic.append(model_data)
 
     def play_once(self):
         pose1 = self.get_grasp_pose_w_given_direction(self.apple, self.apple_data, grasp_qpos=[-0.5, 0.5, -0.5, -0.5], pre_dis=0.1) # apple pre grasp pose

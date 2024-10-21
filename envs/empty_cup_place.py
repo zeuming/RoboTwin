@@ -28,9 +28,10 @@ class empty_cup_place(Base_task):
                 xlim=[0.15,0.3],
                 ylim=[-0.2,0.05],
                 zlim=[0.8],
+                ylim_prop=True,
                 modelname="022_cup",
                 rotate_rand=False,
-                qpos=[0.707,0.707,0,0],
+                qpos=[0.5,0.5,0.5,0.5],
             )
             cup_pose = self.cup.get_pose().p
 
@@ -50,7 +51,7 @@ class empty_cup_place(Base_task):
                     rotate_rand=False,
                     qpos=[0.707,0.707,0,0],
                 )
-            self.coaster,_ = create_obj(
+            self.coaster,self.coaster_data = create_obj(
                 self.scene,
                 pose = coaster_pose,
                 modelname="019_coaster",
@@ -62,9 +63,10 @@ class empty_cup_place(Base_task):
                 xlim=[-0.3,-0.15],
                 ylim=[-0.2,0.05],
                 zlim=[0.8],
+                ylim_prop=True,
                 modelname="022_cup",
                 rotate_rand=False,
-                qpos=[0.707,0.707,0,0],
+                qpos=[0.5,0.5,0.5,0.5],
             )
             cup_pose = self.cup.get_pose().p
 
@@ -84,12 +86,14 @@ class empty_cup_place(Base_task):
                     rotate_rand=False,
                     qpos=[0.707,0.707,0,0],
                 )
-            self.coaster,_ = create_obj(
+            self.coaster,self.coaster_data = create_obj(
                 self.scene,
                 pose = coaster_pose,
                 modelname="019_coaster",
                 convex=True
             )
+        self.actor_name_dic = {'cup':self.cup,'coaster':self.coaster}
+        self.actor_data_dic = {'cup_data':self.cup_data,'coaster_data':self.coaster_data}
 
         
         self.cup.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.01

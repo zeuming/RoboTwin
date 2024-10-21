@@ -7,7 +7,7 @@ seed=${3}
 gpu_id=${4}
 
 if [ ! -d "./3D-Diffusion-Policy/data/${task_name}_${expert_data_num}.zarr" ]; then
-    echo "zarr does not exist, run pkl2zarr.py"
+    echo "zarr does not exist, run pkl2zarr_dp3.py"
     cd ../..
     expert_data_num_minus_one=$((expert_data_num - 1))
     if [ ! -d "./data/${task_name}_pkl/episode${expert_data_num_minus_one}" ]; then

@@ -1,42 +1,170 @@
-# HELP
-环境安装大概20min，见[Installation.md](./Installation.md)
+<h1 align="center">
+	RoboTwin: Dual-Arm Robot Benchmark with Generative Digital Twins<br>
+</h1>
 
-环境安装完毕后，看到根目录下的文件夹，共有6个：
-1. config，存放了每个任务的配置，比如相机参数，是否采集数据，数据采集内容等等
-2. envs，存放了所有任务的运行逻辑，下一部分会重点说
-3. gpt_api，存放了gpt的api内容，暂时只写了get grasp pose
-4. policy，部署算法，暂时可以跳过
-5. script，一些脚本和工具，比如降采样以及数据格式转换，可以跳过
-6. third_party，跳过，一些第三方库安装
+<a href="https://yaomarkmu.github.io/">Yao Mu</a><sup>* †</sup>, <a href="https://tianxingchen.github.io">Tianxing Chen</a><sup>* </sup>, Zanxin Chen<sup>* </sup>, Shijia Peng<sup>*</sup>,<br>Zeyu Gao, Zhiqian Lan, Yude Zou, Lunkai Lin, Zhiqiang Xie, <a href="http://luoping.me/">Ping Luo</a><sup>†</sup>.
 
-## envs讲解
-每个任务类继承自Base_task类，Base_task实现了get_observation等底层实现，然后每个任务类会特别实现：
-1. setup_demo和load_actors: 主要是load一下不同任务的场景
-2. pre_move: 任务真正开始的一些前置动作，比如hammer_beat任务，锤子我们是一开始就在手上的，这个东西仿真不能直接设置，所以我们使用pre_move让机械臂先抓住hamemr，再开始采集或者部署。
-3. play_once，完成一次任务，这个是专家数据采集（ground truth）
-4. check_success，检查任务是否成功
-main.py调用每个任务的类并完成数据采集
 
-部署实现不重要，先跳过。
+**RoboTwin (early version)**, accepted to <i style="color: red; display: inline;"><b>ECCV Workshop 2024 (Best Paper)</b></i>: [Webpage](https://robotwin-benchmark.github.io/early-version) | [PDF](https://arxiv.org/pdf/2409.02920) | [arXiv](https://arxiv.org/abs/2409.02920)<br>
+<a href="https://hits.seeyoufarm.com"><img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2FTianxingChen%2FRoboTwin&count_bg=%23184FFF&title_bg=%23E116E5&icon=&icon_color=%23E7E7E7&title=Repo+Viewers&edge_flat=true"/></a>
 
-# 跑任务
-跑任务可以用`bash run_task.sh mug_hanging 0`之类的，mug_hanging表示任务名，0表示gpu_id
 
-数据采集的配置在`config`文件夹下，对应每一个任务，以下为重要参数的解释：
-1. render_freq，为0就是不渲染，如果想看的话，可以设置为10
-2. collect_data，设置为True才会开启采集
-3. camera_w,h就是相机参数，一共4个相机，腕部两个，top和front两个
-4. pcd_crop，获取的点云是否裁剪，去除桌子、墙壁等
-5. pcd_down_sample_num，点云用fps降采样
-6. data_type/endpose，末端关节的6元数，仍有点小问题
-7. data_type/qpos，joint action
-8. observer，是否要存一个方便观察的视角照片，不影响学习
+# 📚 Overview
+![Expert Data Generation](./files/pipeline.png)
+![](./files/robotwin_task.png)
 
-# Installation
-See [Installation.md](./Installation.md) for installation instructions. 
+# 🛠️ Installation
+See [INSTALLATION.md](./INSTALLATION.md) for installation instructions. It takes about 20 minutes for installation.
 
-# Use gpt
+# 🐣 Update
+* 2024/10/1, Fixed `get_actor_goal_pose` missing bug and updated the Diffusion Policy-related code as well as the experimental results.
+* 2024/9/30, RoboTwin (Early Version) received the **Best Paper Award** at the ECCV Workshop !
+* 2024/9/20, We released RoboTwin.
 
-The task description is in [task_info.py](./gpt_api/task_info.py).
+# 🧑🏻‍💻 Usage 
+## 1. Task Running and Data Collection
+This part will be released soon. We now release 50 demos for each task:
 
-Run [task_generation.py](./task_generation.py) file, the result code will in `gpt_result/task_name.txt`
+In the project root directory:
+```
+mkdir data
+cd data
+```
+View [https://huggingface.co/datasets/YaoMarkMu/robotwin_dataset](https://huggingface.co/datasets/YaoMarkMu/robotwin_dataset), download the files and unzip them to `data`
+
+The `${task_name}.zip` files contain only 1024 point cloud observations, while the `${task_name}_w_rgbd.zip` files contain both 1024 point clouds and RGBD data for each view.
+
+## 2. Task Config
+Data collection configurations are located in the `config` folder, corresponding to each task. Here is an explanation of the important parameters:
+
+1. **render_freq**: Set to 0 means no rendering. If you wish to see the rendering, it can be set to 10.
+2. **collect_data**: Data collection will only be enabled if set to True.
+3. **camera_w,h**: These are the camera parameters, with a total of 4 cameras - two on the wrist and two positioned as top and front views.
+4. **pcd_crop**: Determines whether the **obtained** point cloud data is cropped to remove elements like tables and walls.
+5. **pcd_down_sample_num**: The point cloud data is downsampled using the FPS (Farthest Point Sampling) method, set it to 0 to keep the raw point cloud data.
+6. **data_type/endpose**: The 6D pose of the end effector, which still has some minor issues.
+7. **data_type/qpos**: Represents the joint action.
+8. **observer**: Decides whether to save a observer-view photo for easy observation.
+
+## 3. Deploy your policy
+See `envs/base_task.py`, search `TODO` and you may see the following code, make sure that `policy.get_action(obs)` will return action sequence (predicted actions).:
+```
+actions = model.get_action(obs) # TODO, get actions according to your policy and current obs
+```
+
+You need to modify `script/eval_policy.py` in the root directory to load your model for evaluation: Search `TODO`, modify the code to init your policy. 
+
+Run the follow command to run your policy in specific task env:
+```
+bash script/run_eval_policy.sh ${task_name} ${gpu_id}
+```
+
+## Baselines
+### 1. Diffusion Policy
+The DP code can be found in `policy/Diffusion-Policy`.
+
+Process Data for DP training after collecting data (In root directory), and input the task name and the amount of data you want your policy to train with:
+```
+python script/pkl2zarr_dp.py ${task_name} ${number_of_episodes}
+```
+
+Then, move to `policy/Diffusion-Policy` first, and run the following code to train DP3 :
+```
+bash train.sh ${task_name} ${expert_data_num} ${seed} ${gpu_id}
+```
+
+Run the following code to eval DP for specific task:
+```
+bash eval.sh ${task_name} ${expert_data_num} ${checkpoint_num} ${gpu_id}
+```
+
+### 2. 3D Diffusion Policy
+The DP3 code can be found in `policy/3D-Diffusion-Policy`.
+
+Process Data for DP3 training after collecting data (In root directory), and input the task name and the amount of data you want your policy to train with:
+```
+python script/pkl2zarr_dp3.py ${task_name} ${number_of_episodes}
+```
+
+Then, move to `policy/3D-Diffusion-Policy` first, and run the following code to train DP3 :
+```
+bash train.sh ${task_name} ${expert_data_num} ${seed} ${gpu_id}
+```
+
+Run the following code to eval DP3 for specific task:
+```
+bash eval.sh ${task_name} ${expert_data_num} ${checkpoint_num} ${seed} ${gpu_id}
+```
+
+# ℹ️ Task Information
+
+## Descriptions
+Coming Soon !
+
+## Appx. Task Name → `${task_name}`
+| Task Name | `${task_name}` |
+| ---- | ---- |
+| Apple Cabinet Storage | apple_cabinet_storage |
+| Block Hammer Beat | block_hammer_beat |
+| Block Handover | block_handover |
+| Block Sweep | block_sweep |
+| Blocks Stack (Easy) | blocks_stack_easy |
+| Blocks Stack (Hard) | blocks_stack_hard |
+| Container Place | container_place |
+| Diverse Bottles Pick | diverse_bottles_pick |
+| Dual Bottles Pick (Easy) | dual_bottles_pick_easy |
+| Dual Bottles Pick (Hard) | dual_bottles_pick_hard |
+| Empty Cup Place | empty_cup_place |
+| Mug Hanging | mug_hanging |
+| Pick Apple Messy | pick_apple_messy |
+| Shoe Place | shoe_place |
+| Shoes Place | shoes_place |
+
+## 🏄‍♂️ Current leaderboard
+Here's the revised table with the averages listed at the end:
+### Diffusion Policy (2D)
+<img src="files/dp_result.png" alt="2D Diffusion Policy" style="width: 50%; display: block; margin: auto;">
+
+### 3D Diffusion Policy
+<img src="files/dp3_result.png" alt="3D Diffusion Policy" style="width: 50%; display: block; margin: auto;">
+
+# 🪄 Digital Twin Generation
+
+Deemos Rodin: [https://hyperhuman.deemos.com/rodin](https://hyperhuman.deemos.com/rodin)
+
+# 📦 Real Robot Data collected by teleoperation
+
+🦾 ARIO, All Robots In One: [https://ario-dataset.github.io/](https://ario-dataset.github.io/).
+
+Coming Soon !
+
+# ⁉️ Common Issues
+If you find you fail to quit the running python process with `Crtl + C`, just try `Ctrl + \`.
+
+We found Vulkan is not stable in someoff-screen devices, try reconnecting `ssh -X ...` if you meet any problem.
+
+Other Common Issues can be found in [COMMON_ISSUE](./COMMON_ISSUE.md)
+
+# ⏱️ Future Plans
+1. Task Code Generation Pipeline.
+2. RoboTwin (Final Version) will be released soon.
+3. Real Robot Data collected by teleoperation.
+4. Tasks env (Data Collection).
+5. More baseline code will be integrated into this repository (RICE, ACT, Diffusion Policy).
+
+
+# 👍 Citation
+If you find our work useful, please consider citing:
+
+RoboTwin: Dual-Arm Robot Benchmark with Generative Digital Twins (**early version**), accepted to <i style="color: red; display: inline;"><b>ECCV Workshop 2024 (Best Paper)</b></i>
+```
+@article{mu2024robotwin,
+  title={RoboTwin: Dual-Arm Robot Benchmark with Generative Digital Twins (early version)},
+  author={Mu, Yao and Chen, Tianxing and Peng, Shijia and Chen, Zanxin and Gao, Zeyu and Zou, Yude and Lin, Lunkai and Xie, Zhiqiang and Luo, Ping},
+  journal={arXiv preprint arXiv:2409.02920},
+  year={2024}
+}
+```
+
+# 🏷️ License
+This repository is released under the MIT license. See [LICENSE](./LICENSE) for additional details.

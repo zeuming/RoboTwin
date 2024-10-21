@@ -15,7 +15,42 @@ class block_hammer_beat(Base_task):
         self.load_actors()
         self.step_lim = 400
 
+    def create_block_data(self, half_size):
+        contact_discription_list = []
+        test_matrix = np.array([[0,0,1,0],[1,0,0,0],[0,1,0,0],[0,0,0,1]])
+        test_matrix[:3,:3] = t3d.euler.euler2mat(0,0,np.pi) @ test_matrix[:3,:3]
+        # print(test_matrix.tolist())
+        contact_points_list = [
+                [[0, 0, 1, 0], [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1]], # top_down(front)
+                [[1, 0, 0, 0], [0, 0, -1, 0], [0, 1, 0, 0], [0, 0, 0, 1]], # top_down(right)
+                [[-1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]], # top_down(left)
+                [[0, 0, -1, 0], [-1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1]], # top_down(back)
+                
+                # [[0, 0, 1, 0], [0, -1, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1]], # front
+                # [[0, 1, 0, 0], [0, 0, 1, 0], [1, 0, 0, 0], [0, 0, 0, 1]], # left
+                # [[0, -1, 0, 0], [0, 0, -1, 0], [1, 0, 0, 0], [0, 0, 0, 1]], # right
+                # [[0, 0, -1, 0], [0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1]], # back
+                # test_matrix.tolist(),
+            ]
+
+        data = {
+            'center': [0,0,0],
+            'extents': half_size,
+            'scale': [1,1,1],                                     # 缩放
+            'target_pose': [[[1,0,0,0],[0,1,0,0],[0,0,1,half_size[2]],[0,0,0,1]]],              # 目标点矩阵
+            'contact_points_pose' : contact_points_list,    # 抓取点矩阵（多个）
+            'transform_matrix': np.eye(4).tolist(),           # 模型到标轴的旋转矩阵
+            "functional_matrix": [],         # 功能点矩阵
+            'contact_points_discription': contact_discription_list,    # 抓取点描述
+            'contact_points_group': [[0, 1, 2, 3]],
+            'contact_points_mask': [True],
+            'target_point_discription': ["The center point on the bottom of the box."]
+        }
+
+        return data
+    
     def pre_move(self):
+        self.together_open_gripper()
         pass
 
     def load_actors(self):
@@ -27,10 +62,10 @@ class block_hammer_beat(Base_task):
         block_pose = rand_pose(
             xlim=[-0.25,0.25],
             ylim=[-0.05,0.15],
-            zlim=[0.76],
+            zlim=[0.79],
             qpos=[0.5, 0.5, 0.5, 0.5],
             rotate_rand=True,
-            rotate_lim=[0,1,0],
+            rotate_lim=[0,0,1],
         )
 
         while abs(block_pose.p[0]) < 0.05 or np.sum(pow(block_pose.p[:2],2)) < 0.001:
@@ -38,25 +73,34 @@ class block_hammer_beat(Base_task):
                 xlim=[-0.25,0.25],
                 ylim=[-0.05,0.15],
                 zlim=[0.76],
-                qpos=[0.5, 0.5, 0.5, 0.5],
+                # qpos=[0.5, 0.5, 0.5, 0.5],
+                qpos=[1, 0 , 0 , 0],
                 rotate_rand=True,
-                rotate_lim=[0,1,0],
+                rotate_lim=[0,0,1],
             )
 
-        self.block = create_box(
+        self.block= create_box(
             scene = self.scene,
             pose = block_pose,
             half_size=(0.025,0.025,0.025),
             color=(1,0,0),
+            is_static=True,
             name="box"
         )
+        self.block_data = self.create_block_data([0.025,0.025,0.025])
+
         self.hammer.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.001
-        self.block.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.001
+        # self.block.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.001
+        self.actor_data_dic = {"hammer_data": self.hammer_data,"block_data": self.block_data}
+        self.actor_name_dic = {"hammer": self.hammer,"block": self.block} 
 
     def play_once(self):
 
-        pose1 = self.get_grasp_pose_w_labeled_direction(self.hammer, self.hammer_data, pre_dis=0.1) # pre grasp pose
-        pose2 = self.get_grasp_pose_w_labeled_direction(self.hammer, self.hammer_data, pre_dis=0.01) # grap pose
+        # pose1 = self.get_grasp_pose_w_labeled_direction(self.hammer, self.hammer_data, pre_dis=0.1) # pre grasp pose
+        # pose2 = self.get_grasp_pose_w_labeled_direction(self.hammer, self.hammer_data, pre_dis=0.01) # grap pose
+        endpose_tag = 'right' if self.block.get_pose().p[0] > 0 else 'left'
+        pose1 = self.get_grasp_pose_to_grasp_object(endpose_tag, self.hammer, self.hammer_data, pre_dis=0.1) # pre grasp pose
+        pose2 = self.get_grasp_pose_to_grasp_object(endpose_tag, self.hammer, self.hammer_data, pre_dis=0.01) # pre grasp pose
         if self.block.get_pose().p[0] > 0:
             # use right arm
             self.open_right_gripper(save_freq=15) 
@@ -65,9 +109,11 @@ class block_hammer_beat(Base_task):
             self.close_right_gripper(save_freq=15)
             pose2[2] += 0.07
             self.right_move_to_pose_with_screw(pose2,save_freq = 15)
-            pose3 = self.get_target_pose_from_goal_point_and_direction(self.hammer,self.hammer_data,self.right_endpose,self.block.get_pose().p, pre_dis = 0.08)
+            # pose3 = self.get_grasp_pose_from_goal_point_and_direction(self.hammer,self.hammer_data,self.right_endpose,self.block.get_pose().p, target_approach_direction=self.world_direction_dic['top_down'], pre_dis = 0.08)
+            # print(self.get_actor_functional_pose(self.hammer,self.hammer_data))
+            pose3 = self.get_grasp_pose_from_goal_point_and_direction(self.hammer,self.hammer_data,'right',self.block.get_pose().p, target_approach_direction=self.world_direction_dic['top_down'], actor_target_orientation=[0,1,0], pre_dis = 0.08)
             self.right_move_to_pose_with_screw(pose3,save_freq = 15)
-            pose3 = self.get_target_pose_from_goal_point_and_direction(self.hammer,self.hammer_data,self.right_endpose,self.block.get_pose().p, pre_dis = 0.02)
+            pose3 = self.get_grasp_pose_from_goal_point_and_direction(self.hammer,self.hammer_data,'right',self.block.get_pose().p, target_approach_direction=self.world_direction_dic['top_down'],  actor_target_orientation=[0,1,0], pre_dis = 0.02)
             self.right_move_to_pose_with_screw(pose3,save_freq = 15)
         else:
             self.open_left_gripper(save_freq=15)
@@ -76,14 +122,14 @@ class block_hammer_beat(Base_task):
             self.close_left_gripper(save_freq=15)
             pose2[2] += 0.07
             self.left_move_to_pose_with_screw(pose2,save_freq = 15)
-            pose3 = self.get_target_pose_from_goal_point_and_direction(self.hammer,self.hammer_data,self.left_endpose,self.block.get_pose().p, pre_dis = 0.08)
+            # pose3 = self.get_grasp_pose_from_goal_point_and_direction(self.hammer,self.hammer_data,self.left_endpose,self.block.get_pose().p, target_approach_direction=self.world_direction_dic['top_down'], pre_dis = 0.08)
+            pose3 = self.get_grasp_pose_from_goal_point_and_direction(self.hammer,self.hammer_data,'left',self.block.get_pose().p, target_approach_direction=self.world_direction_dic['top_down'], actor_target_orientation=[0,1,0], pre_dis = 0.08)
             self.left_move_to_pose_with_screw(pose3,save_freq = 15)
-            pose3 = self.get_target_pose_from_goal_point_and_direction(self.hammer,self.hammer_data,self.left_endpose,self.block.get_pose().p, pre_dis = 0.02)
+            pose3 = self.get_grasp_pose_from_goal_point_and_direction(self.hammer,self.hammer_data,'left',self.block.get_pose().p, target_approach_direction=self.world_direction_dic['top_down'], actor_target_orientation=[0,1,0], pre_dis = 0.02)
             self.left_move_to_pose_with_screw(pose3,save_freq = 15)
         
-
     def check_success(self):
-        hammer_target_pose = self.get_actor_goal_pose(self.hammer,self.hammer_data)
+        hammer_target_pose = self.get_actor_functional_pose(self.hammer,self.hammer_data)[:3]
         block_pose = self.block.get_pose().p
         eps = np.array([0.02,0.02])
         return np.all(abs(hammer_target_pose[:2] - block_pose[:2])<eps) and hammer_target_pose[2] < 0.81 and hammer_target_pose[2] > 0.78

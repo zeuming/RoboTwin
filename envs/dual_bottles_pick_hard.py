@@ -33,7 +33,7 @@ class dual_bottles_pick_hard(Base_task):
         rotate_lim = [(0,0,1.4), (0,0,0)]
 
         tag = np.random.randint(0,2)
-        self.red_bottle,self.red_bottle_data = rand_create_glb(
+        self.red_bottle,self.red_bottle_data = rand_create_actor(
             self.scene,
             xlim=[-0.25,-0.1],
             ylim=ylim[tag],
@@ -46,7 +46,7 @@ class dual_bottles_pick_hard(Base_task):
         )
 
         tag = np.random.randint(0,2)
-        self.green_bottle,self.green_bottle_data =rand_create_glb(
+        self.green_bottle,self.green_bottle_data =rand_create_actor(
             self.scene,
             xlim=[0.1,0.25],
             ylim=ylim[tag],
@@ -60,6 +60,11 @@ class dual_bottles_pick_hard(Base_task):
 
         self.red_bottle.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.01
         self.green_bottle.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.01
+        self.left_bottle_target_position = [-0.06,-0.105, 0.92]
+        self.right_bottle_target_position = [0.06,-0.105, 0.92]
+        self.actor_name_dic = {'red_bottle':self.red_bottle,'green_bottle':self.green_bottle,'left_bottle_target_position':self.left_bottle_target_position,'right_bottle_target_position':self.right_bottle_target_position}
+        self.actor_data_dic = {'red_bottle_data':self.red_bottle_data,'green_bottle_data':self.green_bottle_data,'left_bottle_target_position':self.left_bottle_target_position,'right_bottle_target_position':self.right_bottle_target_position}
+
 
         render_freq = self.render_freq
         self.render_freq = 0
@@ -99,8 +104,8 @@ class dual_bottles_pick_hard(Base_task):
         self.together_move_to_pose_with_screw(left_target_pose,right_target_pose,save_freq=15)
 
     def check_success(self):
-        red_target = [-0.07,-0.11]
-        green_target = [0.06,-0.11]
+        red_target = [-0.055,-0.105]
+        green_target = [0.055,-0.105]
         eps = 0.03
         red_bottle_pose = self.red_bottle.get_pose().p
         green_bottle_pose = self.green_bottle.get_pose().p

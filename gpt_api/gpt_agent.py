@@ -12,11 +12,9 @@ def generate(message, gpt="deepseek"):
     print('start generating')
     response = client.chat.completions.create(
         model=MODEL,
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant"},
-            {"role": "user", "content": message},
-        ],
-        stream=False
+        messages=message,
+        stream=False,
+        temperature=0,
     )
     print('end generating')
 

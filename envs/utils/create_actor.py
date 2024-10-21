@@ -10,6 +10,7 @@ def create_box(
     pose: sapien.Pose,
     half_size,
     color=None,
+    is_static = False,
     name="",
 ) -> sapien.Entity:
     entity = sapien.Entity()
@@ -17,7 +18,7 @@ def create_box(
     entity.set_pose(pose)
 
     # create PhysX dynamic rigid body
-    rigid_component = sapien.physx.PhysxRigidDynamicComponent()
+    rigid_component = sapien.physx.PhysxRigidDynamicComponent() if not is_static else sapien.physx.PhysxRigidStaticComponent()
     rigid_component.attach(
         sapien.physx.PhysxCollisionShapeBox(
             half_size=half_size, material=scene.default_physical_material

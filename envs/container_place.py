@@ -26,7 +26,7 @@ class container_place(Base_task):
 
     def load_actors(self):
 
-        self.plate, _ = create_glb(
+        self.plate, self.plate_data = create_glb(
             self.scene,
             pose = sapien.Pose([0, -0.05, 0.753], [0.5,0.5,0.5,0.5]),
             modelname="003_plate",
@@ -40,7 +40,7 @@ class container_place(Base_task):
             ylim=[-0.1,0.05],
             zlim=[0.8],
             rotate_rand=False,
-            qpos=[0.707,0.707,0,0]
+            qpos=[0.5,0.5,0.5,0.5]
         )
 
         while abs(container_pose.p[0]) < 0.15:
@@ -49,7 +49,7 @@ class container_place(Base_task):
                 ylim=[-0.1,0.05],
                 zlim=[0.8],
                 rotate_rand=False,
-                qpos=[0.707,0.707,0,0]
+                qpos=[0.5,0.5,0.5,0.5]
             )
 
         self.container,self.container_data = create_glb(
@@ -62,6 +62,8 @@ class container_place(Base_task):
         )
         
         self.container.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.001
+        self.actor_data_dic = {'plate_data':self.plate_data,'container_data':self.container_data}
+        self.actor_name_dic = {'plate':self.plate,'container':self.container}
 
     def play_once(self):
 
@@ -70,16 +72,14 @@ class container_place(Base_task):
         container_edge_dis = [container_edge_dis[0]/2, 0, container_edge_dis[1]/2 + 0.12]
         if container_pose[0] < 0:
             # use left arm
-            container_edge_dis[0] *= -1
-            pose1 = (container_pose + container_edge_dis).tolist() + [-0.5,0.5,-0.5,-0.5]
-            pose1[2] += 0.08
+            pose1 = self.get_grasp_pose_to_grasp_object('left', self.container, self.container_data, 0.1)
             self.left_move_to_pose_with_screw(pose = pose1, save_freq = 15)
-            pose1[2] -= 0.08
+            pose1 = self.get_grasp_pose_to_grasp_object('left', self.container, self.container_data, 0)
             self.left_move_to_pose_with_screw(pose = pose1, save_freq = 15)
             self.close_left_gripper(pos = -0.01,save_freq = 15)
             pose1[2] += 0.08
             self.left_move_to_pose_with_screw(pose = pose1, save_freq = 15)
-            target_pose = self.get_target_pose_from_goal_point_and_direction(self.container,self.container_data,self.left_endpose,[0,-0.05,0.83],[-0.5,0.5,-0.5,-0.5])
+            target_pose = self.get_grasp_pose_from_goal_point_and_direction(self.container,self.container_data,self.left_endpose,[0,-0.05,0.83],[-0.5,0.5,-0.5,-0.5])
             self.left_move_to_pose_with_screw(pose = target_pose, save_freq = 15)
             target_pose[2] -= 0.08
             self.left_move_to_pose_with_screw(pose = target_pose, save_freq = 15)
@@ -87,15 +87,13 @@ class container_place(Base_task):
             target_pose[2] += 0.08
             self.left_move_to_pose_with_screw(pose = target_pose, save_freq = 15)
         else:
-            pose1 = (container_pose + container_edge_dis).tolist() + [-0.5,0.5,-0.5,-0.5]
-            pose1[2] += 0.08
+            pose1 = self.get_grasp_pose_to_grasp_object('right', self.container, self.container_data, 0.1)
             self.right_move_to_pose_with_screw(pose = pose1, save_freq = 15)
-            pose1[2] -= 0.08
-            self.right_move_to_pose_with_screw(pose = pose1, save_freq = 15)
+            pose1 = self.get_grasp_pose_to_grasp_object('right', self.container, self.container_data, 0)
             self.close_right_gripper(pos = -0.01,save_freq = 15)
             pose1[2] += 0.08
             self.right_move_to_pose_with_screw(pose = pose1, save_freq = 15)
-            target_pose = self.get_target_pose_from_goal_point_and_direction(self.container,self.container_data,self.right_endpose,[0,-0.05,0.83],[-0.5,0.5,-0.5,-0.5])
+            target_pose = self.get_grasp_pose_from_goal_point_and_direction(self.container,self.container_data,self.right_endpose,[0,-0.05,0.83],[-0.5,0.5,-0.5,-0.5])
             self.right_move_to_pose_with_screw(pose = target_pose, save_freq = 15)
             target_pose[2] -= 0.08
             self.right_move_to_pose_with_screw(pose = target_pose, save_freq = 15)
