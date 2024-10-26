@@ -48,7 +48,7 @@ class blocks_stack_easy(Base_task):
             'contact_points_discription': contact_discription_list,    # 抓取点描述
             'contact_points_group': [[0, 1, 2, 3]],
             'contact_points_mask': [True],
-            'target_point_discription': ["The center point on the top of the block." ],
+            'target_point_discription': ["The top surface center of the block." ],
             'functional_point_discription': ["Point0: The center point on the bottom of the block, and functional axis is vertical bottom side down"]
         }
 
@@ -118,8 +118,8 @@ class blocks_stack_easy(Base_task):
         )
         self.block2_data = self.create_block_data((0.025,0.025,0.025))
 
-        self.block1.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.01
-        self.block2.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.01
+        self.block1.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.1
+        self.block2.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.1
         self.block1_target_pose = [0, -0.13, 0.75]
         self.actor_data_dic = {'block1_data':self.block1_data,'block2_data':self.block2_data,'block1_target_pose': self.block1_target_pose}
         self.actor_name_dic = {'block1':self.block1,'block2':self.block2, 'block1_target_pose': self.block1_target_pose}

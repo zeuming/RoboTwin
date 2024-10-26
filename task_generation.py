@@ -22,7 +22,10 @@ def generate_code(task_info, las_error = None, message:list = None):
 
     # Generate Code
     if las_error is not None:
-        Prompt = f"\n\nThe code is unsuccessful, \nLast Error Message: \n{las_error}"
+        actor_name_keys, actor_data_keys, actor_points_discription = get_actor_keys_and_points_discription(f"gpt_{task_name}")
+        Prompt = f"The code is unsuccessful, \nLast Error Message: \n{las_error}\n\n\
+                    Task Discription: \n{task_discription}\n\n\
+                    The Actor Points Discription: {actor_points_discription}"
     else:
         res = f'''
 from .base_task import Base_task
@@ -78,14 +81,14 @@ def main():
     task_info = now_task_info = BLOCKS_STACK_HARD
     messages=[{"role": "system", "content": "You need to generate relevant code for some robot tasks in a robot simulation environment based on the provided API."}]
     generate_num = 5
-    success_threshold = 0.4
+    # success_threshold = 0.4
     las_error_message = None
     for id in range(generate_num):
         print("Generate code for task: ", task_info['task_name'], f"({id+1}/{generate_num})")
         res_code, success_rate, las_error_message, error_count = generate_code(now_task_info, las_error_message, messages)
-        if success_rate >= success_threshold:
-            print("Success generate code for task: ", task_info['task_name'])
-            break
+        # if success_rate >= success_threshold:
+        #     print("Success generate code for task: ", task_info['task_name'])
+        #     break
         print("Failed to generate code for task: ", task_info['task_name'], f"{id}\nError massage: \n{las_error_message}")
         now_task_info["task_description"] = " Failed to generate code, error message: " + las_error_message + ", error count: " + str(error_count)
         # las_code = task_info["current_code"][:task_info["current_code"].find('def play_once')]

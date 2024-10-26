@@ -1541,12 +1541,13 @@ class Base_task(gym.Env):
         res_eval= -1e10
         for adjunction_matrix in adjunction_matrix_list:
             local_target_matrix = np.asarray(actor_data['functional_matrix'][actor_functional_point_id])
-            local_target_matrix[:3,:3] = adjunction_matrix @ local_target_matrix[:3,:3]
             local_target_matrix[:3,3] *= actor_data['scale']
-            fuctional_matrix = adjunction_matrix @ actor_matrix[:3,:3] @ np.asarray(actor_data['functional_matrix'][actor_functional_point_id])[:3,:3]
+            # fuctional_matrix = adjunction_matrix @ actor_matrix[:3,:3] @ np.asarray(actor_data['functional_matrix'][actor_functional_point_id])[:3,:3]
+            fuctional_matrix = actor_matrix[:3,:3] @ np.asarray(actor_data['functional_matrix'][actor_functional_point_id])[:3,:3]
+            fuctional_matrix = fuctional_matrix @ adjunction_matrix
             # pdb.set_trace()
             trans_matrix = target_approach_direction_mat @ np.linalg.inv(fuctional_matrix)
-            end_effector_pose_matrix = t3d.quaternions.quat2mat(end_effector_pose.global_pose.q)@ np.array([[1,0,0],[0,-1,0],[0,0,-1]])
+            end_effector_pose_matrix = t3d.quaternions.quat2mat(end_effector_pose.global_pose.q) @ np.array([[1,0,0],[0,-1,0],[0,0,-1]])
             target_grasp_matrix = trans_matrix @ end_effector_pose_matrix
             # pdb.set_trace()
 
@@ -1678,8 +1679,8 @@ class Base_task(gym.Env):
 
         # 计算抓取位姿的评估值
         res = 0
-        res = np.sum(np.abs(endpose.global_pose.p - np.array(grasp_pose)[:3]) * [1/0.5, 1/0.6, 1/0.36])
-        # res = np.sum(np.abs(endpose.global_pose.p - np.array(grasp_pose)[:3]))
+        # res = np.sum(np.abs(endpose.global_pose.p - np.array(grasp_pose)[:3]) * [1/0.5, 1/0.6, 1/0.36])
+        res = np.sum(np.abs(endpose.global_pose.p - np.array(grasp_pose)[:3]))
         trans_now_pose_matrix = t3d.quaternions.quat2mat(grasp_pose[3:]) @ np.linalg.inv(endpose.global_pose.to_transformation_matrix()[:3,:3])
         theta_xy = np.mod(np.abs(t3d.euler.mat2euler(trans_now_pose_matrix)[:2]), np.pi)
         theta_z = delta_euler[-1] + np.pi/2 - np.mod(angle + np.pi, np.pi)

@@ -66,9 +66,10 @@ BLOCK_HANDOVER = {
 
 BLOCKS_STACK_EASY = {
     "task_name": "blocks_stack_easy",
-    "task_description": "Use the gripper to pick up block1 and move block 1 to the target position. Then pick up block 2 and place it on top of block 1. \
+    "task_description": "Use the gripper to pick up block1 and move block 1 to the target position. Then pick up block 2 and place it on the block 1.\
                         If block1's x coordinate (dim 0) is greater than 0, use right arm to stack the block1, else use the left arm, and same for the block2.\
-                        Note: You need to pay attention to avoid collision of arms when stacking blocks.\
+                        Note: You need to call the get_avoid_collision_pose function to avoid collisions when the left and right arms move alternately. \
+                              For example, if the previous action uses the left arm and the next action uses the right arm, you need to move the left arm after release gripper to avoid collisions, vice versa.\
                               The pre-dis of stacked blocks may be smaller.",
     "current_code": '''
                 class gpt_blocks_stack_easy(blocks_stack_easy):
@@ -79,10 +80,11 @@ BLOCKS_STACK_EASY = {
 
 BLOCKS_STACK_HARD = {
     "task_name": "blocks_stack_hard",
-    "task_description": "Use the gripper to pick up block1 and move block 1 to the target position. Then pick up block 2 and place it on top of block 1 and then pick up\
-                        block3 and place it on top of block2.\
+    "task_description": "Use the gripper to pick up block1 and move block 1 to the target position. Then pick up block 2 and place it on the block 1, and finally pick up\
+                        block3 and place it on the block2.\
                         If block1's x coordinate (dim 0) is greater than 0, use right arm to stack the block1, else use the left arm. And same for the block2 and block3.\
-                        Note: You need to pay attention to avoid collision of arms when stacking blocks.\
+                        Note: You need to call the get_avoid_collision_pose function to avoid collisions when the left and right arms move alternately. \
+                              For example, if the previous action uses the left arm and the next action uses the right arm, you need to move the left arm after release gripper to avoid collisions, vice versa.\
                               The pre-dis of stacked blocks may be smaller.",
     "current_code": '''
                 class gpt_blocks_stack_hard(blocks_stack_hard):

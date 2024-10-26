@@ -48,7 +48,8 @@ class blocks_stack_hard(Base_task):
             'contact_points_discription': contact_discription_list,    # 抓取点描述
             'contact_points_group': [[0, 1, 2, 3]],
             'contact_points_mask': [True],
-            'target_point_discription': ["The center point on the bottom of the box." ]
+            'target_point_discription': ["The top surface center of the block." ],
+            'functional_point_discription': ["Point0: The center point on the bottom of the block, and functional axis is vertical bottom side down"]
         }
 
         return data
@@ -144,9 +145,9 @@ class blocks_stack_hard(Base_task):
             color=(0,0,1),
             name="box"
         )
-        self.block1.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.01
-        self.block2.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.01
-        self.block3.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.01
+        self.block1.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.1
+        self.block2.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.1
+        self.block3.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.1
         self.block1_data = self.create_block_data((0.025,0.025,0.025))
         self.block2_data = self.create_block_data((0.025,0.025,0.025))
         self.block3_data = self.create_block_data((0.025,0.025,0.025))

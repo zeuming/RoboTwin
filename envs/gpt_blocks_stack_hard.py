@@ -6,7 +6,7 @@ import sapien
 
 class gpt_blocks_stack_hard(blocks_stack_hard):
     def play_once(self):
-        # Retrieve actor objects and data
+        # Retrieve actors and actor data
         block1 = self.actor_name_dic['block1']
         block2 = self.actor_name_dic['block2']
         block3 = self.actor_name_dic['block3']
@@ -17,109 +17,94 @@ class gpt_blocks_stack_hard(blocks_stack_hard):
         block3_data = self.actor_data_dic['block3_data']
         block1_target_pose_data = self.actor_data_dic['block1_target_pose']
 
-        # Function to stack a block on top of another block
-        def stack_block(block_to_stack, block_to_stack_data, block_below, block_below_data, arm_tag):
-            # Get the target pose for stacking
-            target_pose = self.get_actor_goal_pose(block_below, block_below_data, id=0)
-            target_pose[2] += 0.1  # Adjust height to stack on top
+        # Determine which arm to use for block1
+        block1_pose = self.get_actor_goal_pose(block1, block1_data, 0)
+        if block1_pose[0] > 0:
+            arm_tag_block1 = 'right'
+        else:
+            arm_tag_block1 = 'left'
 
-            # Get the approach direction
-            target_approach_direction = self.world_direction_dic['top_down']
+        # Pick up block1 and move it to the target position
+        self.pick_and_place(block1, block1_data, block1_target_pose, block1_target_pose_data, arm_tag_block1)
 
-            # Get the pre-grasp and target grasp poses
-            pre_grasp_pose = self.get_grasp_pose_from_goal_point_and_direction(
-                block_to_stack, block_to_stack_data, endpose_tag=arm_tag, actor_functional_point_id=0,
-                target_point=target_pose, target_approach_direction=target_approach_direction, pre_dis=0.09
-            )
-            target_grasp_pose = self.get_grasp_pose_from_goal_point_and_direction(
-                block_to_stack, block_to_stack_data, endpose_tag=arm_tag, actor_functional_point_id=0,
-                target_point=target_pose, target_approach_direction=target_approach_direction, pre_dis=0
-            )
+        # Determine which arm to use for block2
+        block2_pose = self.get_actor_goal_pose(block2, block2_data, 0)
+        if block2_pose[0] > 0:
+            arm_tag_block2 = 'right'
+        else:
+            arm_tag_block2 = 'left'
 
-            # Move to the pre-grasp pose
-            if arm_tag == "left":
-                self.left_move_to_pose_with_screw(pre_grasp_pose)
-            else:
-                self.right_move_to_pose_with_screw(pre_grasp_pose)
+        # Avoid collision if necessary
+        if arm_tag_block1 != arm_tag_block2:
+            avoid_collision_pose = self.get_avoid_collision_pose(avoid_collision_arm_tag=arm_tag_block1)
+            self.move_arm_to_pose(arm_tag_block1, avoid_collision_pose)
 
-            # Move to the target grasp pose
-            if arm_tag == "left":
-                self.left_move_to_pose_with_screw(target_grasp_pose)
-            else:
-                self.right_move_to_pose_with_screw(target_grasp_pose)
+        # Pick up block2 and place it on block1
+        self.pick_and_place(block2, block2_data, block1, block1_data, arm_tag_block2)
 
-            # Open the gripper
-            if arm_tag == "left":
-                self.open_left_gripper()
-            else:
-                self.open_right_gripper()
+        # Determine which arm to use for block3
+        block3_pose = self.get_actor_goal_pose(block3, block3_data, 0)
+        if block3_pose[0] > 0:
+            arm_tag_block3 = 'right'
+        else:
+            arm_tag_block3 = 'left'
 
-        # Function to pick and place a block
-        def pick_and_place(block, block_data, target_pose, target_pose_data, arm_tag):
-            # Get the pre-grasp and target grasp poses
-            pre_grasp_pose = self.get_grasp_pose_to_grasp_object(endpose_tag=arm_tag, actor=block, actor_data=block_data, pre_dis=0.09)
-            target_grasp_pose = self.get_grasp_pose_to_grasp_object(endpose_tag=arm_tag, actor=block, actor_data=block_data, pre_dis=0)
+        # Avoid collision if necessary
+        if arm_tag_block2 != arm_tag_block3:
+            avoid_collision_pose = self.get_avoid_collision_pose(avoid_collision_arm_tag=arm_tag_block2)
+            self.move_arm_to_pose(arm_tag_block2, avoid_collision_pose)
 
-            # Move to the pre-grasp pose
-            if arm_tag == "left":
-                self.left_move_to_pose_with_screw(pre_grasp_pose)
-            else:
-                self.right_move_to_pose_with_screw(pre_grasp_pose)
+        # Pick up block3 and place it on block2
+        self.pick_and_place(block3, block3_data, block2, block2_data, arm_tag_block3)
 
-            # Move to the target grasp pose
-            if arm_tag == "left":
-                self.left_move_to_pose_with_screw(target_grasp_pose)
-            else:
-                self.right_move_to_pose_with_screw(target_grasp_pose)
+    def pick_and_place(self, actor, actor_data, target_actor, target_actor_data, arm_tag):
+        # Get grasp poses
+        pre_grasp_pose = self.get_grasp_pose_to_grasp_object(endpose_tag=arm_tag, actor=actor, actor_data=actor_data, pre_dis=0.09)
+        target_grasp_pose = self.get_grasp_pose_to_grasp_object(endpose_tag=arm_tag, actor=actor, actor_data=actor_data, pre_dis=0)
 
-            # Close the gripper to grasp the block
-            if arm_tag == "left":
-                self.close_left_gripper()
-            else:
-                self.close_right_gripper()
+        # Move to pre-grasp pose
+        self.move_arm_to_pose(arm_tag, pre_grasp_pose)
 
-            # Lift the block
-            if arm_tag == "left":
-                self.left_move_to_pose_with_screw(pre_grasp_pose)
-            else:
-                self.right_move_to_pose_with_screw(pre_grasp_pose)
+        # Move to grasp pose
+        self.move_arm_to_pose(arm_tag, target_grasp_pose)
 
-            # Move the block to the target pose
-            target_pose = self.get_actor_goal_pose(target_pose, target_pose_data, id=0)
-            target_pose[2] += 0.1  # Adjust height to stack on top
+        # Close gripper to grasp the actor
+        self.close_gripper(arm_tag)
 
-            target_approach_direction = self.world_direction_dic['top_down']
+        # Lift the actor up
+        self.move_arm_to_pose(arm_tag, pre_grasp_pose)
 
-            target_grasp_pose = self.get_grasp_pose_from_goal_point_and_direction(
-                block, block_data, endpose_tag=arm_tag, actor_functional_point_id=0,
-                target_point=target_pose, target_approach_direction=target_approach_direction, pre_dis=0
-            )
+        # Get target pose
+        target_point = self.get_actor_goal_pose(target_actor, target_actor_data, 0)
+        target_approach_direction = self.world_direction_dic['top_down']
 
-            if arm_tag == "left":
-                self.left_move_to_pose_with_screw(target_grasp_pose)
-            else:
-                self.right_move_to_pose_with_screw(target_grasp_pose)
+        # Get target grasp poses
+        pre_place_pose = self.get_grasp_pose_from_goal_point_and_direction(actor, actor_data, endpose_tag=arm_tag, actor_functional_point_id=0, target_point=target_point, target_approach_direction=target_approach_direction, pre_dis=0.09)
+        target_place_pose = self.get_grasp_pose_from_goal_point_and_direction(actor, actor_data, endpose_tag=arm_tag, actor_functional_point_id=0, target_point=target_point, target_approach_direction=target_approach_direction, pre_dis=0)
 
-            # Open the gripper to place the block
-            if arm_tag == "left":
-                self.open_left_gripper()
-            else:
-                self.open_right_gripper()
+        # Move to pre-place pose
+        self.move_arm_to_pose(arm_tag, pre_place_pose)
 
-        # Determine which arm to use for each block
-        block1_pose = self.get_actor_goal_pose(block1, block1_data, id=0)
-        block2_pose = self.get_actor_goal_pose(block2, block2_data, id=0)
-        block3_pose = self.get_actor_goal_pose(block3, block3_data, id=0)
+        # Move to place pose
+        self.move_arm_to_pose(arm_tag, target_place_pose)
 
-        arm_tag_block1 = "right" if block1_pose[0] > 0 else "left"
-        arm_tag_block2 = "right" if block2_pose[0] > 0 else "left"
-        arm_tag_block3 = "right" if block3_pose[0] > 0 else "left"
+        # Open gripper to place the actor
+        self.open_gripper(arm_tag)
 
-        # Pick and place block1 to the target position
-        pick_and_place(block1, block1_data, block1_target_pose, block1_target_pose_data, arm_tag_block1)
+    def move_arm_to_pose(self, arm_tag, pose):
+        if arm_tag == 'left':
+            self.left_move_to_pose_with_screw(pose)
+        elif arm_tag == 'right':
+            self.right_move_to_pose_with_screw(pose)
 
-        # Stack block2 on top of block1
-        stack_block(block2, block2_data, block1, block1_data, arm_tag_block2)
+    def close_gripper(self, arm_tag):
+        if arm_tag == 'left':
+            self.close_left_gripper()
+        elif arm_tag == 'right':
+            self.close_right_gripper()
 
-        # Stack block3 on top of block2
-        stack_block(block3, block3_data, block2, block2_data, arm_tag_block3)
+    def open_gripper(self, arm_tag):
+        if arm_tag == 'left':
+            self.open_left_gripper()
+        elif arm_tag == 'right':
+            self.open_right_gripper()

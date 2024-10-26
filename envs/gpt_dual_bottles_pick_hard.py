@@ -45,14 +45,16 @@ class gpt_dual_bottles_pick_hard(dual_bottles_pick_hard):
         self.together_move_to_pose_with_screw(red_lift_pose, green_lift_pose)
 
         # Move the bottles to the target positions
-        red_target_grasp_pose = self.get_grasp_pose_from_goal_point_and_direction(red_bottle, red_bottle_data, endpose_tag="left", target_point=left_target_pose, target_approach_direction=self.world_direction_dic['top_down'], pre_dis=0.09)
-        green_target_grasp_pose = self.get_grasp_pose_from_goal_point_and_direction(green_bottle, green_bottle_data, endpose_tag="right", target_point=right_target_pose, target_approach_direction=self.world_direction_dic['top_down'], pre_dis=0.09)
-
-        self.together_move_to_pose_with_screw(red_target_grasp_pose, green_target_grasp_pose)
+        # red_target_grasp_pose = self.get_grasp_pose_from_goal_point_and_direction(red_bottle, red_bottle_data, endpose_tag="left", target_point=left_target_pose, target_approach_direction=self.world_direction_dic['top_down'], pre_dis=0.09)
+        # green_target_grasp_pose = self.get_grasp_pose_from_goal_point_and_direction(green_bottle, green_bottle_data, endpose_tag="right", target_point=right_target_pose, target_approach_direction=self.world_direction_dic['top_down'], pre_dis=0.09)
+        # self.together_move_to_pose_with_screw(red_target_grasp_pose, green_target_grasp_pose)
 
         # Move the bottles to the final target positions
         red_final_grasp_pose = self.get_grasp_pose_from_goal_point_and_direction(red_bottle, red_bottle_data, endpose_tag="left", target_point=left_target_pose, target_approach_direction=self.world_direction_dic['top_down'], pre_dis=0)
         green_final_grasp_pose = self.get_grasp_pose_from_goal_point_and_direction(green_bottle, green_bottle_data, endpose_tag="right", target_point=right_target_pose, target_approach_direction=self.world_direction_dic['top_down'], pre_dis=0)
+
+        print(red_final_grasp_pose)
+        print(green_final_grasp_pose)
 
         self.together_move_to_pose_with_screw(red_final_grasp_pose, green_final_grasp_pose)
 
