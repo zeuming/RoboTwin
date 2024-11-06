@@ -1,4 +1,4 @@
-task_name: gpt_mug_hanging
+task_name: gpt_apple_cabinet_storage
 render_freq: 20
 use_seed: false
 collect_data: false

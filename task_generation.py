@@ -4,13 +4,20 @@ from gpt_api.task_info import *
 from script.test_gpt_code import *
 import os
 
-TASK_LIST = [BLOCK_HAMMER_BEAT, 
-             DUAL_BOTTLES_PICK_EASY,
-             DUAL_BOTTLES_PICK_HARD,
-             DIVERSE_BOTTLES_PICK,
+TASK_LIST = [APPLE_CABINET_STORAGE,
+             BLOCK_HAMMER_BEAT, 
              BLOCK_HANDOVER,
              BLOCKS_STACK_EASY,
-             DUAL_BOTTLES_PICK_HARD]
+             BLOCKS_STACK_HARD,
+             CONTAINER_PLACE,
+             DIVERSE_BOTTLES_PICK,
+             DUAL_BOTTLES_PICK_EASY,
+             DUAL_BOTTLES_PICK_HARD,
+             EMPTY_CUP_PLACE,
+             MUG_HANGING,
+             PICK_APPLE_MESSY,
+             SHOE_PLACE,
+             SHOES_PLACE]
 
 def generate_code(task_info, las_error = None, message:list = None):
     task_discription = task_info['task_description']
@@ -76,25 +83,32 @@ class gpt_{task_name}({task_name}):
     success_rate, error_message, error_count = test_run(f"gpt_{task_name}")
     return res, success_rate, error_message, error_count
 
-def main():
+def main(task_info_dic):
     # keys: "task_name", "task_description", "current_code"
-    task_info = now_task_info = BLOCKS_STACK_HARD
+    
+    task_info = now_task_info = task_info_dic
     messages=[{"role": "system", "content": "You need to generate relevant code for some robot tasks in a robot simulation environment based on the provided API."}]
     generate_num = 5
-    # success_threshold = 0.4
+    success_threshold = 0.5
     las_error_message = None
+
+    suc_list = []
     for id in range(generate_num):
         print("Generate code for task: ", task_info['task_name'], f"({id+1}/{generate_num})")
         res_code, success_rate, las_error_message, error_count = generate_code(now_task_info, las_error_message, messages)
-        # if success_rate >= success_threshold:
-        #     print("Success generate code for task: ", task_info['task_name'])
-        #     break
+
+        suc_list.append(success_rate)
+        if success_rate >= success_threshold:
+            print("Success generate code for task: ", task_info['task_name'])
+            break
         print("Failed to generate code for task: ", task_info['task_name'], f"{id}\nError massage: \n{las_error_message}")
         now_task_info["task_description"] = " Failed to generate code, error message: " + las_error_message + ", error count: " + str(error_count)
         # las_code = task_info["current_code"][:task_info["current_code"].find('def play_once')]
         now_task_info["current_code"] = res_code
         # pdb.set_trace() 
+    print(success_rate)
 
 if __name__ == "__main__":
     # pdb.set_trace()
-    main()
+    now_task = TASK_LIST[13]
+    main(now_task)

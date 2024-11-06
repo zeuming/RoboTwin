@@ -66,41 +66,7 @@ class container_place(Base_task):
         self.actor_name_dic = {'plate':self.plate,'container':self.container}
 
     def play_once(self):
-
-        container_pose = self.container.get_pose().p
-        container_edge_dis = np.array(self.container_data['extents']) * np.array(self.container_data['scale'])
-        container_edge_dis = [container_edge_dis[0]/2, 0, container_edge_dis[1]/2 + 0.12]
-        if container_pose[0] < 0:
-            # use left arm
-            pose1 = self.get_grasp_pose_to_grasp_object('left', self.container, self.container_data, 0.1)
-            self.left_move_to_pose_with_screw(pose = pose1, save_freq = 15)
-            pose1 = self.get_grasp_pose_to_grasp_object('left', self.container, self.container_data, 0)
-            self.left_move_to_pose_with_screw(pose = pose1, save_freq = 15)
-            self.close_left_gripper(pos = -0.01,save_freq = 15)
-            pose1[2] += 0.08
-            self.left_move_to_pose_with_screw(pose = pose1, save_freq = 15)
-            target_pose = self.get_grasp_pose_from_goal_point_and_direction(self.container,self.container_data,self.left_endpose,[0,-0.05,0.83],[-0.5,0.5,-0.5,-0.5])
-            self.left_move_to_pose_with_screw(pose = target_pose, save_freq = 15)
-            target_pose[2] -= 0.08
-            self.left_move_to_pose_with_screw(pose = target_pose, save_freq = 15)
-            self.open_left_gripper(save_freq = 15)
-            target_pose[2] += 0.08
-            self.left_move_to_pose_with_screw(pose = target_pose, save_freq = 15)
-        else:
-            pose1 = self.get_grasp_pose_to_grasp_object('right', self.container, self.container_data, 0.1)
-            self.right_move_to_pose_with_screw(pose = pose1, save_freq = 15)
-            pose1 = self.get_grasp_pose_to_grasp_object('right', self.container, self.container_data, 0)
-            self.close_right_gripper(pos = -0.01,save_freq = 15)
-            pose1[2] += 0.08
-            self.right_move_to_pose_with_screw(pose = pose1, save_freq = 15)
-            target_pose = self.get_grasp_pose_from_goal_point_and_direction(self.container,self.container_data,self.right_endpose,[0,-0.05,0.83],[-0.5,0.5,-0.5,-0.5])
-            self.right_move_to_pose_with_screw(pose = target_pose, save_freq = 15)
-            target_pose[2] -= 0.08
-            self.right_move_to_pose_with_screw(pose = target_pose, save_freq = 15)
-            self.open_right_gripper(save_freq = 15)
-            target_pose[2] += 0.08
-            self.right_move_to_pose_with_screw(pose = target_pose, save_freq = 15)
-    
+        pass
 
     def check_success(self):
         container_pose = self.get_actor_goal_pose(self.container,self.container_data)

@@ -1,5 +1,19 @@
 # TODO: task description
 
+APPLE_CABINET_STORAGE = {
+    "task_name": "apple_cabinet_storage",
+    "task_description": "Grab the handle of the cabinet with your left arm and open the cabinet while grabbing the apple on the table with your right arm. \
+                        Then use your right arm to lift up the apple and put the apple in the cabinet and use your left arm to close the cabinet.\
+                        Note: You need to call the get_avoid_collision_pose function on the right arm before closing the cabinet to avoid the cabinet colliding with the right arm.\
+                              The direction of pulling the cabinets apart is the negative direction of the y-axis, and pull-out drawer 18cm.\
+                              You may need to close the clamp jaws very tightly to open the cabinet.",
+    "current_code": '''
+                class gpt_apple_cabinet_storage(apple_cabinet_storage):
+                    def play_once(self):
+                        pass
+                '''
+}
+
 BLOCK_HAMMER_BEAT = {
     "task_name": "block_hammer_beat",
     "task_description": "Pick up the hammet and use it to beat the block on the table once. The hammer is placed at a fixed position on the table, \

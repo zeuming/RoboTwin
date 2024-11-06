@@ -313,13 +313,11 @@ def create_urdf_obj(
     fix_root_link = True
 )->sapienp.PhysxArticulation: 
     modeldir = "./models/"+modelname+"/"
-    file_name = modeldir + "base.glb"
     json_file_path = modeldir + 'model_data.json'
     
     try:
         with open(json_file_path, 'r') as file:
             model_data = json.load(file)
-        scale = model_data["scale"]
     except:
         model_data = None
 

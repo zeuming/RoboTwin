@@ -61,42 +61,7 @@ class mug_hanging(Base_task):
         self.actor_name_dic = {'mug':self.mug,'rack':self.rack, 'middle_pose_of_left_arm': self.middle_pos}
 
     def play_once(self):
-        left_pose1 = self.get_grasp_pose_w_labeled_direction(self.mug,self.mug_data,pre_dis=0.05)
-        self.left_move_to_pose_with_screw(pose=left_pose1,save_freq=15)
-        self.close_left_gripper(pos = 0.02,save_freq = 15)
-        left_pose1 = self.get_grasp_pose_w_labeled_direction(self.mug,self.mug_data,pre_dis=0)
-        self.left_move_to_pose_with_screw(pose=left_pose1,save_freq=15)
-        self.close_left_gripper(pos = -0.01,save_freq = 15)
-        left_pose1[2] += 0.05
-        self.left_move_to_pose_with_screw(pose=left_pose1,save_freq=15)
-
-        left_pose2 = [0.05, -0.15, left_pose1[2], -0.597163, 0.375729, -0.603214, -0.371964]
-        self.left_move_to_pose_with_screw(pose=left_pose2,save_freq=15)
-        left_pose2[2] -= 0.05
-        self.left_move_to_pose_with_screw(pose=left_pose2,save_freq=15)
-        self.open_left_gripper(pos=0.02,save_freq=15)
-        left_pose2[2] += 0.05
-        self.left_move_to_pose_with_screw(pose=left_pose2,save_freq=15)
-
-        right_pose1 = self.get_grasp_pose_w_labeled_direction(self.mug,self.mug_data, grasp_matrix = np.array([[0,0,1,0],[0,1,0,0],[-1,0,0,0],[0,0,0,1]]), pre_dis=0.05, id = 1)
-        self.together_move_to_pose_with_screw(left_target_pose=self.left_original_pose,right_target_pose=right_pose1,save_freq = 15)
-
-        self.close_right_gripper(pos = 0.02,save_freq = 15)
-        right_pose1 = self.get_grasp_pose_w_labeled_direction(self.mug,self.mug_data, grasp_matrix = np.array([[0,0,1,0],[0,1,0,0],[-1,0,0,0],[0,0,0,1]]), pre_dis=0, id = 1)
-        self.right_move_to_pose_with_screw(pose=right_pose1,save_freq=15)
-        self.close_right_gripper(pos = -0.01,save_freq = 15)
-        right_pose1[2] += 0.05
-        self.right_move_to_pose_with_screw(pose=right_pose1,save_freq=15)
-
-        target_pose_p = self.get_actor_goal_pose(self.rack,self.rack_data)
-        target_pose_q = [-0.371601, -0.176777, -0.391124, -0.823216]
-        right_target_pose = self.get_grasp_pose_from_goal_point_and_direction(self.mug,self.mug_data,self.right_endpose,target_pose_p,target_pose_q)
-        self.right_move_to_pose_with_screw(pose=right_target_pose,save_freq=15)
-        right_target_pose[0] += 0.04
-        right_target_pose[2] -= 0.04
-        self.right_move_to_pose_with_screw(pose=right_target_pose,save_freq=15)
-        self.open_right_gripper(save_freq=15)
-        self.right_move_to_pose_with_screw(pose=self.right_original_pose,save_freq=15)
+        pass
 
     def check_success(self):
         mug_target_pose = self.get_actor_goal_pose(self.mug,self.mug_data)

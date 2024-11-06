@@ -6,10 +6,10 @@ import sapien
 
 class gpt_shoe_place(shoe_place):
     def play_once(self):
-        # Retrieve the actor and actor_data objects
+        # Retrieve the actor objects and their data
         shoe = self.actor_name_dic['shoe']
-        shoe_data = self.actor_data_dic['shoe_data']
         target = self.actor_name_dic['target']
+        shoe_data = self.actor_data_dic['shoe_data']
         target_data = self.actor_data_dic['target_data']
 
         # Get the current pose of the shoe
@@ -34,7 +34,7 @@ class gpt_shoe_place(shoe_place):
         # Move to the pre-grasp pose
         move_function(pre_grasp_pose)
 
-        # Move to the target grasp pose and close the gripper to grasp the shoe
+        # Move to the target grasp pose and close the gripper to pick up the shoe
         move_function(target_grasp_pose)
         close_gripper_function()
 
@@ -46,7 +46,7 @@ class gpt_shoe_place(shoe_place):
         target_approach_direction = self.world_direction_dic['top_down']
         actor_target_orientation = [-1, 0, 0]  # The head of the shoe should be towards the left side
 
-        # Get the grasp pose for placing the shoe on the target block
+        # Get the pose to place the shoe on the target block
         pre_place_pose = self.get_grasp_pose_from_goal_point_and_direction(shoe, shoe_data, endpose_tag=arm_tag, actor_functional_point_id=0, target_point=target_point, target_approach_direction=target_approach_direction, actor_target_orientation=actor_target_orientation, pre_dis=0.09)
         target_place_pose = self.get_grasp_pose_from_goal_point_and_direction(shoe, shoe_data, endpose_tag=arm_tag, actor_functional_point_id=0, target_point=target_point, target_approach_direction=target_approach_direction, actor_target_orientation=actor_target_orientation, pre_dis=0)
 

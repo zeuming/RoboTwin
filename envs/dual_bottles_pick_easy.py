@@ -66,25 +66,7 @@ class dual_bottles_pick_easy(Base_task):
         self.render_freq = render_freq
 
     def play_once(self):
-        # left_pose0 = list(self.red_bottle.get_pose().p+[-0.14,-0.18,0])+[-0.906,0,0,-0.424]
-        # right_pose0 = list(self.green_bottle.get_pose().p+[0.14,-0.18,0])+[-0.415,0,0,-0.910]
-        # left_pose1 = list(self.red_bottle.get_pose().p+[-0.08,-0.11,0])+[-0.906,0,0,-0.424]
-        # right_pose1 = list(self.green_bottle.get_pose().p+[0.1,-0.11,0])+[-0.415,0,0,-0.910]
-        left_pose0 = self.get_grasp_pose_to_grasp_object("left", self.red_bottle, self.red_bottle_data, pre_dis=0.1)
-        right_pose0 = self.get_grasp_pose_to_grasp_object("right", self.green_bottle, self.green_bottle_data, pre_dis=0.1)
-        left_pose1 = self.get_grasp_pose_to_grasp_object("left", self.red_bottle, self.red_bottle_data, pre_dis=0)
-        right_pose1 = self.get_grasp_pose_to_grasp_object("right", self.green_bottle, self.green_bottle_data, pre_dis=0)
-        left_target_pose = [-0.19,-0.12,0.92,1,0,0,0]
-        right_target_pose = [0.19,-0.12,0.92,-0.01,0.01,0.03,-1]
-        
-        self.together_move_to_pose_with_screw(left_pose0,right_pose0,save_freq=15)
-
-        self.together_move_to_pose_with_screw(left_pose1,right_pose1,save_freq=15)
-        self.together_close_gripper(save_freq=15)
-        left_pose1[2]+=0.08
-        right_pose1[2]+=0.08
-        self.together_move_to_pose_with_screw(left_pose1,right_pose1,save_freq=15)
-        self.together_move_to_pose_with_screw(left_target_pose,right_target_pose,save_freq=15)
+        pass
 
     def check_success(self):
         red_target = [-0.055,-0.105]

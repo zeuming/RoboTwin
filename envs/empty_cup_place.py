@@ -100,43 +100,7 @@ class empty_cup_place(Base_task):
         self.coaster.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.01
 
     def play_once(self):
-        cup_pose = self.cup.get_pose().p
-        if cup_pose[0] < 0:
-            # use left arm
-            pose0 = list(self.cup.get_pose().p+[-0.048,0,0.245])+[-0.557,0.473,-0.473,-0.489]
-            self.left_move_to_pose_with_screw(pose0,save_freq=15)
-
-            self.close_left_gripper(pos = 0.02,save_freq=15)
-            pose0[2] -=0.08
-            self.left_move_to_pose_with_screw(pose0,save_freq=15)
-            self.close_left_gripper(pos = -0.01,save_freq=15)
-            pose0[2] +=0.09
-            self.left_move_to_pose_with_screw(pose0,save_freq=15)
-            pose1 = list(self.coaster.get_pose().p+[-0.045,-0.02,0.3])+[-0.557,0.473,-0.473,-0.489]
-            self.left_move_to_pose_with_screw(pose1,save_freq=15)
-            pose1[2] -=0.082
-            self.left_move_to_pose_with_screw(pose1,save_freq=15)
-            self.open_left_gripper(pos=0.02,save_freq=15)
-            pose1[2] +=0.06
-            self.left_move_to_pose_with_screw(pose1,save_freq=15)
-        else:
-            # use right arm
-            pose0 = list(self.cup.get_pose().p+[0.048,0,0.245])+[-0.557,0.473,-0.473,-0.489]
-            self.right_move_to_pose_with_screw(pose0,save_freq=15)
-
-            self.close_right_gripper(pos = 0.02,save_freq=15)
-            pose0[2] -=0.08
-            self.right_move_to_pose_with_screw(pose0,save_freq=15)
-            self.close_right_gripper(pos = -0.01,save_freq=15)
-            pose0[2] +=0.09
-            self.right_move_to_pose_with_screw(pose0,save_freq=15)
-            pose1 = list(self.coaster.get_pose().p+[0.045,-0.02,0.3])+[-0.557,0.473,-0.473,-0.489]
-            self.right_move_to_pose_with_screw(pose1,save_freq=15)
-            pose1[2] -=0.082
-            self.right_move_to_pose_with_screw(pose1,save_freq=15)
-            self.open_right_gripper(pos=0.02,save_freq=15)
-            pose1[2] +=0.06
-            self.right_move_to_pose_with_screw(pose1,save_freq=15)
+        pass
     
     def check_success(self):
         eps = 0.025

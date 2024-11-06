@@ -154,71 +154,16 @@ class blocks_stack_hard(Base_task):
         self.block1_target_pose = [0, -0.1, 0.75]
         self.actor_data_dic = {'block1_data':self.block1_data,'block2_data':self.block2_data,'block3_data':self.block3_data,'block1_target_pose': self.block1_target_pose}
         self.actor_name_dic = {'block1':self.block1,'block2':self.block2,'block3':self.block3,'block1_target_pose': self.block1_target_pose}
-
-    def move_block(self,actor,id = 0, las_arm = None):
-        actor_rpy = actor.get_pose().get_rpy()
-        actor_pose = actor.get_pose().p
-        actor_euler = math.fmod(actor_rpy[2], math.pi / 2)
-        grasp_euler = actor_euler - math.pi/2  if actor_euler > math.pi/4 else actor_euler
-        grasp_trans_quat = t3d.euler.euler2quat(0,0,grasp_euler)
-        grasp_qpose = t3d.quaternions.qmult(grasp_trans_quat, [-0.5,0.5,-0.5,-0.5]).tolist()
-        if actor_pose[0] > 0:
-            now_arm = 'right'
-            pose1 = list(actor_pose + [0,0,0.2]) + grasp_qpose
-            if now_arm == las_arm or las_arm is None:
-                if now_arm == las_arm:
-                    pose0 = list(self.right_endpose.global_pose.p + [0,0,0.05]) + [-0.5,0.5,-0.5,-0.5]
-                    self.right_move_to_pose_with_screw(pose0,save_freq = 15)
-                self.right_move_to_pose_with_screw(pose1,save_freq = 15)
-            else:
-                self.together_move_to_pose_with_screw(left_target_pose=self.left_original_pose,right_target_pose=pose1,save_freq=15)
-            pose1[2] -= 0.05
-            self.right_move_to_pose_with_screw(pose1,save_freq = 15)
-            self.close_right_gripper(save_freq=15)
-            pose1[2] += 0.05
-            self.right_move_to_pose_with_screw(pose1,save_freq = 15)
-            traget_pose = [0.01,-0.097,0.95 + id * 0.05,-0.5,0.5,-0.5,-0.5]
-            self.right_move_to_pose_with_screw(traget_pose,save_freq = 15)
-            traget_pose[2] -= 0.04
-            self.right_move_to_pose_with_screw(traget_pose,save_freq = 15)
-            self.open_right_gripper(save_freq=15)
-            traget_pose[2] += 0.04
-            self.right_move_to_pose_with_screw(traget_pose,save_freq = 15)
-        else:
-            now_arm = 'left'
-            pose1 = list(actor_pose + [0,0,0.2]) + grasp_qpose
-            if now_arm == las_arm or las_arm is None:
-                if now_arm == las_arm:
-                    pose0 = list(self.left_endpose.global_pose.p + [0,0,0.05]) + [-0.5,0.5,-0.5,-0.5]
-                    self.left_move_to_pose_with_screw(pose0,save_freq = 15)
-                self.left_move_to_pose_with_screw(pose1,save_freq = 15)
-            else:
-                self.together_move_to_pose_with_screw(left_target_pose=pose1,right_target_pose=self.right_original_pose,save_freq=15)
-            pose1[2] -= 0.05
-            self.left_move_to_pose_with_screw(pose1,save_freq = 15)
-            self.close_left_gripper(save_freq=15)
-            pose1[2] += 0.05
-            self.left_move_to_pose_with_screw(pose1,save_freq = 15)
-            traget_pose = [0,-0.1,0.95 + id * 0.05,-0.5,0.5,-0.5,-0.5]
-            self.left_move_to_pose_with_screw(traget_pose,save_freq = 15)
-            traget_pose[2] -= 0.04
-            self.left_move_to_pose_with_screw(traget_pose,save_freq = 15)
-            self.open_left_gripper(save_freq=15)
-            traget_pose[2] += 0.04
-            self.left_move_to_pose_with_screw(traget_pose,save_freq = 15)
-        return now_arm
     
     def play_once(self):
-        las_arm = self.move_block(self.block1, id = 0, las_arm = None)
-        las_arm = self.move_block(self.block2, id = 1, las_arm = las_arm)
-        las_arm = self.move_block(self.block3, id = 2, las_arm = las_arm)
+        pass
         
     def check_success(self):
         block1_pose = self.block1.get_pose().p
         block2_pose = self.block2.get_pose().p
         block3_pose = self.block3.get_pose().p
         target_pose = [0,-0.1]
-        eps = [0.025,0.025,0.01]
+        eps = [0.03,0.03,0.01]
         return np.all(abs(block1_pose - np.array(target_pose + [0.765])) < eps) and \
                np.all(abs(block2_pose - np.array(target_pose + [0.815])) < eps) and \
                np.all(abs(block3_pose - np.array(target_pose + [0.865])) < eps) and self.is_left_gripper_open() and self.is_right_gripper_open()

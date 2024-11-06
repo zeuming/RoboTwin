@@ -70,24 +70,8 @@ class diverse_bottles_pick(Base_task):
             self.together_open_gripper(save_freq=None)
         self.render_freq = render_freq
 
-    def play_once(self,save_freq=None):
-        left_pose0 = self.get_grasp_pose_w_given_direction(self.bottle1, self.bottle1_data,grasp_qpos=[-0.906,0,0,-0.424], pre_dis=0.1)
-        right_pose0 = self.get_grasp_pose_w_given_direction(self.bottle2, self.bottle2_data,grasp_qpos=[-0.415,0,0,-0.910], pre_dis=0.11)
-        left_pose1 = self.get_grasp_pose_w_given_direction(self.bottle1, self.bottle1_data,grasp_qpos=[-0.906,0,0,-0.424], pre_dis=0)
-        right_pose1 = self.get_grasp_pose_w_given_direction(self.bottle2, self.bottle2_data,grasp_qpos=[-0.415,0,0,-0.910], pre_dis=0.01)
-        left_target_pose = [-0.19,-0.12,0.92,1,0,0,0]
-        right_target_pose = [0.19,-0.12,0.92,-0.01,0.01,0.03,-1]
-        
-        self.together_move_to_pose_with_screw(left_pose0,right_pose0,save_freq=15)
-
-        self.together_move_to_pose_with_screw(left_pose1,right_pose1,save_freq=15)
-        
-        self.together_close_gripper(left_pos=0.005,right_pos=0.005,save_freq=15)
-
-        left_pose1[2]+=0.08
-        right_pose1[2]+=0.08
-        self.together_move_to_pose_with_screw(left_pose1,right_pose1,save_freq=15)
-        self.together_move_to_pose_with_screw(left_target_pose,right_target_pose,save_freq=15)
+    def play_once(self):
+        pass
 
     def check_success(self):
         red_target = [-0.06,-0.105]

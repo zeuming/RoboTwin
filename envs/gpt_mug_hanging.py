@@ -22,17 +22,16 @@ class gpt_mug_hanging(mug_hanging):
 
         self.left_move_to_pose_with_screw(pre_grasp_pose_left)
         self.left_move_to_pose_with_screw(target_grasp_pose_left)
-        self.close_left_gripper(pos=-0.01)  # Tighten the left gripper to grasp the mug
+        self.close_left_gripper(pos=-0.01)  # Tighten the gripper to pick up the mug
 
         # Step 2: Move the mug to the middle position
         middle_pos = self.get_actor_goal_pose(middle_pose_of_left_arm, middle_pose_of_left_arm_data)
-        target_approach_direction = self.world_direction_dic['top_down']
-        pre_middle_pose = self.get_grasp_pose_from_goal_point_and_direction(mug, mug_data, endpose_tag="left", actor_functional_point_id=1, target_point=middle_pos, target_approach_direction=target_approach_direction, pre_dis=0.09)
-        target_middle_pose = self.get_grasp_pose_from_goal_point_and_direction(mug, mug_data, endpose_tag="left", actor_functional_point_id=1, target_point=middle_pos, target_approach_direction=target_approach_direction, pre_dis=0)
+        target_pose_middle = self.get_grasp_pose_from_goal_point_and_direction(mug, mug_data, endpose_tag="left", actor_functional_point_id=1, target_point=middle_pos, target_approach_direction=self.world_direction_dic['top_down'], pre_dis=0.09)
+        target_pose_middle_final = self.get_grasp_pose_from_goal_point_and_direction(mug, mug_data, endpose_tag="left", actor_functional_point_id=1, target_point=middle_pos, target_approach_direction=self.world_direction_dic['top_down'], pre_dis=0)
 
-        self.left_move_to_pose_with_screw(pre_middle_pose)
-        self.left_move_to_pose_with_screw(target_middle_pose)
-        self.open_left_gripper()  # Open the left gripper to place the mug in the middle position
+        self.left_move_to_pose_with_screw(target_pose_middle)
+        self.left_move_to_pose_with_screw(target_pose_middle_final)
+        self.open_left_gripper()  # Release the mug at the middle position
 
         # Step 3: Avoid collision with the left arm
         left_avoid_collision_pose = self.get_avoid_collision_pose(avoid_collision_arm_tag='left')
@@ -44,15 +43,16 @@ class gpt_mug_hanging(mug_hanging):
 
         self.right_move_to_pose_with_screw(pre_grasp_pose_right)
         self.right_move_to_pose_with_screw(target_grasp_pose_right)
-        self.close_right_gripper(pos=-0.01)  # Tighten the right gripper to grasp the mug
+        self.close_right_gripper(pos=-0.01)  # Tighten the gripper to pick up the mug
 
         # Step 5: Move the mug to the rack
         rack_functional_pose = self.get_actor_functional_pose(rack, rack_data, actor_functional_point_id=0)
         rack_point = rack_functional_pose[:3]
         rack_approach_direction = rack_functional_pose[3:]
+
         pre_rack_pose = self.get_grasp_pose_from_goal_point_and_direction(mug, mug_data, endpose_tag="right", actor_functional_point_id=0, target_point=rack_point, target_approach_direction=rack_approach_direction, pre_dis=0.09)
         target_rack_pose = self.get_grasp_pose_from_goal_point_and_direction(mug, mug_data, endpose_tag="right", actor_functional_point_id=0, target_point=rack_point, target_approach_direction=rack_approach_direction, pre_dis=0)
 
         self.right_move_to_pose_with_screw(pre_rack_pose)
         self.right_move_to_pose_with_screw(target_rack_pose)
-        self.open_right_gripper()  # Open the right gripper to hang the mug on the rack
+        self.open_right_gripper()  # Release the mug on the rack

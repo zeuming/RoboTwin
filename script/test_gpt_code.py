@@ -79,7 +79,7 @@ def get_actor_keys_and_points_discription(task_name):
 def run(Demo_class, args):
     epid = 0 
     suc_num = 0    
-    fail_num = 0   
+    fail_num = 0
 
     error_list = ["The code can not run", "The left arm failed to grasp the object", 
                   "The right arm failed to grasp the object", "The target position of the object is incorrect."]

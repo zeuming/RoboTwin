@@ -90,27 +90,8 @@ class pick_apple_messy(Base_task):
                 model_z_val = data[model_index]["model_z_val"],
             )
 
-            # self.actor_list.append(model)
-            # self.actor_data_dic.append(model_data)
-
     def play_once(self):
-        pose1 = self.get_grasp_pose_w_given_direction(self.apple, self.apple_data, grasp_qpos=[-0.5, 0.5, -0.5, -0.5], pre_dis=0.1) # apple pre grasp pose
-        pose2 = self.get_grasp_pose_w_given_direction(self.apple, self.apple_data, grasp_qpos=[-0.5, 0.5, -0.5, -0.5]) # apple grasp pose
-        
-        if self.apple.get_pose().p[0] < 0:
-            self.open_left_gripper()  # open the left gripper first
-            self.left_move_to_pose_with_screw(pose1) # left arm move to the pre grasp pose
-            self.left_move_to_pose_with_screw(pose2) # left arm move to the grasp pose
-            self.close_left_gripper()  # close left gripper to grasp the apple
-            pose2[2] += 0.05  # lift the apple up for 5 cm
-            self.left_move_to_pose_with_screw(pose2) # lift the apple up for 5 cm
-        else:
-            self.open_right_gripper()  # open the right gripper first
-            self.right_move_to_pose_with_screw(pose1) # right arm move to the pre grasp pose
-            self.right_move_to_pose_with_screw(pose2) # right arm move to the grasp pose
-            self.close_right_gripper()  # close right gripper to grasp the apple
-            pose2[2] += 0.05  # lift the apple up for 5 cm
-            self.right_move_to_pose_with_screw(pose2) # lift the apple up for 5 cm
+        pass
 
     def check_success(self):
         apple_pose = self.apple.get_pose().p

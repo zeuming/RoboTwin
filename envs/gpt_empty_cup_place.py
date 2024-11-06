@@ -36,7 +36,7 @@ class gpt_empty_cup_place(empty_cup_place):
 
         # Move to the target grasp pose and close the gripper to pick up the cup
         move_function(target_grasp_pose)
-        close_gripper_function(pos=-0.01)  # Tighten the gripper to ensure the cup is securely held
+        close_gripper_function(pos=-0.01)  # Tighten the gripper to ensure a secure grasp
 
         # Lift the cup slightly
         lift_pose = target_grasp_pose.copy()
@@ -44,14 +44,14 @@ class gpt_empty_cup_place(empty_cup_place):
         move_function(lift_pose)
 
         # Get the target pose for placing the cup on the coaster
-        coaster_target_pose = self.get_actor_goal_pose(coaster, coaster_data, id=0)
-        place_pose = self.get_grasp_pose_from_goal_point_and_direction(actor=cup, actor_data=cup_data, endpose_tag=arm_tag, target_point=coaster_target_pose, target_approach_direction=self.world_direction_dic['top_down'], pre_dis=0.05)
-        target_place_pose = self.get_grasp_pose_from_goal_point_and_direction(actor=cup, actor_data=cup_data, endpose_tag=arm_tag, target_point=coaster_target_pose, target_approach_direction=self.world_direction_dic['top_down'], pre_dis=0)
+        coaster_pose = self.get_actor_goal_pose(coaster, coaster_data, id=0)
+        place_pose = self.get_grasp_pose_from_goal_point_and_direction(actor=cup, actor_data=cup_data, endpose_tag=arm_tag, actor_functional_point_id=0, target_point=coaster_pose, target_approach_direction=self.world_direction_dic['top_down'], pre_dis=0.05)
+        target_place_pose = self.get_grasp_pose_from_goal_point_and_direction(actor=cup, actor_data=cup_data, endpose_tag=arm_tag, actor_functional_point_id=0, target_point=coaster_pose, target_approach_direction=self.world_direction_dic['top_down'], pre_dis=0)
 
         # Move to the pre-place pose
         move_function(place_pose)
 
-        # Move to the target place pose and open the gripper to place the cup on the coaster
+        # Move to the target place pose and open the gripper to place the cup
         move_function(target_place_pose)
         open_gripper_function()
 

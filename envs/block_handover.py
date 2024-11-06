@@ -19,7 +19,6 @@ class block_handover(Base_task):
         render_freq = self.render_freq
         self.render_freq=0
         self.together_open_gripper(save_freq=None)
-
         self.render_freq = render_freq
 
     def create_target_block_data(self, half_size):
@@ -121,39 +120,7 @@ class block_handover(Base_task):
         self.actor_name_dic = {"grasp_block": self.grasp_block,"target_block": self.target_block, "handover_block_pose": self.handover_block_pose}
 
     def play_once(self):
-        left_pose0 = list(self.grasp_block.get_pose().p+[-0.14,-0.18,0.07])+[-0.906,0,0,-0.424]
-        left_pose1 = list(self.grasp_block.get_pose().p+[-0.08,-0.11,0.07])+[-0.906,0,0,-0.424]
-        left_target_pose = [-0.19,-0.12,0.96,1,0,0,0]
-        right_pick_pre_pose = [0.191,-0.12,0.87,0,0,0,1]
-        right_pick_pose = [0.09,-0.12,0.85,0,0,0,1]
-        self.left_move_to_pose_with_screw(left_pose0, save_freq=15)
-        self.left_move_to_pose_with_screw(left_pose1, save_freq=15)
-        self.close_left_gripper(save_freq=15)
-        
-        left_pose1[2] +=0.06
-        self.left_move_to_pose_with_screw(left_pose1, save_freq=15)
-        self.together_move_to_pose_with_screw(left_target_pose,right_pick_pre_pose, save_freq=15)
-        print(self.get_actor_goal_pose(self.grasp_block, self.grasp_block_data))
-
-        self.right_move_to_pose_with_screw(right_pick_pose, save_freq=15)
-        
-        self.close_right_gripper(save_freq=15)
-        
-        self.open_left_gripper(save_freq=15)
-        
-        right_pick_pose[0]+=0.05
-        left_target_pose[0]-=0.1
-        self.together_move_to_pose_with_screw(left_target_pose,right_pick_pose, save_freq=15)
-        right_target_pose = list(self.target_block.get_pose().p + [0.02,-0.13,0.11]) + [0.707,0,0,0.707]
-
-        self.right_move_to_pose_with_screw(right_target_pose, save_freq=15)
-        right_target_pose[2] -= 0.04
-        self.right_move_to_pose_with_screw(right_target_pose, save_freq=15)
-
-        self.open_right_gripper(save_freq=15)
-        right_target_pose[1] -= 0.1
-        right_target_pose[2] += 0.1
-        self.right_move_to_pose_with_screw(right_target_pose, save_freq=15)
+        pass
 
     def check_success(self):
         box_pos = self.grasp_block.get_pose().p

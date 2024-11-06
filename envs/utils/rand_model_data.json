@@ -51,7 +51,7 @@
         "zlim": [0.78]
     },
     "model5": {
-        "name" : "020_hammer_2",
+        "name" : "020_hammer",
         "rotate_rand" : 1,
         "rotate_lim" : [1.57,0,0],
         "init_qpos" : [0.686,-0.057, -0.721, -0.079],

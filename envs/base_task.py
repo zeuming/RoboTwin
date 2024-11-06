@@ -95,7 +95,7 @@ class Base_task(gym.Env):
         }
         self.target_left_pose_front = [-0.19,-0.12,0.92,1,0,0,0]
         self.target_right_pose_front = [0.19,-0.12,0.92,-0.01,0.01,0.03,-1]
-        self.handover_block_pose = [-0.054, -0.105,  0.8]
+        self.handover_block_pose = [-0.054, -0.09,  0.82]
         self.actor_name_dic = {}
         self.actor_data_dic = {}
         self.used_contant = []
@@ -548,13 +548,13 @@ class Base_task(gym.Env):
         if set_tag == 'right' or set_tag == 'together':
             self.right_gripper_val = right_pos
 
-    def gripper_move_back(self, gripper_tag: str,save_freq=15):
-        if gripper_tag == 'left':
+    def gripper_move_back(self, endpose_tag: str,save_freq=15):
+        if endpose_tag == 'left':
             pose_of_close_gripper = self.pose_of_close_left_gripper
             now_pose = self.now_left_pose
             pre_pose = self.pre_left_pose
             move_function = self.left_move_to_pose_with_screw
-        elif gripper_tag == 'right':
+        elif endpose_tag == 'right':
             pose_of_close_gripper = self.pose_of_close_right_gripper
             now_pose = self.now_right_pose
             pre_pose = self.pre_right_pose
@@ -584,6 +584,8 @@ class Base_task(gym.Env):
             xyz_dis[:3] = trans_matrix[:3,:3] @ xyz_dis[:3]
             nxt_pose_matrix[:3,3] = now_pose[:3] + xyz_dis[:3]
             nxt_pose = list(nxt_pose_matrix[:3,3]) + list(t3d.quaternions.mat2quat(nxt_pose_matrix[:3,:3]))
+            if self.is_plan_success(endpose_tag, nxt_pose) == False:
+                return
             move_function(nxt_pose, save_freq=save_freq)
 
     def open_left_gripper(self, save_freq=15, pos = 0.045):
@@ -664,6 +666,9 @@ class Base_task(gym.Env):
         Interpolative planning with screw motion.
         Will not avoid collision and will fail if the path contains collision.
         """
+        if type(pose) != list or len(pose) != 7:
+            print("left arm pose error!")
+            return
         if self.is_left_gripper_open():
             self.pre_left_pose = self.now_left_pose
         self.now_left_pose = pose
@@ -693,6 +698,10 @@ class Base_task(gym.Env):
         Interpolative planning with screw motion.
         Will not avoid collision and will fail if the path contains collision.
         """
+        if type(pose) != list or len(pose) != 7:
+            print("right arm pose error!")
+            return
+        
         if self.is_right_gripper_open():
             self.pre_right_pose = self.now_right_pose
         self.now_right_pose = pose
@@ -722,6 +731,12 @@ class Base_task(gym.Env):
         Interpolative planning with screw motion.
         Will not avoid collision and will fail if the path contains collision.
         """
+        if type(left_target_pose) != list or len(left_target_pose) != 7:
+            print("left arm pose error!")
+            return
+        if type(right_target_pose) != list or len(right_target_pose) != 7:
+            print("right arm pose error!")
+            return
         if self.is_left_gripper_open():
             self.pre_left_pose = self.now_left_pose
         if self.is_right_gripper_open():
@@ -1469,13 +1484,23 @@ class Base_task(gym.Env):
     
 
 ################################################# Generate Data API #################################################
-    # def get_grasp_pose_w_labeled_direction(self, actor, actor_data, grasp_matrix = np.eye(4), pre_dis = 0, id = 0):
+    def get_target_pose_from_goal_point_and_direction(self, actor, actor_data = None, endpose = None, target_pose = None, target_grasp_qpose = None):
+        actor_matrix = actor.get_pose().to_transformation_matrix()
+        local_target_matrix = np.asarray(actor_data['target_pose'][0])
+        local_target_matrix[:3,3] *= actor_data['scale']
+        res_matrix = np.eye(4)
+        res_matrix[:3,3] = (actor_matrix  @ local_target_matrix)[:3,3] - endpose.global_pose.p
+        res_matrix[:3,3] = np.linalg.inv(t3d.quaternions.quat2mat(endpose.global_pose.q) @ np.array([[1,0,0],[0,-1,0],[0,0,-1]])) @ res_matrix[:3,3]
+        res_pose = list(target_pose - t3d.quaternions.quat2mat(target_grasp_qpose) @ res_matrix[:3,3]) + target_grasp_qpose
+        return res_pose
+    
     # 获取抓取位姿通过标记的抓取点
     # pre_dis 为抓取点的前方距离
     # id 为抓取点的索引
-
+    # URDF_MATRIX = np.array([[1,0,0],[0,0,-1],[0,1,0]])
     def get_grasp_pose_w_labeled_direction(self, actor, actor_data, pre_dis = 0., id = 0):
         actor_matrix = actor.get_pose().to_transformation_matrix()
+        # if "model_type" in actor_data.keys() and actor_data["model_type"] == "urdf": actor_matrix[:3,:3] = self.URDF_MATRIX
         local_contact_matrix = np.asarray(actor_data['contact_points_pose'][id])
         # trans_matrix = np.asarray(actor_data['transform_matrix'])
         local_contact_matrix[:3,3] *= actor_data['scale']
@@ -1493,6 +1518,7 @@ class Base_task(gym.Env):
     # grasp_qpos 为抓取方向，以夹爪坐标系为基准
     def get_grasp_pose_w_given_direction(self,actor,actor_data, grasp_qpos: list = None, pre_dis = 0., id = 0):
         actor_matrix = actor.get_pose().to_transformation_matrix()
+        # if "model_type" in actor_data.keys() and actor_data["model_type"] == "urdf": actor_matrix[:3,:3] = self.URDF_MATRIX
         local_contact_matrix = np.asarray(actor_data['contact_points_pose'][id])
         local_contact_matrix[:3,3] *= actor_data['scale']
         grasp_matrix= t3d.quaternions.quat2mat(grasp_qpos)
@@ -1508,6 +1534,7 @@ class Base_task(gym.Env):
                                                      target_approach_direction = [0,0,1,0], actor_target_orientation = None, pre_dis = 0.):
         target_approach_direction_mat = t3d.quaternions.quat2mat(target_approach_direction)
         actor_matrix = actor.get_pose().to_transformation_matrix()
+        # if "model_type" in actor_data.keys() and actor_data["model_type"] == "urdf": actor_matrix[:3,:3] = self.URDF_MATRIX
         target_point_copy = deepcopy(target_point[:3])
         target_point_copy -= target_approach_direction_mat @ np.array([0,0,pre_dis])
 
@@ -1519,17 +1546,13 @@ class Base_task(gym.Env):
         if actor_target_orientation is not None:
             actor_target_orientation = actor_target_orientation / np.linalg.norm(actor_target_orientation)
         
-        # adjunction_matrix_list = [
-        #     t3d.euler.euler2mat(0,0,0),
-        #     t3d.euler.euler2mat(np.pi/2,0,0),
-        #     t3d.euler.euler2mat(-np.pi/2,0,0),
-        #     t3d.euler.euler2mat(np.pi,0,0),
-        # ]
         adjunction_matrix_list = [
+            # 90 degree
             t3d.euler.euler2mat(0,0,0),
             t3d.euler.euler2mat(0,0,np.pi/2),
             t3d.euler.euler2mat(0,0,-np.pi/2),
             t3d.euler.euler2mat(0,0,np.pi),
+            # 45 degree
             t3d.euler.euler2mat(0,0,np.pi/4),
             t3d.euler.euler2mat(0,0,np.pi*3/4),
             t3d.euler.euler2mat(0,0,-np.pi*3/4),
@@ -1565,35 +1588,21 @@ class Base_task(gym.Env):
             res_matrix[:3,3] = (actor_matrix  @ local_target_matrix)[:3,3] - end_effector_pose.global_pose.p
             res_matrix[:3,3] = np.linalg.inv(end_effector_pose_matrix) @ res_matrix[:3,3]
             target_grasp_qpose = t3d.quaternions.mat2quat(target_grasp_matrix)
-            # print(target_grasp_matrix @ res_matrix[:3,3])
+            # priget_grasp_pose_w_labeled_directionnt(target_grasp_matrix @ res_matrix[:3,3])
             now_pose = (target_point_copy - target_grasp_matrix @ res_matrix[:3,3]).tolist() + target_grasp_qpose.tolist()
-            # print('!!!', now_pose)
             now_pose_eval = self.evaluate_grasp_pose(endpose_tag, now_pose, actor, is_grasp_actor=False, target_point=target_point[:3])
-            # print(now_pose, now_pose_eval)
+            # print('!!!', now_pose, now_pose_eval)
             if actor_target_orientation is not None and produt > res_eval or now_pose_eval > res_eval:
-            # if True:
                 res_pose = now_pose
                 res_eval = now_pose_eval if actor_target_orientation is None else produt
-            # pdb.set_trace()
-        # print(res_pose)
-        # print(res_pose)
         return res_pose
-    
-    # def get_grasp_pose_from_goal_point_and_direction(self, actor, actor_data, endpose = None, target_pose = None, target_grasp_qpose = None):
-    #     actor_matrix = actor.get_pose().to_transformation_matrix()
-    #     local_target_matrix = np.asarray(actor_data['target_pose'])
-    #     local_target_matrix[:3,3] *= actor_data['scale']
-    #     res_matrix = np.eye(4)
-    #     res_matrix[:3,3] = (actor_matrix  @ local_target_matrix)[:3,3] - endpose.global_pose.p
-    #     res_matrix[:3,3] = np.linalg.inv(t3d.quaternions.quat2mat(endpose.global_pose.q) @ np.array([[1,0,0],[0,-1,0],[0,0,-1]])) @ res_matrix[:3,3]
-    #     res_pose = list(target_pose - t3d.quaternions.quat2mat(target_grasp_qpose) @ res_matrix[:3,3]) + target_grasp_qpose
-    #     return res_pose
     
     # 获取actor目标点的世界坐标系下的位姿(x,y,z)
     def get_actor_goal_pose(self,actor,actor_data, id = 0):
         if type(actor) == list:
             return actor
         actor_matrix = actor.get_pose().to_transformation_matrix()
+        # if "model_type" in actor_data.keys() and actor_data["model_type"] == "urdf": actor_matrix[:3,:3] = self.URDF_MATRIX
         local_target_matrix = np.asarray(actor_data['target_pose'][id])
         local_target_matrix[:3,3] *= actor_data['scale']
         return (actor_matrix @ local_target_matrix)[:3,3]
@@ -1603,15 +1612,24 @@ class Base_task(gym.Env):
         if type(actor) == list:
             return actor
         actor_matrix = actor.get_pose().to_transformation_matrix()
+        # if "model_type" in actor_data.keys() and actor_data["model_type"] == "urdf": actor_matrix[:3,:3] = self.URDF_MATRIX
         local_functional_matrix = np.asarray(actor_data['functional_matrix'][actor_functional_point_id])
         local_functional_matrix[:3,3] *= actor_data['scale']
         res_matrix = actor_matrix @ local_functional_matrix
-        # print('!!!',local_functional_matrix)
-        # res_pose = res_matrix[:3,3]
+        return res_matrix[:3,3].tolist() + t3d.quaternions.mat2quat(res_matrix[:3,:3]).tolist()
+
+    # @TODO: 获取actor抓取点和轴的世界坐标系下的[x,y,z,quaternion]
+    def get_actor_contact_point_position(self, actor, actor_data, actor_contact_id = 0):
+        if type(actor) == list:
+            return actor
+        actor_matrix = actor.get_pose().to_transformation_matrix()
+        # if "model_type" in actor_data.keys() and actor_data["model_type"] == "urdf": actor_matrix[:3,:3] = self.URDF_MATRIX
+        local_contact_matrix = np.asarray(actor_data['contact_points_pose'][actor_contact_id])
+        local_contact_matrix[:3,3] *= actor_data['scale']
+        res_matrix = actor_matrix @ local_contact_matrix
         return res_matrix[:3,3].tolist() + t3d.quaternions.mat2quat(res_matrix[:3,:3]).tolist()
 
     # @TODO: 抓取模块, 上层API, 输入左右臂 endpose 和需要抓取得物体对象, 返回合适的抓取位姿
-    # endpose_tag: 'left' or 'right'
     def get_grasp_pose_to_grasp_object(self, endpose_tag: str, actor, actor_data, pre_dis = 0):
         endpose = self.left_endpose if endpose_tag == 'left' else self.right_endpose
         contact_points = actor_data['contact_points_pose']
@@ -1649,11 +1667,34 @@ class Base_task(gym.Env):
                     self.right_prepare_grasp_point_group = i
                 break
     
-        # self.evaluate_grasp_pose(endpose_tag, res_grasp_pose)
         return res_grasp_pose
 
+    # 使用 planner 测试当前状态是否可达
+    def is_plan_success(self, endpose_tag: str, grasp_pose: list):
+        planner = self.left_planner if endpose_tag == 'left' else self.right_planner
+        arm_joint_id = self.left_arm_joint_id if endpose_tag == 'left' else self.right_arm_joint_id
+        joint_pose = self.robot.get_qpos()
+        qpos=[]
+        for i in range(6):
+            qpos.append(joint_pose[arm_joint_id[i]])
+        
+        las_robot_qpose = planner.robot.get_qpos()
+        result = planner.plan_screw(
+            target_pose=grasp_pose,
+            qpos=qpos,
+            time_step=1 / 250,
+            use_point_cloud=False,
+            use_attach=False,
+        )
+        planner.robot.set_qpos(las_robot_qpose,full=True)
+        return result["status"] == "Success" and result["position"].shape[0] <= 2000
+    
     # @TODO: 评估模块, 用于评估抓取位姿是否合适
     def evaluate_grasp_pose(self, endpose_tag: str, grasp_pose: list, actor, is_grasp_actor = True, target_point = None):
+        # 使用 planner 测试抓取位姿
+        is_plan_suc = self.is_plan_success(endpose_tag=endpose_tag, grasp_pose=grasp_pose)
+        if not is_plan_suc:
+            return -1e10
         
         endpose = self.left_endpose if endpose_tag == 'left' else self.right_endpose
         base_xy = np.array([-0.3,-0.417]) if endpose_tag == 'left' else np.array([0.3,-0.417])
@@ -1663,8 +1704,14 @@ class Base_task(gym.Env):
         # 三个旋转轴的角度相对于基准位置均不超过[-pi/2,pi/2]
         trans_matrix = t3d.quaternions.quat2mat(grasp_pose[3:]) @ np.linalg.inv(np.array([[0,-1,0],[1,0,0],[0,0,1]]))
         delta_euler = np.array(t3d.euler.mat2euler(trans_matrix))
+        # print(delta_euler)
         if np.any(delta_euler > np.pi/2 + 0.1):
             # print("euler out of range")
+            res += 1e9
+        base_pose = self.left_original_pose if endpose_tag == 'left' else self.right_original_pose
+        distance = np.sqrt(np.sum((np.array(base_pose[:3]) - np.array(grasp_pose)[:3]) ** 2))
+        # print(distance)
+        if np.fabs(delta_euler[0]) > 1.2 and distance > 0.4:
             res += 1e9
         
         # 限定xyz范围
@@ -1674,26 +1721,17 @@ class Base_task(gym.Env):
             grasp_limit = [[-0.1, 0.4],[-0.3,0.3],[0.85, 1.2]]
 
         if np.any([grasp_pose[i] < grasp_limit[i][0] or grasp_pose[i] > grasp_limit[i][1] for i in range(3)]):
-            # print("grasp pose out of range")
             res += 1e8
 
         # 计算抓取位姿的评估值
-        res = 0
-        # res = np.sum(np.abs(endpose.global_pose.p - np.array(grasp_pose)[:3]) * [1/0.5, 1/0.6, 1/0.36])
-        res = np.sum(np.abs(endpose.global_pose.p - np.array(grasp_pose)[:3]))
+        # res += np.sqrt(np.sum((endpose.global_pose.p - np.array(grasp_pose)[:3]) ** 2)) / 0.7
         trans_now_pose_matrix = t3d.quaternions.quat2mat(grasp_pose[3:]) @ np.linalg.inv(endpose.global_pose.to_transformation_matrix()[:3,:3])
         theta_xy = np.mod(np.abs(t3d.euler.mat2euler(trans_now_pose_matrix)[:2]), np.pi)
         theta_z = delta_euler[-1] + np.pi/2 - np.mod(angle + np.pi, np.pi)
 
         # 限定左右夹爪方向，防止较大角度的外翻
-        # if endpose_tag == 'right' and delta_euler[-1] < -1:
-        #     return -1e9
-        
-        # if endpose_tag == 'left' and delta_euler[-1] > 1:
-        #     return -1e9
         
         res += 2 * np.sum(theta_xy/np.pi) + 2 * np.abs(theta_z)/np.pi
-        # res = 2 * np.abs(theta_z)/np.pi
         return -res
 
     # @TODO: 避让模块, 用于左右臂避免碰撞
@@ -1712,18 +1750,6 @@ class Base_task(gym.Env):
             target_pose = [-0.28, -0.07, endpose.p[2]] + t3d.quaternions.qmult(endpose.q, [0,1,0,0]).tolist()
 
         return target_pose
-        # if direction == 'left':
-        #     dis_vec = np.array([-1,0,0])
-        # elif direction == 'right':
-        #     dis_vec = np.array([1,0,0])
-        # elif direction == 'front':
-        #     dis_vec = np.array([0,1,0])
-        # elif direction == 'back':
-        #     dis_vec = np.array([0,-1,0])
-        # elif direction == 'up':
-        #     dis_vec = np.array([0,0,1])
-        # elif direction == 'down':
-        #     dis_vec = np.array([0,0,-1])
     
     # @TODO: 获取物体各个点描述
     def get_actor_points_discription(self):
