@@ -164,7 +164,7 @@ def create_obj(
     convex = False,
     is_static = False,
     model_id = None,
-    model_z_val = False
+    z_val_protect = False
 ) -> sapien.Entity:
     modeldir = "./models/"+modelname+"/"
     if model_id is None:
@@ -187,7 +187,7 @@ def create_obj(
     else:
         builder.set_physx_body_type("dynamic")
 
-    if model_z_val:
+    if z_val_protect:
         pose.set_p(pose.get_p()[:2].tolist() + [0.74 + (t3d.quaternions.quat2mat(pose.get_q()) @ (np.array(model_data["extents"]) * scale))[2]/2])
         
     if convex==True:
@@ -219,7 +219,7 @@ def create_glb(
     convex = False,
     is_static = False,
     model_id = None,
-    model_z_val = False
+    z_val_protect = False
 ) -> sapien.Entity:
     modeldir = "./models/"+modelname+"/"
     if model_id is None:
@@ -242,7 +242,7 @@ def create_glb(
     else:
         builder.set_physx_body_type("dynamic")
 
-    if model_z_val:
+    if z_val_protect:
         pose.set_p(pose.get_p()[:2].tolist() + [0.74 + (t3d.quaternions.quat2mat(pose.get_q()) @ (np.array(model_data["extents"]) * scale))[2]/2])
 
     if convex==True:
@@ -273,7 +273,7 @@ def create_actor(
     convex = False,
     is_static = False,
     model_id = None,
-    model_z_val = False
+    z_val_protect = False
 ) -> sapien.Entity:
     try:
         return create_glb(
@@ -284,7 +284,7 @@ def create_actor(
             convex = convex,
             is_static = is_static,
             model_id = model_id,
-            model_z_val = model_z_val
+            z_val_protect = z_val_protect
         )
     except:
         try:
@@ -296,7 +296,7 @@ def create_actor(
                 convex = convex,
                 is_static = is_static,
                 model_id = model_id,
-                model_z_val = model_z_val
+                z_val_protect = z_val_protect
             )
         except:
             print(modelname, 'is not exsist model file!')
@@ -314,15 +314,16 @@ def create_urdf_obj(
 )->sapienp.PhysxArticulation: 
     modeldir = "./models/"+modelname+"/"
     json_file_path = modeldir + 'model_data.json'
+    loader: sapien.URDFLoader = scene.create_urdf_loader()
+    loader.scale = scale
     
     try:
         with open(json_file_path, 'r') as file:
             model_data = json.load(file)
+        loader.scale = model_data["scale"][0]
     except:
         model_data = None
 
-    loader: sapien.URDFLoader = scene.create_urdf_loader()
-    loader.scale = scale
     loader.fix_root_link = fix_root_link
     loader.load_multiple_collisions_from_file = True
     modeldir = "./models/"+modelname+"/"

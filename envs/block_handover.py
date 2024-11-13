@@ -12,7 +12,7 @@ class block_handover(Base_task):
         self.setup_planner()
         self.load_camera(kwags.get('camera_w', 640),kwags.get('camera_h', 480))
         self.pre_move()
-        self.load_actors()
+        self.load_actors(f"./task_config/scene_info/{self.task_name[4:]}.json")
         self.step_lim = 600
     
     def pre_move(self):
@@ -81,50 +81,52 @@ class block_handover(Base_task):
 
         return data
 
-    def load_actors(self):
-        rand_pos = rand_pose(
-            xlim=[-0.25,-0.05],
-            ylim=[0.,0.25],
-            zlim=[0.842],
-            qpos=[-0.906,0,0,-0.424],
-            rotate_rand=True,
-            rotate_lim=[0,0,1.57],
-        )
-        self.grasp_block = create_box(
-            scene = self.scene,
-            pose = rand_pos,
-            half_size=(0.03,0.03,0.1),
-            color=(1,0,0),
-            name="box"
-        )
-        self.grasp_block_data = self.create_grasp_block_data((0.03,0.03,0.1))
+    # def load_actors(self):
+    #     rand_pos = rand_pose(
+    #         xlim=[-0.25,-0.05],
+    #         ylim=[0.,0.25],
+    #         zlim=[0.842],
+    #         qpos=[-0.906,0,0,-0.424],
+    #         rotate_rand=True,
+    #         rotate_lim=[0,0,1.57],
+    #     )
+    #     self.grasp_block = create_box(
+    #         scene = self.scene,
+    #         pose = rand_pos,
+    #         half_size=(0.03,0.03,0.1),
+    #         color=(1,0,0),
+    #         name="box"
+    #     )
+    #     self.grasp_block_data = self.create_grasp_block_data((0.03,0.03,0.1))
 
-        rand_pos = rand_pose(
-            xlim=[0.1,0.25],
-            ylim=[0.05,0.15],
-            zlim=[0.74],
-        )
+        # rand_pos = rand_pose(
+        #     xlim=[0.1,0.25],
+        #     ylim=[0.05,0.15],
+        #     zlim=[0.74],
+        # )
 
-        self.target_block= create_box(
-            scene = self.scene,
-            pose = rand_pos,
-            half_size=(0.05,0.05,0.005),
-            color=(0,0,1),
-            name="box"
-        )
-        self.target_block_data = self.create_target_block_data((0.05,0.05,0.005))
+    #     self.target_block= create_box(
+    #         scene = self.scene,
+    #         pose = rand_pos,
+    #         half_size=(0.05,0.05,0.005),
+    #         color=(0,0,1),
+    #         name="box"
+    #     )
+    #     self.target_block_data = self.create_target_block_data((0.05,0.05,0.005))
 
-        self.target_block.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 1
-        self.grasp_block.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.1
-        self.actor_data_dic = {"grasp_block_data": self.grasp_block_data,"target_block_data": self.target_block_data,"handover_block_pose":self.handover_block_pose}
-        self.actor_name_dic = {"grasp_block": self.grasp_block,"target_block": self.target_block, "handover_block_pose": self.handover_block_pose}
+    #     self.target_block.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 1
+    #     self.grasp_block.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.1
+        # self.actor_data_dic = {"grasp_block_data": self.grasp_block_data,"target_block_data": self.target_block_data,"handover_block_pose":self.handover_block_pose}
+        # self.actor_name_dic = {"grasp_block": self.grasp_block,"target_block": self.target_block, "handover_block_pose": self.handover_block_pose}
 
     def play_once(self):
         pass
 
     def check_success(self):
-        box_pos = self.grasp_block.get_pose().p
-        target_pose = self.target_block.get_pose().p
+        grasp_block = self.actor_name_dic['grasp_block']
+        target_block = self.actor_name_dic['target_block']
+        box_pos = grasp_block.get_pose().p
+        target_pose = target_block.get_pose().p
         if box_pos[2] < 0.78:
             self.actor_pose = False
         eps = 0.02

@@ -1484,6 +1484,229 @@ class Base_task(gym.Env):
     
 
 ################################################# Generate Data API #################################################
+    # 场景生成API
+    # scene_info_file: 场景信息json文件路径
+    def load_actors(self, scene_info_file):
+        try:
+            with open(scene_info_file, 'r') as f:
+                scene_info = json.load(f)
+        except:
+            print("Load Scene Info Error!")
+            return
+        actor_dis_mat = scene_info['actor_dis_lim_mat']
+        actor_info_list = scene_info['actor_info_list']
+        try:
+            actor_pos_link = scene_info['actor_position_link']
+        except:
+            actor_pos_link = False
+        try:    
+            model_id_link = scene_info['model_id_link']
+        except:
+            model_id_link = False
+        position_id = -1
+        if actor_pos_link:
+            position_id = np.random.randint(0, scene_info['actor_position_num'])
+        model_id = -1
+        if model_id_link:
+            model_id = np.random.choice(self.id_list)
+        actor_num = len(actor_info_list)
+        actor_position = []
+
+        def create_rand_pose(actor_info, now_actor_id):
+            rotate_tag = actor_info['rotate_tag']
+            ylim_prop = actor_info['ylim_prop']
+
+            now_position_id = position_id if position_id != -1 else np.random.randint(0, len(actor_info["x_limit"]))
+            x_lim = actor_info["x_limit"][now_position_id]
+            y_lim = actor_info["y_limit"][min(now_position_id, len(actor_info["y_limit"])-1)]
+            z_lim = actor_info["z_limit"][min(now_position_id, len(actor_info["z_limit"])-1)]
+            qpose = actor_info['qpose'][min(now_position_id, len(actor_info["qpose"])-1)]
+            rotate_limit = actor_info['rotate_limit'][min(now_position_id, len(actor_info["rotate_limit"])-1)] if rotate_tag else [0,0,0]
+            pose = rand_pose(
+                xlim=x_lim,
+                ylim=y_lim,
+                zlim=z_lim,
+                ylim_prop=ylim_prop,
+                rotate_rand=rotate_tag,
+                rotate_lim=rotate_limit,
+                qpos=qpose
+            )
+
+            recreate = True
+            while recreate:
+                recreate = False
+                for i in range(now_actor_id):
+                    las_actor_position = actor_position[i]
+                    try:
+                        dis = np.max(actor_dis_mat[i][now_actor_id], actor_dis_mat[now_actor_id][i])
+                        if np.sum(pow(pose.p[:2] - las_actor_position,2)) < dis**2:
+                            recreate = True
+                    except:
+                        continue
+                if recreate:
+                    pose = rand_pose(
+                        xlim=x_lim,
+                        ylim=y_lim,
+                        zlim=z_lim,
+                        ylim_prop=ylim_prop,
+                        rotate_rand=rotate_tag,
+                        rotate_limit=rotate_limit,
+                        qpos=qpose
+                    )
+            actor_position.append(pose.p[:2])
+            return pose
+
+        for i in range(actor_num):
+            actor_info = actor_info_list[i]
+            actor_name = actor_info['actor_name']
+            actor_type = actor_info['actor_type']
+            is_static = actor_info['is_static_or_fix_root_link']
+            try:
+                convex = actor_info['convex']
+            except:
+                convex = False
+            try:
+                actor_file = actor_info['actor_file']
+            except:
+                actor_file = ''
+            z_val_protect = actor_info['z_val_protect']
+            actor_data_from = actor_info['actor_data_from']
+            rand_model_id = actor_info['rand_model_id']
+
+            setattr(self, actor_name, None)
+            setattr(self, actor_name + "_data", actor_data_from)
+            now_actor = getattr(self, actor_name)
+            now_actor_data = getattr(self, actor_name + "_data")
+
+            if actor_data_from != 'file':
+                get_actor_data_func = getattr(self, actor_data_from)
+
+            actor_pose = create_rand_pose(actor_info, i)
+            
+            if actor_type == 'box':
+                now_actor = create_box(
+                    self.scene,
+                    pose=actor_pose,
+                    half_size=actor_info["half_size"],
+                    color=actor_info["color"],
+                    is_static=is_static,
+                    name=actor_name
+                )
+                now_actor_data = get_actor_data_func(actor_info["half_size"])
+            elif actor_type == 'urdf':
+                now_actor, now_actor_data = create_urdf_obj(
+                    self.scene,
+                    pose=actor_pose,
+                    modelname=actor_file,
+                    fix_root_link=is_static,
+                )
+                active_joints = now_actor.get_active_joints()
+                for joint in active_joints:
+                    joint.set_drive_property(stiffness=20, damping=5, force_limit=1000, mode="force")
+
+            elif actor_type == 'obj' or actor_type == 'glb':
+                now_model_id = None
+                if rand_model_id:
+                    now_model_id = model_id if model_id != -1 else np.random.choice(self.id_list)
+                now_actor, now_actor_data = create_actor(
+                    self.scene,
+                    pose=actor_pose,
+                    modelname=actor_file,
+                    convex=convex,
+                    is_static=is_static,
+                    model_id=now_model_id,
+                    z_val_protect=z_val_protect
+                )
+            else:
+                print("Actor info type Error!")
+                continue
+
+            if is_static == False and actor_type != 'urdf':
+                now_actor.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = actor_info["mass"]
+
+            self.actor_name_dic[actor_name] = now_actor
+            self.actor_data_dic[actor_name+'_data'] = now_actor_data
+
+        # rand create actor, and no need to record specific information
+        try:
+            if scene_info["rand_create_actor"] == True:
+                rand_actor_num = scene_info["rand_actor_num"]
+                rand_actor_tol = len(scene_info["rand_choice_actor_list"])
+                rand_actor_id_list = np.random.choice(rand_actor_tol, size = rand_actor_num, replace=True)
+                rand_choice_actor_list = scene_info["rand_choice_actor_list"]
+                for i,id in enumerate(rand_actor_id_list):
+                    actor_info = rand_choice_actor_list[id]
+                    actor_name = actor_info['actor_name']
+                    actor_type = actor_info['actor_type']
+                    is_static = actor_info['is_static_or_fix_root_link']
+                    try:
+                        convex = actor_info['convex']
+                    except:
+                        convex = False
+                    try:
+                        actor_file = actor_info['actor_file']
+                    except:
+                        actor_file = ''
+                    z_val_protect = actor_info['z_val_protect']
+                    actor_data_from = actor_info['actor_data_from']
+                    rand_model_id = actor_info['rand_model_id']
+
+                    if actor_data_from != 'file':
+                        get_actor_data_func = getattr(self, actor_data_from)
+
+                    actor_pose = create_rand_pose(actor_info, i + actor_num)
+
+                    if actor_type == 'box':
+                        now_actor = create_box(
+                            self.scene,
+                            pose=actor_pose,
+                            half_size=actor_info["half_size"],
+                            color=actor_info["color"],
+                            is_static=is_static,
+                            name=actor_name
+                        )
+                        now_actor_data = get_actor_data_func(actor_info["half_size"])
+                    elif actor_type == 'urdf':
+                        now_actor, now_actor_data = create_urdf_obj(
+                            self.scene,
+                            pose=actor_pose,
+                            modelname=actor_file,
+                            fix_root_link=is_static,
+                        )
+                        active_joints = now_actor.get_active_joints()
+                        for joint in active_joints:
+                            joint.set_drive_property(stiffness=20, damping=5, force_limit=1000, mode="force")
+
+                    elif actor_type == 'obj' or actor_type == 'glb':
+                        now_actor, now_actor_data = create_actor(
+                            self.scene,
+                            pose=actor_pose,
+                            modelname=actor_file,
+                            convex=convex,
+                            is_static=is_static,
+                            model_id=None if not rand_model_id else np.random.choice(self.id_list),
+                            z_val_protect=z_val_protect
+                        )
+                    if is_static == False and actor_type != 'urdf':
+                        now_actor.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = actor_info["mass"]
+        except:         
+            pass
+
+        # add other data to 'actor_name_dic' and 'actor_data_dic'
+        try:
+            for other_actor_data in scene_info['other_actor_data']:
+                self.actor_name_dic[other_actor_data] = getattr(self, other_actor_data)
+                self.actor_data_dic[other_actor_data] = getattr(self, other_actor_data)
+        except:
+            pass
+
+        # A short delay to make the actor stop shaking
+        render_freq = self.render_freq
+        self.render_freq = 0
+        for _ in range(4):
+            self.together_open_gripper(save_freq=None)
+        self.render_freq = render_freq
+
     def get_target_pose_from_goal_point_and_direction(self, actor, actor_data = None, endpose = None, target_pose = None, target_grasp_qpose = None):
         actor_matrix = actor.get_pose().to_transformation_matrix()
         local_target_matrix = np.asarray(actor_data['target_pose'][0])
@@ -1528,8 +1751,6 @@ class Base_task(gym.Env):
         return res_pose
     
     # 获取抓取位姿通过给定目标点和接触方向
-    # target_point 为目标点
-    # target_approach_direction 为接触方向，以世界坐标系为基准
     def get_grasp_pose_from_goal_point_and_direction(self, actor, actor_data,  endpose_tag: str, actor_functional_point_id = 0, target_point = None,
                                                      target_approach_direction = [0,0,1,0], actor_target_orientation = None, pre_dis = 0.):
         target_approach_direction_mat = t3d.quaternions.quat2mat(target_approach_direction)
@@ -1565,16 +1786,12 @@ class Base_task(gym.Env):
         for adjunction_matrix in adjunction_matrix_list:
             local_target_matrix = np.asarray(actor_data['functional_matrix'][actor_functional_point_id])
             local_target_matrix[:3,3] *= actor_data['scale']
-            # fuctional_matrix = adjunction_matrix @ actor_matrix[:3,:3] @ np.asarray(actor_data['functional_matrix'][actor_functional_point_id])[:3,:3]
             fuctional_matrix = actor_matrix[:3,:3] @ np.asarray(actor_data['functional_matrix'][actor_functional_point_id])[:3,:3]
             fuctional_matrix = fuctional_matrix @ adjunction_matrix
-            # pdb.set_trace()
             trans_matrix = target_approach_direction_mat @ np.linalg.inv(fuctional_matrix)
             end_effector_pose_matrix = t3d.quaternions.quat2mat(end_effector_pose.global_pose.q) @ np.array([[1,0,0],[0,-1,0],[0,0,-1]])
             target_grasp_matrix = trans_matrix @ end_effector_pose_matrix
-            # pdb.set_trace()
 
-            # print(now_actor_orientation_point)
             # Use actor target orientation to filter
             if actor_target_orientation is not None:
                 now_actor_orientation_point = trans_matrix @ actor_matrix[:3,:3] @ np.array(actor_orientation_point)
@@ -1724,7 +1941,7 @@ class Base_task(gym.Env):
             res += 1e8
 
         # 计算抓取位姿的评估值
-        # res += np.sqrt(np.sum((endpose.global_pose.p - np.array(grasp_pose)[:3]) ** 2)) / 0.7
+        res += np.sqrt(np.sum((endpose.global_pose.p - np.array(grasp_pose)[:3]) ** 2)) / 0.7
         trans_now_pose_matrix = t3d.quaternions.quat2mat(grasp_pose[3:]) @ np.linalg.inv(endpose.global_pose.to_transformation_matrix()[:3,:3])
         theta_xy = np.mod(np.abs(t3d.euler.mat2euler(trans_now_pose_matrix)[:2]), np.pi)
         theta_z = delta_euler[-1] + np.pi/2 - np.mod(angle + np.pi, np.pi)
@@ -1739,9 +1956,7 @@ class Base_task(gym.Env):
     # direction: 'left', 'right', front', 'back', 'up', 'down', 用于指定移动的方向
     # distance: float, 用于指定移动的距离
     # def avoid_collision_by_move_in_direction(self, move_arm_tag: str, direction: str, distance = 0.05):
-    # @TODO: get_save_pose
     def get_avoid_collision_pose(self, avoid_collision_arm_tag: str):
-
         if avoid_collision_arm_tag == 'right':
             endpose = self.right_endpose.global_pose
             target_pose = [0.28, -0.07, endpose.p[2]] + t3d.quaternions.qmult(endpose.q, [0,1,0,0]).tolist()

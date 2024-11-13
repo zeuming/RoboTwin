@@ -17,7 +17,8 @@ class mug_hanging(Base_task):
         else:
             self.id_list = [0,2]
 
-        self.load_actors()
+        self.middle_pose_of_left_arm = [0.05, -0.15, 0.75]
+        self.load_actors(f"./task_config/scene_info/{self.task_name[4:]}.json")
         self.step_lim = 800
     
     def pre_move(self):
@@ -26,44 +27,47 @@ class mug_hanging(Base_task):
         self.together_open_gripper(save_freq=None)
         self.render_freq = render_freq
 
-    def load_actors(self):
-        self.mug, self.mug_data = rand_create_actor(
-            self.scene,
-            xlim=[-0.25,-0.1],
-            ylim=[-0.05,0.1],
-            zlim=[0.79],
-            ylim_prop = True,
-            modelname="039_mug",
-            rotate_rand=True,
-            rotate_lim=[0,1.57,0],
-            qpos=[0.707,0.707,0,0],
-            convex=False,
-            model_id = np.random.choice(self.id_list)
-        )
+    # def load_actors(self):
+    #     self.mug, self.mug_data = rand_create_actor(
+    #         self.scene,
+    #         xlim=[-0.25,-0.1],
+    #         ylim=[-0.05,0.1],
+    #         zlim=[0.79],
+    #         ylim_prop = True,
+    #         modelname="039_mug",
+    #         rotate_rand=True,
+    #         rotate_lim=[0,1.57,0],
+    #         qpos=[0.707,0.707,0,0],
+    #         convex=False,
+    #         model_id = np.random.choice(self.id_list)
+    #     )
 
-        rack_pose = rand_pose(
-            xlim=[0.1,0.3], 
-            ylim = [0.05,0.2],
-            zlim=[0.745],
-            rotate_rand=False,
-            qpos=[-0.22, -0.22, 0.67, 0.67]
-        )
-        self.rack, self.rack_data = create_obj(
-            self.scene,
-            pose = rack_pose,
-            modelname="040_rack",
-            is_static=True,
-            convex=True
-        )
-        self.mug.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.001
-        self.middle_pos = [0.05, -0.15, 0.75]
-        self.actor_data_dic = {'mug_data':self.mug_data,'rack_data':self.rack_data, 'middle_pose_of_left_arm': self.middle_pos}
-        self.actor_name_dic = {'mug':self.mug,'rack':self.rack, 'middle_pose_of_left_arm': self.middle_pos}
+    #     rack_pose = rand_pose(
+    #         xlim=[0.1,0.3], 
+    #         ylim = [0.05,0.2],
+    #         zlim=[0.745],
+    #         rotate_rand=False,
+    #         qpos=[-0.22, -0.22, 0.67, 0.67]
+    #     )
+    #     self.rack, self.rack_data = create_obj(
+    #         self.scene,
+    #         pose = rack_pose,
+    #         modelname="040_rack",
+    #         is_static=True,
+    #         convex=True
+    #     )
+    #     self.mug.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.001
+    #     self.middle_pos = [0.05, -0.15, 0.75]
+    #     self.actor_data_dic = {'mug_data':self.mug_data,'rack_data':self.rack_data, 'middle_pose_of_left_arm': self.middle_pos}
+    #     self.actor_name_dic = {'mug':self.mug,'rack':self.rack, 'middle_pose_of_left_arm': self.middle_pos}
 
     def play_once(self):
         pass
 
     def check_success(self):
-        mug_target_pose = self.get_actor_goal_pose(self.mug,self.mug_data)
+        mug = self.actor_name_dic['mug']
+        mug_data = self.actor_data_dic['mug_data']
+        rack = self.actor_name_dic['rack']
+        mug_target_pose = self.get_actor_goal_pose(mug,mug_data)
         eps = np.array([0.05,0.03,0.02])
-        return np.all(abs(mug_target_pose - self.rack.get_pose().p + [0.07,0.02,-0.035]) < eps) and self.is_right_gripper_open()
+        return np.all(abs(mug_target_pose - rack.get_pose().p + [0.07,0.02,-0.035]) < eps) and self.is_right_gripper_open()

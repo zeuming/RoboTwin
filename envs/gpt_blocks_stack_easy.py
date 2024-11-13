@@ -70,7 +70,8 @@ class gpt_blocks_stack_easy(blocks_stack_easy):
         self.open_gripper(arm_tag)
         
         # Move the arm away to avoid collision
-        self.move_arm_to_pose(arm_tag, pre_grasp_pose)
+        avoid_collision_pose = self.get_avoid_collision_pose(arm_tag)
+        self.move_arm_to_pose(arm_tag, avoid_collision_pose)
         
     def move_arm_to_pose(self, arm_tag, pose):
         if arm_tag == "left":

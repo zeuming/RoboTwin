@@ -12,7 +12,7 @@ class gpt_shoes_place(shoes_place):
         target_block = self.actor_name_dic['target_block']
 
         # Retrieve actor_data objects
-        left_shoe_data = self.actor_data_dic['shoe_data']
+        left_shoe_data = self.actor_data_dic['left_shoe_data']
         right_shoe_data = self.actor_data_dic['right_shoe_data']
         target_block_data = self.actor_data_dic['target_block_data']
 

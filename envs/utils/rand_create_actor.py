@@ -53,7 +53,7 @@ def rand_create_obj(
     convex = False,
     is_static = False,
     model_id = None,
-    model_z_val = False
+    z_val_protect = False
 ) -> sapien.Entity:
     
     obj_pose = rand_pose(
@@ -74,7 +74,7 @@ def rand_create_obj(
         convex=convex,
         is_static=is_static,
         model_id = model_id,
-        model_z_val = model_z_val
+        z_val_protect = z_val_protect
     )
 
 def rand_create_glb(
@@ -91,7 +91,7 @@ def rand_create_glb(
     convex = False,
     is_static = False,
     model_id = None,
-    model_z_val = False
+    z_val_protect = False
 ) -> sapien.Entity:
     
     obj_pose = rand_pose(
@@ -111,7 +111,7 @@ def rand_create_glb(
         convex=convex,
         is_static=is_static,
         model_id = model_id,
-        model_z_val = model_z_val
+        z_val_protect = z_val_protect
     )
 
 def rand_create_actor(
@@ -128,7 +128,7 @@ def rand_create_actor(
     convex = False,
     is_static = False,
     model_id = None,
-    model_z_val = False
+    z_val_protect = False
 ) -> sapien.Entity:
     
     obj_pose = rand_pose(
@@ -149,7 +149,7 @@ def rand_create_actor(
         convex=convex,
         is_static=is_static,
         model_id = model_id,
-        model_z_val = model_z_val
+        z_val_protect = z_val_protect
     )
 
 def rand_create_urdf_obj(

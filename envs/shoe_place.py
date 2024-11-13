@@ -16,7 +16,7 @@ class shoe_place(Base_task):
             self.id_list = [2*i+1 for i in range(5)]
         else:
             self.id_list = [2*i for i in range(5)]
-        self.load_actors()
+        self.load_actors(f"./task_config/scene_info/{self.task_name[4:]}.json")
         self.step_lim = 400
     
     def pre_move(self):
@@ -30,18 +30,7 @@ class shoe_place(Base_task):
         test_matrix = np.array([[0,0,1,0],[1,0,0,0],[0,1,0,0],[0,0,0,1]])
         test_matrix[:3,:3] = t3d.euler.euler2mat(0,0,np.pi) @ test_matrix[:3,:3]
         # print(test_matrix.tolist())
-        contact_points_list = [
-                # [[0, 0, 1, 0], [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1]], # top_down(front)
-                # [[1, 0, 0, 0], [0, 0, -1, 0], [0, 1, 0, 0], [0, 0, 0, 1]], # top_down(right)
-                # [[-1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]], # top_down(left)
-                # [[0, 0, -1, 0], [-1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1]], # top_down(back)
-                
-                # [[0, 0, 1, 0], [0, -1, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1]], # front
-                # [[0, 1, 0, 0], [0, 0, 1, 0], [1, 0, 0, 0], [0, 0, 0, 1]], # left
-                # [[0, -1, 0, 0], [0, 0, -1, 0], [1, 0, 0, 0], [0, 0, 0, 1]], # right
-                # [[0, 0, -1, 0], [0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1]], # back
-                # test_matrix.tolist(),
-            ]
+        contact_points_list = []
 
         data = {
             'center': [0,0,0],
@@ -59,59 +48,59 @@ class shoe_place(Base_task):
 
         return data
 
-    def load_actors(self, **kwargs):
-        # super().setup_scene()
-        self.target = create_visual_box(
-            scene = self.scene,
-            pose = sapien.Pose([0,-0.08,0.74],[1,0,0,0]),
-            half_size=(0.13,0.05,0.0005),
-            color=(0,0,1),
-            name="box"
-        )
+    # def load_actors(self):
+    #     self.target = create_visual_box(
+    #         scene = self.scene,
+    #         pose = sapien.Pose([0,-0.08,0.74],[1,0,0,0]),
+    #         half_size=(0.13,0.05,0.0005),
+    #         color=(0,0,1),
+    #         name="box"
+    #     )
 
-        self.target_data = self.create_block_data([0.13,0.05,0.0005])
-        shoes_pose = rand_pose(
-            xlim=[-0.25,0.25],
-            ylim=[-0.1,0.05],
-            zlim=[0.8],
-            ylim_prop=True,
-            rotate_rand=True,
-            rotate_lim=[0,3.14,0],
-            qpos=[0.707,0.707,0,0]
-        )
+    #     self.target_data = self.create_block_data([0.13,0.05,0.0005])
+    #     shoes_pose = rand_pose(
+    #         xlim=[-0.25,0.25],
+    #         ylim=[-0.1,0.05],
+    #         zlim=[0.8],
+    #         ylim_prop=True,
+    #         rotate_rand=True,
+    #         rotate_lim=[0,3.14,0],
+    #         qpos=[0.707,0.707,0,0]
+    #     )
 
-        while np.sum(pow(shoes_pose.get_p()[:2] - np.zeros(2),2)) < 0.0225:
-            shoes_pose = rand_pose(
-                xlim=[-0.25,0.25],
-                ylim=[-0.1,0.05],
-                zlim=[0.8],
-                ylim_prop=True,
-                rotate_rand=True,
-                rotate_lim=[0,3.14,0],
-                qpos=[0.707,0.707,0,0]
-            )
+    #     while np.sum(pow(shoes_pose.get_p()[:2] - np.zeros(2),2)) < 0.0225:
+    #         shoes_pose = rand_pose(
+    #             xlim=[-0.25,0.25],
+    #             ylim=[-0.1,0.05],
+    #             zlim=[0.8],
+    #             ylim_prop=True,
+    #             rotate_rand=True,
+    #             rotate_lim=[0,3.14,0],
+    #             qpos=[0.707,0.707,0,0]
+    #         )
         
 
-        self.shoe, self.shoe_data = create_actor(
-            self.scene,
-            pose=shoes_pose,
-            modelname="041_shoes",
-            convex=True,
-            model_id = np.random.choice(self.id_list),
-            # model_id = self.ep_num,
-            model_z_val = True
-        )
+    #     self.shoe, self.shoe_data = create_actor(
+    #         self.scene,
+    #         pose=shoes_pose,
+    #         modelname="041_shoes",
+    #         convex=True,
+    #         model_id = np.random.choice(self.id_list),
+    #         # model_id = self.ep_num,
+    #         z_val_protect = True
+    #     )
 
-        self.shoe.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.1
-        self.actor_data_dic = {'target_data':self.target_data,'shoe_data':self.shoe_data}
-        self.actor_name_dic = {'target':self.target,'shoe':self.shoe}
+    #     self.shoe.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.1
+    #     self.actor_data_dic = {'target_data':self.target_data,'shoe_data':self.shoe_data}
+    #     self.actor_name_dic = {'target':self.target,'shoe':self.shoe}
 
     def play_once(self):
         pass
 
     def check_success(self):
-        shoe_pose_p = np.array(self.shoe.get_pose().p)
-        shoe_pose_q = np.array(self.shoe.get_pose().q)
+        shoe = self.actor_name_dic['shoe']
+        shoe_pose_p = np.array(shoe.get_pose().p)
+        shoe_pose_q = np.array(shoe.get_pose().q)
 
         if shoe_pose_q[0] < 0:
             shoe_pose_q *= -1

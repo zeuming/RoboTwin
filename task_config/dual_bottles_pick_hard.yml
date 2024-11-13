@@ -1,5 +1,5 @@
 task_name: dual_bottles_pick_hard
-render_freq: 10
+render_freq: 0
 use_seed: false
 collect_data: true
 save_path: ./data
@@ -9,14 +9,15 @@ camera_w: 320
 camera_h: 240
 pcd_crop: true
 pcd_down_sample_num: 1024
+pose_type: gt
 episode_num: 100
 save_type:
   raw_data: false
   pkl: true
 data_type:
-  rgb: true
+  rgb: false
   observer: false
-  depth: true
+  depth: false
   pointcloud: true
   conbine: false
   endpose: true

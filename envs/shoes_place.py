@@ -16,7 +16,7 @@ class shoes_place(Base_task):
             self.id_list = [2*i+1 for i in range(5)]
         else:
             self.id_list = [2*i for i in range(5)]
-        self.load_actors()
+        self.load_actors(f"./task_config/scene_info/{self.task_name[4:]}.json")
         self.step_lim = 600
     
     def pre_move(self):
@@ -31,18 +31,7 @@ class shoes_place(Base_task):
         test_matrix = np.array([[0,0,1,0],[1,0,0,0],[0,1,0,0],[0,0,0,1]])
         test_matrix[:3,:3] = t3d.euler.euler2mat(0,0,np.pi) @ test_matrix[:3,:3]
         # print(test_matrix.tolist())
-        contact_points_list = [
-                # [[0, 0, 1, 0], [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1]], # top_down(front)
-                # [[1, 0, 0, 0], [0, 0, -1, 0], [0, 1, 0, 0], [0, 0, 0, 1]], # top_down(right)
-                # [[-1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]], # top_down(left)
-                # [[0, 0, -1, 0], [-1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1]], # top_down(back)
-                
-                # [[0, 0, 1, 0], [0, -1, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1]], # front
-                # [[0, 1, 0, 0], [0, 0, 1, 0], [1, 0, 0, 0], [0, 0, 0, 1]], # left
-                # [[0, -1, 0, 0], [0, 0, -1, 0], [1, 0, 0, 0], [0, 0, 0, 1]], # right
-                # [[0, 0, -1, 0], [0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1]], # back
-                # test_matrix.tolist(),
-            ]
+        contact_points_list = []
 
         data = {
             'center': [0,0,0],
@@ -60,88 +49,88 @@ class shoes_place(Base_task):
 
         return data
 
-    def load_actors(self, **kwargs):
-        # super().setup_scene()
-        self.target_block = create_visual_box(
-            scene = self.scene,
-            pose = sapien.Pose([0,-0.13,0.74],[1,0,0,0]),
-            half_size=(0.13,0.1,0.0005),
-            color=(0,0,1),
-            name="box"
-        )
+    # def load_actors(self, **kwargs):
+    #     # super().setup_scene()
+    #     self.target_block = create_visual_box(
+    #         scene = self.scene,
+    #         pose = sapien.Pose([0,-0.13,0.74],[1,0,0,0]),
+    #         half_size=(0.13,0.1,0.0005),
+    #         color=(0,0,1),
+    #         name="box"
+    #     )
 
-        self.target_block_data = self.create_block_data([0.13,0.05,0.0005])
+    #     self.target_block_data = self.create_block_data([0.13,0.1,0.0005])
 
-        shoe_id = np.random.choice(self.id_list)
+    #     shoe_id = np.random.choice(self.id_list)
 
-        # left shoe
-        shoes_pose = rand_pose(
-            xlim=[-0.25,-0.1],
-            ylim=[-0.1,0.05],
-            zlim=[0.8],
-            ylim_prop=True,
-            rotate_rand=True,
-            rotate_lim=[0,3.14,0],
-            qpos=[0.707,0.707,0,0]
-        )
+    #     # left shoe
+    #     shoes_pose = rand_pose(
+    #         xlim=[-0.25,-0.1],
+    #         ylim=[-0.1,0.05],
+    #         zlim=[0.8],
+    #         ylim_prop=True,
+    #         rotate_rand=True,
+    #         rotate_lim=[0,3.14,0],
+    #         qpos=[0.707,0.707,0,0]
+    #     )
 
-        while np.sum(pow(shoes_pose.get_p()[:2] - np.zeros(2),2)) < 0.0225:
-            shoes_pose = rand_pose(
-                xlim=[-0.25,-0.1],
-                ylim=[-0.1,0.05],
-                zlim=[0.8],
-                ylim_prop=True,
-                rotate_rand=True,
-                rotate_lim=[0,3.14,0],
-                qpos=[0.707,0.707,0,0]
-            )
+    #     while np.sum(pow(shoes_pose.get_p()[:2] - np.zeros(2),2)) < 0.0225:
+    #         shoes_pose = rand_pose(
+    #             xlim=[-0.25,-0.1],
+    #             ylim=[-0.1,0.05],
+    #             zlim=[0.8],
+    #             ylim_prop=True,
+    #             rotate_rand=True,
+    #             rotate_lim=[0,3.14,0],
+    #             qpos=[0.707,0.707,0,0]
+    #         )
         
 
-        self.left_shoe, self.shoe_data = create_glb(
-            self.scene,
-            pose=shoes_pose,
-            modelname="041_shoes",
-            convex=True,
-            model_id = shoe_id,
-            model_z_val = True
-        )
+    #     self.left_shoe, self.shoe_data = create_glb(
+    #         self.scene,
+    #         pose=shoes_pose,
+    #         modelname="041_shoes",
+    #         convex=True,
+    #         model_id = shoe_id,
+    #         z_val_protect = True
+    #     )
 
-        # right shoe
-        shoes_pose = rand_pose(
-            xlim=[0.1,0.25],
-            ylim=[-0.1,0.05],
-            zlim=[0.8],
-            ylim_prop=True,
-            rotate_rand=True,
-            rotate_lim=[0,3.14,0],
-            qpos=[0.707,0.707,0,0]
-        )
+    #     # right shoe
+    #     shoes_pose = rand_pose(
+    #         xlim=[0.1,0.25],
+    #         ylim=[-0.1,0.05],
+    #         zlim=[0.8],
+    #         ylim_prop=True,
+    #         rotate_rand=True,
+    #         rotate_lim=[0,3.14,0],
+    #         qpos=[0.707,0.707,0,0]
+    #     )
 
-        while np.sum(pow(shoes_pose.get_p()[:2] - np.zeros(2),2)) < 0.0225:
-            shoes_pose = rand_pose(
-                xlim=[0.1,0.25],
-                ylim=[-0.1,0.05],
-                zlim=[0.8],
-                ylim_prop=True,
-                rotate_rand=True,
-                rotate_lim=[0,3.14,0],
-                qpos=[0.707,0.707,0,0]
-            )
+    #     while np.sum(pow(shoes_pose.get_p()[:2] - np.zeros(2),2)) < 0.0225:
+    #         shoes_pose = rand_pose(
+    #             xlim=[0.1,0.25],
+    #             ylim=[-0.1,0.05],
+    #             zlim=[0.8],
+    #             ylim_prop=True,
+    #             rotate_rand=True,
+    #             rotate_lim=[0,3.14,0],
+    #             qpos=[0.707,0.707,0,0]
+    #         )
         
 
-        self.right_shoe, self.right_shoe_data = create_glb(
-            self.scene,
-            pose=shoes_pose,
-            modelname="041_shoes",
-            convex=True,
-            model_id = shoe_id,
-            model_z_val = True
-        )
+    #     self.right_shoe, self.right_shoe_data = create_glb(
+    #         self.scene,
+    #         pose=shoes_pose,
+    #         modelname="041_shoes",
+    #         convex=True,
+    #         model_id = shoe_id,
+    #         z_val_protect = True
+    #     )
 
-        self.left_shoe.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.1
-        self.right_shoe.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.1
-        self.actor_name_dic = {'target_block':self.target_block,'left_shoe':self.left_shoe,'right_shoe':self.right_shoe}
-        self.actor_data_dic = {'target_block_data':self.target_block_data,'shoe_data':self.shoe_data,'right_shoe_data':self.right_shoe_data}
+    #     self.left_shoe.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.1
+    #     self.right_shoe.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.1
+    #     self.actor_name_dic = {'target_block':self.target_block,'left_shoe':self.left_shoe,'right_shoe':self.right_shoe}
+    #     self.actor_data_dic = {'target_block_data':self.target_block_data,'shoe_data':self.shoe_data,'right_shoe_data':self.right_shoe_data}
 
     def get_target_grap_pose(self,shoe_rpy):
         if math.fmod(math.fmod(shoe_rpy[2] + shoe_rpy[0], 2 * math.pi) + 2 * math.pi, 2*math.pi) < math.pi:
@@ -156,10 +145,12 @@ class shoes_place(Base_task):
         pass
 
     def check_success(self):
-        left_shoe_pose_p = np.array(self.left_shoe.get_pose().p)
-        left_shoe_pose_q = np.array(self.left_shoe.get_pose().q)
-        right_shoe_pose_p = np.array(self.right_shoe.get_pose().p)
-        right_shoe_pose_q = np.array(self.right_shoe.get_pose().q)
+        left_shoe = self.actor_name_dic['left_shoe']
+        right_shoe = self.actor_name_dic['right_shoe']
+        left_shoe_pose_p = np.array(left_shoe.get_pose().p)
+        left_shoe_pose_q = np.array(left_shoe.get_pose().q)
+        right_shoe_pose_p = np.array(right_shoe.get_pose().p)
+        right_shoe_pose_q = np.array(right_shoe.get_pose().q)
         if left_shoe_pose_q[0] < 0:
             left_shoe_pose_q *= -1
         if right_shoe_pose_q[0] < 0:

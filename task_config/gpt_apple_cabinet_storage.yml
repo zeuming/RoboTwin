@@ -1,5 +1,5 @@
 task_name: gpt_apple_cabinet_storage
-render_freq: 20
+render_freq: 0
 use_seed: false
 collect_data: false
 save_path: ./data

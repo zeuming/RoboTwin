@@ -11,8 +11,8 @@ class gpt_apple_cabinet_storage(apple_cabinet_storage):
         apple = self.actor_name_dic['apple']
 
         # Retrieve the actor_data objects
-        cabinet_data = self.actor_data_dic['cabinet']
-        apple_data = self.actor_data_dic['apple']
+        cabinet_data = self.actor_data_dic['cabinet_data']
+        apple_data = self.actor_data_dic['apple_data']
 
         # Step 1: Grab the handle of the cabinet with the left arm
         handle_grasp_pose = self.get_grasp_pose_to_grasp_object(endpose_tag="left", actor=cabinet, actor_data=cabinet_data, pre_dis=0.09)

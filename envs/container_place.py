@@ -15,7 +15,7 @@ class container_place(Base_task):
             self.id_list = [0,1,2,3,4,6,7]
         else:
             self.id_list = [8,9]
-        self.load_actors()
+        self.load_actors(f"./task_config/scene_info/{self.task_name[4:]}.json")
         self.step_lim = 350
     
     def pre_move(self):
@@ -24,52 +24,54 @@ class container_place(Base_task):
         self.together_open_gripper(save_freq=None)
         self.render_freq = render_freq
 
-    def load_actors(self):
+    # def load_actors(self):
 
-        self.plate, self.plate_data = create_glb(
-            self.scene,
-            pose = sapien.Pose([0, -0.05, 0.753], [0.5,0.5,0.5,0.5]),
-            modelname="003_plate",
-            scale=[0.025,0.025,0.025],
-            is_static=True,
-            convex=False
-        )
+    #     self.plate, self.plate_data = create_glb(
+    #         self.scene,
+    #         pose = sapien.Pose([0, -0.05, 0.753], [0.5,0.5,0.5,0.5]),
+    #         modelname="003_plate",
+    #         scale=[0.025,0.025,0.025],
+    #         is_static=True,
+    #         convex=False
+    #     )
 
-        container_pose = rand_pose(
-            xlim=[-0.3,0.3],
-            ylim=[-0.1,0.05],
-            zlim=[0.8],
-            rotate_rand=False,
-            qpos=[0.5,0.5,0.5,0.5]
-        )
+    #     container_pose = rand_pose(
+    #         xlim=[-0.3,0.3],
+    #         ylim=[-0.1,0.05],
+    #         zlim=[0.8],
+    #         rotate_rand=False,
+    #         qpos=[0.5,0.5,0.5,0.5]
+    #     )
 
-        while abs(container_pose.p[0]) < 0.15:
-            container_pose = rand_pose(
-                xlim=[-0.3,0.3],
-                ylim=[-0.1,0.05],
-                zlim=[0.8],
-                rotate_rand=False,
-                qpos=[0.5,0.5,0.5,0.5]
-            )
+    #     while abs(container_pose.p[0]) < 0.15:
+    #         container_pose = rand_pose(
+    #             xlim=[-0.3,0.3],
+    #             ylim=[-0.1,0.05],
+    #             zlim=[0.8],
+    #             rotate_rand=False,
+    #             qpos=[0.5,0.5,0.5,0.5]
+    #         )
 
-        self.container,self.container_data = create_glb(
-            self.scene,
-            pose=container_pose,
-            modelname="002_container",
-            model_id=np.random.choice(self.id_list),
-            # model_id=self.ep_num,
-            model_z_val=True
-        )
+    #     self.container,self.container_data = create_glb(
+    #         self.scene,
+    #         pose=container_pose,
+    #         modelname="002_container",
+    #         model_id=np.random.choice(self.id_list),
+    #         # model_id=self.ep_num,
+    #         z_val_protect=True
+    #     )
         
-        self.container.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.001
-        self.actor_data_dic = {'plate_data':self.plate_data,'container_data':self.container_data}
-        self.actor_name_dic = {'plate':self.plate,'container':self.container}
+    #     self.container.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.001
+    #     self.actor_data_dic = {'plate_data':self.plate_data,'container_data':self.container_data}
+    #     self.actor_name_dic = {'plate':self.plate,'container':self.container}
 
     def play_once(self):
         pass
 
     def check_success(self):
-        container_pose = self.get_actor_goal_pose(self.container,self.container_data)
+        container = self.actor_name_dic['container']
+        container_data = self.actor_data_dic['container_data']
+        container_pose = self.get_actor_goal_pose(container,container_data)
         target_pose = np.array([0,-0.05, 0.74])
         eps = np.array([0.02,0.02, 0.01])
         left_gripper = self.active_joints[34].get_drive_target()[0]

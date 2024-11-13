@@ -13,7 +13,8 @@ class blocks_stack_hard(Base_task):
         self.setup_planner()
         self.load_camera(kwags.get('camera_w', 640),kwags.get('camera_h', 480))
         self.pre_move()
-        self.load_actors()
+        self.block1_target_pose = [0, -0.1, 0.75]
+        self.load_actors(f"./task_config/scene_info/{self.task_name[4:]}.json")
         self.step_lim = 850
 
     def pre_move(self):
@@ -54,114 +55,117 @@ class blocks_stack_hard(Base_task):
 
         return data
 
-    def load_actors(self):
-        block_pose = rand_pose(
-            xlim=[-0.25,0.25],
-            ylim=[-0.15,0.05],
-            zlim=[0.76],
-            qpos=[1,0,0,0],
-            ylim_prop=True,
-            rotate_rand=True,
-            rotate_lim=[0,0,1.57],
-        )
+    # def load_actors(self):
+    #     block_pose = rand_pose(
+    #         xlim=[-0.25,0.25],
+    #         ylim=[-0.15,0.05],
+    #         zlim=[0.76],
+    #         qpos=[1,0,0,0],
+    #         ylim_prop=True,
+    #         rotate_rand=True,
+    #         rotate_lim=[0,0,1.57],
+    #     )
 
-        while abs(block_pose.p[0]) < 0.05 or np.sum(pow(block_pose.p[:2] - np.array([0,-0.1]),2)) < 0.0225:
-            block_pose = rand_pose(
-                xlim=[-0.25,0.25],
-                ylim=[-0.15,0.05],
-                zlim=[0.76],
-                qpos=[1,0,0,0],
-                ylim_prop=True,
-                rotate_rand=True,
-                rotate_lim=[0,0,1.57],
-            )
+    #     while abs(block_pose.p[0]) < 0.05 or np.sum(pow(block_pose.p[:2] - np.array([0,-0.1]),2)) < 0.0225:
+    #         block_pose = rand_pose(
+    #             xlim=[-0.25,0.25],
+    #             ylim=[-0.15,0.05],
+    #             zlim=[0.76],
+    #             qpos=[1,0,0,0],
+    #             ylim_prop=True,
+    #             rotate_rand=True,
+    #             rotate_lim=[0,0,1.57],
+    #         )
 
-        self.block1 = create_box(
-            scene = self.scene,
-            pose = block_pose,
-            half_size=(0.025,0.025,0.025),
-            color=(1,0,0),
-            name="box"
-        )
+    #     self.block1 = create_box(
+    #         scene = self.scene,
+    #         pose = block_pose,
+    #         half_size=(0.025,0.025,0.025),
+    #         color=(1,0,0),
+    #         name="box"
+    #     )
 
-        block_pose = rand_pose(
-            xlim=[-0.25,0.25],
-            ylim=[-0.15,0.05],
-            zlim=[0.76],
-            qpos=[1,0,0,0],
-            ylim_prop=True,
-            rotate_rand=True,
-            rotate_lim=[0,0,1.57],
-        )
+    #     block_pose = rand_pose(
+    #         xlim=[-0.25,0.25],
+    #         ylim=[-0.15,0.05],
+    #         zlim=[0.76],
+    #         qpos=[1,0,0,0],
+    #         ylim_prop=True,
+    #         rotate_rand=True,
+    #         rotate_lim=[0,0,1.57],
+    #     )
 
-        while abs(block_pose.p[0]) < 0.05 or np.sum(pow(block_pose.p[:2] - self.block1.get_pose().p[:2],2)) < 0.01 \
-              or np.sum(pow(block_pose.p[:2] - np.array([0,-0.1]),2)) < 0.0225:
-            block_pose = rand_pose(
-                xlim=[-0.25,0.25],
-                ylim=[-0.15,0.05],
-                zlim=[0.76],
-                qpos=[1,0,0,0],
-                ylim_prop=True,
-                rotate_rand=True,
-                rotate_lim=[0,0,1.57],
-            )
-
-
-        self.block2 = create_box(
-            scene = self.scene,
-            pose = block_pose,
-            half_size=(0.025,0.025,0.025),
-            color=(0,1,0),
-            name="box"
-        )
-
-        block_pose = rand_pose(
-            xlim=[-0.25,0.25],
-            ylim=[-0.15,0.05],
-            zlim=[0.76],
-            qpos=[1,0,0,0],
-            ylim_prop=True,
-            rotate_rand=True,
-            rotate_lim=[0,0,1.57],
-        )
-
-        while abs(block_pose.p[0]) < 0.05 or np.sum(pow(block_pose.p[:2] - self.block1.get_pose().p[:2],2)) < 0.01 or\
-              np.sum(pow(block_pose.p[:2] - self.block2.get_pose().p[:2],2)) < 0.01 or np.sum(pow(block_pose.p[:2] - np.array([0,-0.1]),2)) < 0.0225:
-            block_pose = rand_pose(
-                xlim=[-0.25,0.25],
-                ylim=[-0.15,0.05],
-                zlim=[0.76],
-                qpos=[1,0,0,0],
-                ylim_prop=True,
-                rotate_rand=True,
-                rotate_lim=[0,0,1.57],
-            )
+    #     while abs(block_pose.p[0]) < 0.05 or np.sum(pow(block_pose.p[:2] - self.block1.get_pose().p[:2],2)) < 0.01 \
+    #           or np.sum(pow(block_pose.p[:2] - np.array([0,-0.1]),2)) < 0.0225:
+    #         block_pose = rand_pose(
+    #             xlim=[-0.25,0.25],
+    #             ylim=[-0.15,0.05],
+    #             zlim=[0.76],
+    #             qpos=[1,0,0,0],
+    #             ylim_prop=True,
+    #             rotate_rand=True,
+    #             rotate_lim=[0,0,1.57],
+    #         )
 
 
-        self.block3 = create_box(
-            scene = self.scene,
-            pose = block_pose,
-            half_size=(0.025,0.025,0.025),
-            color=(0,0,1),
-            name="box"
-        )
-        self.block1.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.1
-        self.block2.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.1
-        self.block3.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.1
-        self.block1_data = self.create_block_data((0.025,0.025,0.025))
-        self.block2_data = self.create_block_data((0.025,0.025,0.025))
-        self.block3_data = self.create_block_data((0.025,0.025,0.025))
-        self.block1_target_pose = [0, -0.1, 0.75]
-        self.actor_data_dic = {'block1_data':self.block1_data,'block2_data':self.block2_data,'block3_data':self.block3_data,'block1_target_pose': self.block1_target_pose}
-        self.actor_name_dic = {'block1':self.block1,'block2':self.block2,'block3':self.block3,'block1_target_pose': self.block1_target_pose}
+    #     self.block2 = create_box(
+    #         scene = self.scene,
+    #         pose = block_pose,
+    #         half_size=(0.025,0.025,0.025),
+    #         color=(0,1,0),
+    #         name="box"
+    #     )
+
+    #     block_pose = rand_pose(
+    #         xlim=[-0.25,0.25],
+    #         ylim=[-0.15,0.05],
+    #         zlim=[0.76],
+    #         qpos=[1,0,0,0],
+    #         ylim_prop=True,
+    #         rotate_rand=True,
+    #         rotate_lim=[0,0,1.57],
+    #     )
+
+    #     while abs(block_pose.p[0]) < 0.05 or np.sum(pow(block_pose.p[:2] - self.block1.get_pose().p[:2],2)) < 0.01 or\
+    #           np.sum(pow(block_pose.p[:2] - self.block2.get_pose().p[:2],2)) < 0.01 or np.sum(pow(block_pose.p[:2] - np.array([0,-0.1]),2)) < 0.0225:
+    #         block_pose = rand_pose(
+    #             xlim=[-0.25,0.25],
+    #             ylim=[-0.15,0.05],
+    #             zlim=[0.76],
+    #             qpos=[1,0,0,0],
+    #             ylim_prop=True,
+    #             rotate_rand=True,
+    #             rotate_lim=[0,0,1.57],
+    #         )
+
+
+    #     self.block3 = create_box(
+    #         scene = self.scene,
+    #         pose = block_pose,
+    #         half_size=(0.025,0.025,0.025),
+    #         color=(0,0,1),
+    #         name="box"
+    #     )
+    #     self.block1.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.1
+    #     self.block2.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.1
+    #     self.block3.find_component_by_type(sapien.physx.PhysxRigidDynamicComponent).mass = 0.1
+    #     self.block1_data = self.create_block_data((0.025,0.025,0.025))
+    #     self.block2_data = self.create_block_data((0.025,0.025,0.025))
+    #     self.block3_data = self.create_block_data((0.025,0.025,0.025))
+    #     self.block1_target_pose = [0, -0.1, 0.75]
+    #     self.actor_data_dic = {'block1_data':self.block1_data,'block2_data':self.block2_data,'block3_data':self.block3_data,'block1_target_pose': self.block1_target_pose}
+    #     self.actor_name_dic = {'block1':self.block1,'block2':self.block2,'block3':self.block3,'block1_target_pose': self.block1_target_pose}
     
     def play_once(self):
         pass
         
     def check_success(self):
-        block1_pose = self.block1.get_pose().p
-        block2_pose = self.block2.get_pose().p
-        block3_pose = self.block3.get_pose().p
+        block1 = self.actor_name_dic['block1']
+        block2 = self.actor_name_dic['block2']
+        block3 = self.actor_name_dic['block3']
+        block1_pose = block1.get_pose().p
+        block2_pose = block2.get_pose().p
+        block3_pose = block3.get_pose().p
         target_pose = [0,-0.1]
         eps = [0.03,0.03,0.01]
         return np.all(abs(block1_pose - np.array(target_pose + [0.765])) < eps) and \
